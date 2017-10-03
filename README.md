@@ -1,4 +1,4 @@
-# Element
+# Halide-elements
 
 Halide DSLで記述された部品を集める場所です。
 
