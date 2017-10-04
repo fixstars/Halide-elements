@@ -1,4 +1,4 @@
-HALIDE_ROOT?:=/usr/local/
+HALIDE_ROOT?=/usr/local/
 HALIDE_BUILD?=${HALIDE_ROOT}
 
 HALIDE_LIB_CMAKE:=${HALIDE_BUILD}/lib
