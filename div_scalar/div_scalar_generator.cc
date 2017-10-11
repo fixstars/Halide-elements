@@ -17,8 +17,8 @@ public:
 
         Func dst("dst");
 	Expr srcval = src(x, y);
-	srcval = cast<uint8_t>(min(srcval / value, cast<float>(UCHAR_MAX)) + 1.0f) & ~0x1;
-        dst(x, y) = srcval;
+	Expr dstval = cast<uint8_t>(min(srcval / value, cast<float>(UCHAR_MAX)) + 1.0f) & ~0x1;
+        dst(x, y) = dstval;
         
         return dst;
     }
