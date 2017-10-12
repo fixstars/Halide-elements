@@ -28,7 +28,7 @@ public:
         Func dst("dst");
         Expr dstval = cast<float>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
         dst(x,y) = cast<uint8_t>(round(dstval / kernel_sum()));
-        
+
         return dst;
     }
 };

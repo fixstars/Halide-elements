@@ -8,16 +8,13 @@
 
 #include "gaussian.h"
 
-#include "testcommon.h"
-
-using std::string;
-using Halide::Runtime::Buffer;
+#include "test_common.h"
 
 int main()
 {
     try {
         int ret = 0;
-        
+
         //
         // Run
         //
@@ -26,15 +23,9 @@ int main()
         const int window_width = 3;
         const int window_height = 3;
         const float sigma = 1.0;
-        Buffer<uint8_t> input(width, height);
-        Buffer<uint8_t> output(width, height);
-        std::srand(time(NULL));
-        for (int y=0; y<height; ++y) {
-            for (int x=0; x<width; ++x) {
-                input(x, y) = static_cast<uint8_t>(std::rand());
-                output(x, y) = 0;
-            }
-        }
+        const std::vector<int32_t> extents{width, height};
+        auto input = mk_rand_buffer<uint8_t>(extents);
+        auto output = mk_null_buffer<uint8_t>(extents);
 
         gaussian(input, window_width, window_height, sigma, output);
 
