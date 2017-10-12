@@ -17,7 +17,7 @@ public:
         Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
         Expr dstval = cast<uint8_t>(select(srcval0 == srcval1, type_of<uint8_t>().max(), 0));
         dst(x, y) = dstval;
-        
+
         return dst;
     }
 };
