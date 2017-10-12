@@ -9,31 +9,22 @@
 
 #include "cmpgt.h"
 
-#include "testcommon.h"
-
-using std::string;
-using Halide::Runtime::Buffer;
+#include "test_common.h"
 
 int main()
 {
     try {
         int ret = 0;
-        
+
         //
         // Run
         //
         const int width = 1024;
         const int height = 768;
-        Buffer<uint8_t> input0(width, height), input1(width, height);
-        Buffer<uint8_t> output(width, height);
-        std::srand(time(NULL));
-        for (int y=0; y<height; ++y) {
-            for (int x=0; x<width; ++x) {
-                input0(x, y) = static_cast<uint8_t>(std::rand());
-                input1(x, y) = static_cast<uint8_t>(std::rand());
-                output(x, y) = 0;
-            }
-        }
+        const std::vector<int32_t> extents{width, height};
+        auto input0 = mk_rand_buffer<uint8_t>(extents);
+        auto input1 = mk_rand_buffer<uint8_t>(extents);
+        auto output = mk_null_buffer<uint8_t>(extents);
 
         cmpgt(input0, input1, output);
 
