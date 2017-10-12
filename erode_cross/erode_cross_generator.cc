@@ -13,7 +13,7 @@ public:
     Param<int32_t> window_height{"window_height"};
 
     Var x, y;
-    
+
     Func build() {
 
         window_width.set_range(3, 17);
@@ -21,7 +21,7 @@ public:
 
         Func input("input");
         input(x, y) = src(x, y);
-        
+
         RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
         r.where(r.x == 0 || r.y == 0);
         for (int32_t i = 0; i < iteration; i++) {
@@ -32,7 +32,7 @@ public:
             workbuf.compute_root();
             input = workbuf;
         }
-        
+
         return input;
     }
 };
