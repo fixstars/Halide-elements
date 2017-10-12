@@ -9,16 +9,13 @@
 
 #include "erode.h"
 
-#include "testcommon.h"
-
-using std::string;
-using Halide::Runtime::Buffer;
+#include "test_common.h"
 
 int main()
 {
     try {
         int ret = 0;
-        
+
         //
         // Run
         //
@@ -27,25 +24,27 @@ int main()
         const int window_width = 3;
         const int window_height = 3;
         const int iteration = 2;
-        Buffer<uint8_t> input(width, height);
-        Buffer<uint8_t> output(width, height);
-        Buffer<uint8_t> structure(window_width, window_height);
+        const std::vector<int32_t> extents{width, height}, extents_structure{window_width, window_height};
+        auto input = mk_rand_buffer<uint8_t>(extents);
+        auto output = mk_null_buffer<uint8_t>(extents);
+        auto structure = mk_rand_buffer<uint8_t>(extents_structure);
         uint8_t (*expect)[width][height], workbuf[2][width][height];
-        std::srand(time(NULL));
+
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                input(x, y) = static_cast<uint8_t>(std::rand());
                 workbuf[0][x][y] = input(x, y);
-                output(x, y) = std::numeric_limits<uint8_t>::max();
             }
         }
 
-        for (int j=0; j<window_height; ++j) {
-            for (int i=0; i<window_width; ++i) {
-                structure(i, j) = static_cast<uint8_t>(std::rand());
+        bool allzero = true;
+        for (int y=0; y<window_height; ++y) {
+            for (int x=0; x<window_width; ++x) {
+                if (structure(x, y)) {
+                    allzero = false;
+                }
             }
         }
-
+        printf("allzero = %d\n", allzero);
         int k;
         for (k=0; k<iteration; ++k) {
             for (int y=0; y<height; ++y) {
@@ -55,7 +54,8 @@ int main()
                         int yy = y + j >= 0 ? y + j: 0;
                         yy = yy < height ? yy : height - 1;
                         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
-                            if (structure(window_width/2+i, window_height/2+j)) {
+                            if (structure(window_width/2+i, window_height/2+j) ||
+                                (allzero && i == -(window_width/2) && j == -(window_height/2))) {
                                 int xx = x + i >= 0 ? x + i: 0;
                                 xx = xx < width ? xx : width - 1;
                                 if (min > workbuf[k%2][xx][yy]) {
@@ -69,14 +69,14 @@ int main()
             }
         }
         expect = &(workbuf[k%2]);
-        
+
         erode(input, structure, window_width, window_height, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 uint8_t actual = output(x, y);
                 if ((*expect)[x][y] != actual) {
-                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect[x][y], x, y, actual).c_str());
+                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, (*expect)[x][y], x, y, actual).c_str());
                 }
             }
         }
