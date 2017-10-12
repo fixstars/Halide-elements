@@ -13,21 +13,23 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
 endif
 
-CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR}
+CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../include
 LIBS:=-ldl -lpthread -lz
+
+PROG:=erode_rect
 
 .PHONY: clean
 
-all: erode_rect_test
+all: ${PROG}_test
 
-erode_rect_gen: erode_rect_generator.cc
-	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o erode_rect_gen ${LIBS} -lHalide
+${PROG}_gen: ${PROG}_generator.cc
+	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
 
-erode_rect.h: erode_rect_gen
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./erode_rect_gen -o . -e h,static_library target=host
+${PROG}.h: ${PROG}_gen
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./${PROG}_gen -o . -e h,static_library target=host
 
-erode_rect_test: erode_rect_test.cc erode_rect.h erode_rect.a
-	g++ -I . ${CXXFLAGS} $< -o $@ erode_rect.a -ldl -lpthread
+${PROG}_test: ${PROG}_test.cc ${PROG}.h ${PROG}.a
+	g++ -I . ${CXXFLAGS} $< -o $@ ${PROG}.a -ldl -lpthread
 
 clean:
-	rm -rf erode_rect_test erode_rect_gen erode_rect.h erode_rect.a
+	rm -rf ${PROG}_test ${PROG}_gen ${PROG}.h ${PROG}.a
