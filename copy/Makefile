@@ -13,21 +13,23 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
 endif
 
-CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR}
+CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../include
 LIBS:=-ldl -lpthread -lz
+
+PROG:=copy
 
 .PHONY: clean
 
-all: copy_test
+all: ${PROG}_test
 
-copy_gen: copy_generator.cc
-	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o copy_gen ${LIBS} -lHalide
+${PROG}_gen: ${PROG}_generator.cc
+	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
 
-copy.h: copy_gen
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./copy_gen -o . -e h,static_library target=host
+${PROG}.h: ${PROG}_gen
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./${PROG}_gen -o . -e h,static_library target=host
 
-copy_test: copy_test.cc copy.h copy.a
-	g++ -I . ${CXXFLAGS} $< -o $@ copy.a -ldl -lpthread
+${PROG}_test: ${PROG}_test.cc ${PROG}.h ${PROG}.a
+	g++ -I . ${CXXFLAGS} $< -o $@ ${PROG}.a -ldl -lpthread
 
 clean:
-	rm -rf copy_test copy_gen copy.h copy.a
+	rm -rf ${PROG}_test ${PROG}_gen ${PROG}.h ${PROG}.a
