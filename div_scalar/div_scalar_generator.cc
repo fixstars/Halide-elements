@@ -1,5 +1,4 @@
 #include <iostream>
-#include <climits>
 #include "Halide.h"
 
 using namespace Halide;
@@ -16,9 +15,10 @@ public:
     Func build() {
 
         Func dst("dst");
-	Expr srcval = src(x, y);
-	Expr dstval = cast<uint8_t>(min(srcval / value, cast<float>(UCHAR_MAX)) + 1.0f) & ~0x1;
-        dst(x, y) = dstval;
+        Expr srcval = src(x, y);
+        Expr dstval = min(srcval / value, cast<float>(type_of<uint8_t>().max()));
+        dstval = max(dstval, 0);
+        dst(x, y) = cast<uint8_t>(round(dstval));
         
         return dst;
     }

@@ -13,21 +13,23 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
 endif
 
-CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR}
+CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../include
 LIBS:=-ldl -lpthread -lz
+
+PROG:=div_scalar
 
 .PHONY: clean
 
-all: div_scalar_test
+all: ${PROG}_test
 
-div_scalar_gen: div_scalar_generator.cc
-	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o div_scalar_gen ${LIBS} -lHalide
+${PROG}_gen: ${PROG}_generator.cc
+	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
 
-div_scalar.h: div_scalar_gen
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./div_scalar_gen -o . -e h,static_library target=host
+${PROG}.h: ${PROG}_gen
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./${PROG}_gen -o . -e h,static_library target=host
 
-div_scalar_test: div_scalar_test.cc div_scalar.h div_scalar.a
-	g++ -I . ${CXXFLAGS} $< -o $@ div_scalar.a -ldl -lpthread
+${PROG}_test: ${PROG}_test.cc ${PROG}.h ${PROG}.a
+	g++ -I . ${CXXFLAGS} $< -o $@ ${PROG}.a -ldl -lpthread
 
 clean:
-	rm -rf div_scalar_test div_scalar_gen div_scalar.h div_scalar.a
+	rm -rf ${PROG}_test ${PROG}_gen ${PROG}.h ${PROG}.a
