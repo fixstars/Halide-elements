@@ -24,7 +24,7 @@ public:
         RDom r(0, width, 0, height);
         Expr idx = cast<int32_t>(src(r.x, r.y) / bin_size());
         dst(idx) += cast<uint32_t>(1);
-        
+
         return dst;
     }
 };
