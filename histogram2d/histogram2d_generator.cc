@@ -21,7 +21,7 @@ public:
         Expr idx0 = cast<int32_t>(src0(r.x, r.y) * cast<uint32_t>(hist_width) / cast<uint32_t>(std::numeric_limits<uint8_t>::max() + 1));
         Expr idx1 = cast<int32_t>(src1(r.x, r.y) * cast<uint32_t>(hist_width) / cast<uint32_t>(std::numeric_limits<uint8_t>::max() + 1));
         dst(idx0, idx1) += cast<uint32_t>(1);
-        
+
         return dst;
     }
 };
