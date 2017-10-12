@@ -21,7 +21,7 @@ public:
 
         Func input("input");
         input(x, y) = src(x, y);
-        
+
         RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
@@ -31,7 +31,7 @@ public:
             workbuf.compute_root();
             input = workbuf;
         }
-        
+
         return input;
     }
 };
