@@ -1,3 +1,6 @@
+#ifndef TEST_COMMON_H
+#define TEST_COMMON_H
+
 #include <limits>
 #include <random>
 #include <string>
@@ -77,6 +80,18 @@ Halide::Runtime::Buffer<T> mk_null_buffer(const std::vector<int32_t>& extents)
     return Halide::Runtime::Buffer<T>(extents);
 }
 
+template<typename T>
+Halide::Runtime::Buffer<T> mk_const_buffer(const std::vector<int32_t>& extents, const T val)
+{
+    Halide::Runtime::Buffer<T> buf(extents);
+    const int32_t size = std::accumulate(extents.begin(), extents.end(), 1, std::multiplies<int32_t>());
+
+    for (int32_t i=0; i<size; ++i) {
+        *(reinterpret_cast<T*>(buf.data())+i) = val;
+    }
+
+    return buf;
+}
 
 template<typename T>
 T round_to_nearest_even(float v)
@@ -99,3 +114,5 @@ T round_to_nearest_even(float v)
 }
 
 }
+
+#endif /* TEST_COMMON_H */
