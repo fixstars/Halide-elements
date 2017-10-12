@@ -4,7 +4,7 @@
 #include <exception>
 
 #include "copy.h"
-#include "testcommon.h"
+#include "test_common.h"
 
 using std::string;
 using std::vector;
