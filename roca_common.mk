@@ -32,14 +32,16 @@ ${PROG}_gen: ${PROG}_generator.cc
 
 ${PROG}_gen.exec: ${PROG}_gen
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+=======
+	$(foreach type,${LIST_TYPE},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=host-no-asserts;)
 	@touch ${PROG}_gen.exec
 
-${PROG}.a: ${PROG}_gen.exec
+$(foreach type,${LIST_TYPE},${PROG}_${type}.a): ${PROG}_gen.exec
 
-${PROG}.h: ${PROG}_gen.exec
+$(foreach type,${LIST_TYPE},${PROG}_${type}.h): ${PROG}_gen.exec
 
-${PROG}_test: ${PROG}_test.cc ${PROG}.h ${PROG}.a
-	g++ -I . ${CXXFLAGS} $< -o $@ ${PROG}.a -ldl -lpthread
+${PROG}_test: ${PROG}_test.cc $(foreach type,${LIST_TYPE},${PROG}_${type}.h ${PROG}_${type}.a)
+	g++ -I . ${CXXFLAGS} $< -o $@ $(foreach type,${LIST_TYPE},${PROG}_${type}.a) -ldl -lpthread
 
 ${PROG}_gen.hls: ${PROG}_generator.cc
 	g++ -D HALIDE_FOR_FPGA -fno-rtti ${CXXFLAGS} $< ${HALIDE_TOOLS_DIR}/GenGen.cpp -o ${PROG}_gen.hls ${LIBS} -lHalide
@@ -61,4 +63,4 @@ ${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
 	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
 
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}.h *.o *.hls *.exec
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec
