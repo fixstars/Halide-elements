@@ -44,7 +44,7 @@ int main()
                 }
             }
         }
-        printf("allzero = %d\n", allzero);
+
         int k;
         for (k=0; k<iteration; ++k) {
             for (int y=0; y<height; ++y) {

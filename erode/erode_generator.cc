@@ -24,13 +24,14 @@ public:
         input(x, y) = src(x, y);
 
         RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-        Func sum_structure("sum_table");
-        sum_structure() = sum(cast<uint32_t>(structure(r.x + window_width / 2, r.y + window_height / 2)));
-        sum_structure.compute_root();
+        Func allzero("allzero");
+        allzero() = cast<bool>(true);
+        allzero() = allzero() && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
+        allzero.compute_root();
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            Expr val = select(sum_structure() == 0, clamped(x - window_width / 2, y - window_height / 2), minimum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<uint8_t>().max(), clamped(x + r.x, y + r.y))));
+            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2), minimum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<uint8_t>().max(), clamped(x + r.x, y + r.y))));
             workbuf(x, y) = val;
             workbuf.compute_root();
             input = workbuf;
