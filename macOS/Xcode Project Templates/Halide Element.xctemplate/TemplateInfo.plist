@@ -132,6 +132,7 @@ cd -
                         <string>libHalide.dylib</string>
                         <string>___PACKAGENAME___.a</string>
                         <string>Makefile</string>
+                        <string>.gitignore</string>
                     </array>
                     <key>Definitions</key>
                     <dict>
@@ -318,6 +319,16 @@ clean:
 	rm -rf ___PACKAGENAME____test ___PACKAGENAME____gen ___PACKAGENAME___.h ___PACKAGENAME___.a</string>
                             <key>Path</key>
                             <string>Makefile</string>
+                            <key>TargetIndices</key>
+                            <array/>
+                        </dict>
+                        <key>.gitignore</key>
+                        <dict>
+                            <key>Beginning</key>
+                            <string>___PACKAGENAME___.a
+___PACKAGENAME___.h</string>
+                            <key>Path</key>
+                            <string>.gitignore</string>
                             <key>TargetIndices</key>
                             <array/>
                         </dict>
