@@ -2,55 +2,40 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <climits>
 
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "copy.h"
+#include "div_scalar.h"
 
-using std::string;
-using std::vector;
-using Halide::Runtime::Buffer;
-
-namespace {
-
-template<typename... Rest>
-string format(const char *fmt, const Rest&... rest)
-{
-    int length = snprintf(NULL, 0, fmt, rest...) + 1; // Explicit place for null termination
-    vector<char> buf(length, 0);
-    snprintf(&buf[0], length, fmt, rest...);
-    string s(buf.begin(), std::find(buf.begin(), buf.end(), '\0'));
-    return s;
-}
-
-}
+#include "test_common.h"
 
 int main()
 {
     try {
         int ret = 0;
-        
+
         //
         // Run
         //
         const int width = 1024;
         const int height = 768;
-        Buffer<uint8_t> input(width, height);
-        Buffer<uint8_t> output(width, height);
-        for (int y=0; y<height; ++y) {
-            for (int x=0; x<width; ++x) {
-                input(x, y) = x + y;
-                output(x, y) = 0;
-            }
-        }
+        const float value = 2.0;
+        const std::vector<int32_t> extents{width, height};
+        auto input = mk_rand_buffer<uint8_t>(extents);
+        auto output = mk_null_buffer<uint8_t>(extents);
 
-        copy(input, output);
+        div_scalar(input, value, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 uint8_t expect = input(x, y);
                 uint8_t actual = output(x, y);
+                float f = expect / value;
+                f = std::min(static_cast<float>(std::numeric_limits<uint8_t>::max()), f);
+                f = std::max(0.0f, f);
+                expect = round_to_nearest_even<uint8_t>(f);
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
                 }
