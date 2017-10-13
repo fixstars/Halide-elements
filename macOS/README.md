@@ -62,12 +62,31 @@ $ sudo cp -a ~/Downloads/halide/tools /usr/local/share/halide
 $ cp -a macOS/Xcode\ Project\ Templates/ ~/Library/Developer/Xcode/Templates
 ```
 
-## Elementの追加方法
+## Element の追加方法
 
 1. Xcode で Halide-elements.xcodeproj を開く
 2. Project Navigator から、プロジェクトファイル (Halide-elements) を選択する
+![](images/Add01.png)
 3. ターゲット名のプルダウンリストから Add Target... を選択する
+![](images/Add02.png)
 4. テンプレートから Halide-elements を選択する
+![](images/Add03.png)
 5. 開発するElementの名前を "Product Name" のテキストボックスに任意に設定する
+![](images/Add04.png)
 7. "Product Name"/"Product Name"_generator.cc に HalideDSL のコードを記述する
 8. "Product Name"/"Product Name"_test.cc にテストコードを記述する
+![](images/Add05.png)
+
+## Element のコミット
+1. Source Control > Commit... を選択
+![](images/Commit01.png)
+2. ①コミットする対象を選び、②コミットメッセージを書き、③すぐにPushするならチェックを入れて、④コミットする
+![](images/Commit02.png)
+
+## Element のテスト
+1. テストするターゲットを選択するため、ターゲットリストを開く
+![](images/Test01.png)
+2. テストしたいターゲットを選択する
+![](images/Test02.png)
+3. Product > Run を選択する
+![](images/Test03.png)
