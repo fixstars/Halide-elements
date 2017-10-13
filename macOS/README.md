@@ -62,9 +62,9 @@ $ sudo cp -a ~/Downloads/halide/tools /usr/local/share/halide
 $ cp -a macOS/Xcode\ Project\ Templates/ ~/Library/Developer/Xcode/Templates
 ```
 
-## Element の追加方法
+## Element の新規追加方法
 
-1. Xcode で Halide-elements.xcodeproj を開く
+1. Xcode で src/Halide-elements.xcodeproj を開く
 2. Project Navigator から、プロジェクトファイル (Halide-elements) を選択する
 ![](images/Add01.png)
 3. ターゲット名のプルダウンリストから Add Target... を選択する
@@ -76,6 +76,11 @@ $ cp -a macOS/Xcode\ Project\ Templates/ ~/Library/Developer/Xcode/Templates
 7. "Product Name"/"Product Name"_generator.cc に HalideDSL のコードを記述する
 8. "Product Name"/"Product Name"_test.cc にテストコードを記述する
 ![](images/Add05.png)
+
+## 既存 Element の追加方法
+1. 追加対象のElementのフォルダをバックアップする。
+2. Element の新規追加方法の5まで実行する。
+3. ```cp -a path/to/backup src/``` などと実行して上書きする。
 
 ## Element のコミット
 1. Source Control > Commit... を選択
