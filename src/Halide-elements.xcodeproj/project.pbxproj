@@ -7,110 +7,112 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		45506CD81F905AC0008B55B6 /* copy_generator.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45506CD71F905AC0008B55B6 /* copy_generator.cc */; };
-		45506CDA1F905AC0008B55B6 /* copy_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45506CD91F905AC0008B55B6 /* copy_test.cc */; };
-		45506CDD1F905AC0008B55B6 /* GenGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45506CDC1F905AC0008B55B6 /* GenGen.cpp */; };
-		45506CE01F905AC0008B55B6 /* libHalide.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 45506CDF1F905AC0008B55B6 /* libHalide.dylib */; };
-		45506CE21F905AC0008B55B6 /* copy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45506CE11F905AC0008B55B6 /* copy.a */; };
+		45CBDAAB1F90A7740026A007 /* copy_generator.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45CBDAAA1F90A7740026A007 /* copy_generator.cc */; };
+		45CBDAAD1F90A7740026A007 /* copy_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45CBDAAC1F90A7740026A007 /* copy_test.cc */; };
+		45CBDAB01F90A7740026A007 /* GenGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45CBDAAF1F90A7740026A007 /* GenGen.cpp */; };
+		45CBDAB31F90A7740026A007 /* libHalide.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 45CBDAB21F90A7740026A007 /* libHalide.dylib */; };
+		45CBDAB51F90A7740026A007 /* copy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45CBDAB41F90A7740026A007 /* copy.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		45506CD41F905AC0008B55B6 /* PBXContainerItemProxy */ = {
+		45CBDAA71F90A7740026A007 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 457DA0C41F8F8C3500C0D586 /* Project object */;
+			containerPortal = 45CBDA771F90A74C0026A007 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 45506CCE1F905AC0008B55B6;
+			remoteGlobalIDString = 45CBDAA11F90A7740026A007;
 			remoteInfo = copy_gen;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		45506CCF1F905AC0008B55B6 /* copy_gen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_gen; sourceTree = BUILT_PRODUCTS_DIR; };
-		45506CD31F905AC0008B55B6 /* copy_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_test; sourceTree = BUILT_PRODUCTS_DIR; };
-		45506CD71F905AC0008B55B6 /* copy_generator.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_generator.cc; sourceTree = "<group>"; };
-		45506CD91F905AC0008B55B6 /* copy_test.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_test.cc; sourceTree = "<group>"; };
-		45506CDC1F905AC0008B55B6 /* GenGen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GenGen.cpp; path = /usr/local/share/halide/tools/GenGen.cpp; sourceTree = "<absolute>"; };
-		45506CDF1F905AC0008B55B6 /* libHalide.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libHalide.dylib; path = /usr/local/lib/libHalide.dylib; sourceTree = "<absolute>"; };
-		45506CE11F905AC0008B55B6 /* copy.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = copy.a; sourceTree = "<group>"; };
-		45506CE31F905AC0008B55B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		45CBDAA21F90A7740026A007 /* copy_gen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_gen; sourceTree = BUILT_PRODUCTS_DIR; };
+		45CBDAA61F90A7740026A007 /* copy_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		45CBDAAA1F90A7740026A007 /* copy_generator.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_generator.cc; sourceTree = "<group>"; };
+		45CBDAAC1F90A7740026A007 /* copy_test.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_test.cc; sourceTree = "<group>"; };
+		45CBDAAF1F90A7740026A007 /* GenGen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GenGen.cpp; path = /usr/local/share/halide/tools/GenGen.cpp; sourceTree = "<absolute>"; };
+		45CBDAB21F90A7740026A007 /* libHalide.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libHalide.dylib; path = /usr/local/lib/libHalide.dylib; sourceTree = "<absolute>"; };
+		45CBDAB41F90A7740026A007 /* copy.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = copy.a; sourceTree = "<group>"; };
+		45CBDAB61F90A7740026A007 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		45CBDAB71F90A7740026A007 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		45506CCC1F905AC0008B55B6 /* Frameworks */ = {
+		45CBDA9F1F90A7740026A007 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45506CE01F905AC0008B55B6 /* libHalide.dylib in Frameworks */,
+				45CBDAB31F90A7740026A007 /* libHalide.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		45506CD11F905AC0008B55B6 /* Frameworks */ = {
+		45CBDAA41F90A7740026A007 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45506CE21F905AC0008B55B6 /* copy.a in Frameworks */,
+				45CBDAB51F90A7740026A007 /* copy.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		45506CD61F905AC0008B55B6 /* copy */ = {
+		45CBDA761F90A74C0026A007 = {
 			isa = PBXGroup;
 			children = (
-				45506CD71F905AC0008B55B6 /* copy_generator.cc */,
-				45506CD91F905AC0008B55B6 /* copy_test.cc */,
-				45506CE31F905AC0008B55B6 /* Makefile */,
-				45506CDB1F905AC0008B55B6 /* tools */,
-				45506CDE1F905AC0008B55B6 /* lib */,
+				45CBDAA91F90A7740026A007 /* copy */,
+				45CBDA801F90A74C0026A007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		45CBDA801F90A74C0026A007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				45CBDAA21F90A7740026A007 /* copy_gen */,
+				45CBDAA61F90A7740026A007 /* copy_test */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		45CBDAA91F90A7740026A007 /* copy */ = {
+			isa = PBXGroup;
+			children = (
+				45CBDAAA1F90A7740026A007 /* copy_generator.cc */,
+				45CBDAAC1F90A7740026A007 /* copy_test.cc */,
+				45CBDAB61F90A7740026A007 /* Makefile */,
+				45CBDAB71F90A7740026A007 /* .gitignore */,
+				45CBDAAE1F90A7740026A007 /* tools */,
+				45CBDAB11F90A7740026A007 /* lib */,
 			);
 			path = copy;
 			sourceTree = "<group>";
 		};
-		45506CDB1F905AC0008B55B6 /* tools */ = {
+		45CBDAAE1F90A7740026A007 /* tools */ = {
 			isa = PBXGroup;
 			children = (
-				45506CDC1F905AC0008B55B6 /* GenGen.cpp */,
+				45CBDAAF1F90A7740026A007 /* GenGen.cpp */,
 			);
 			name = tools;
 			sourceTree = "<group>";
 		};
-		45506CDE1F905AC0008B55B6 /* lib */ = {
+		45CBDAB11F90A7740026A007 /* lib */ = {
 			isa = PBXGroup;
 			children = (
-				45506CDF1F905AC0008B55B6 /* libHalide.dylib */,
-				45506CE11F905AC0008B55B6 /* copy.a */,
+				45CBDAB21F90A7740026A007 /* libHalide.dylib */,
+				45CBDAB41F90A7740026A007 /* copy.a */,
 			);
 			name = lib;
-			sourceTree = "<group>";
-		};
-		457DA0C31F8F8C3500C0D586 = {
-			isa = PBXGroup;
-			children = (
-				45506CD61F905AC0008B55B6 /* copy */,
-				457DA0CD1F8F8C3500C0D586 /* Products */,
-			);
-			sourceTree = "<group>";
-		};
-		457DA0CD1F8F8C3500C0D586 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				45506CCF1F905AC0008B55B6 /* copy_gen */,
-				45506CD31F905AC0008B55B6 /* copy_test */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		45506CCE1F905AC0008B55B6 /* copy_gen */ = {
+		45CBDAA11F90A7740026A007 /* copy_gen */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 45506CE41F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_gen" */;
+			buildConfigurationList = 45CBDABC1F90A7740026A007 /* Build configuration list for PBXNativeTarget "copy_gen" */;
 			buildPhases = (
-				45506CCB1F905AC0008B55B6 /* Sources */,
-				45506CCC1F905AC0008B55B6 /* Frameworks */,
-				45506CCD1F905AC0008B55B6 /* ShellScript */,
+				45CBDA9E1F90A7740026A007 /* Sources */,
+				45CBDA9F1F90A7740026A007 /* Frameworks */,
+				45CBDAA01F90A7740026A007 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -118,65 +120,65 @@
 			);
 			name = copy_gen;
 			productName = copy_gen;
-			productReference = 45506CCF1F905AC0008B55B6 /* copy_gen */;
+			productReference = 45CBDAA21F90A7740026A007 /* copy_gen */;
 			productType = "com.apple.product-type.tool";
 		};
-		45506CD21F905AC0008B55B6 /* copy_test */ = {
+		45CBDAA51F90A7740026A007 /* copy_test */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 45506CE71F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_test" */;
+			buildConfigurationList = 45CBDABD1F90A7740026A007 /* Build configuration list for PBXNativeTarget "copy_test" */;
 			buildPhases = (
-				45506CD01F905AC0008B55B6 /* Sources */,
-				45506CD11F905AC0008B55B6 /* Frameworks */,
+				45CBDAA31F90A7740026A007 /* Sources */,
+				45CBDAA41F90A7740026A007 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				45506CD51F905AC0008B55B6 /* PBXTargetDependency */,
+				45CBDAA81F90A7740026A007 /* PBXTargetDependency */,
 			);
 			name = copy_test;
 			productName = copy_test;
-			productReference = 45506CD31F905AC0008B55B6 /* copy_test */;
+			productReference = 45CBDAA61F90A7740026A007 /* copy_test */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		457DA0C41F8F8C3500C0D586 /* Project object */ = {
+		45CBDA771F90A74C0026A007 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Fixstars Corporation";
 				TargetAttributes = {
-					45506CCE1F905AC0008B55B6 = {
+					45CBDAA11F90A7740026A007 = {
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Automatic;
 					};
-					45506CD21F905AC0008B55B6 = {
+					45CBDAA51F90A7740026A007 = {
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 457DA0C71F8F8C3500C0D586 /* Build configuration list for PBXProject "Halide-elements" */;
+			buildConfigurationList = 45CBDA7A1F90A74C0026A007 /* Build configuration list for PBXProject "Halide-elements" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 457DA0C31F8F8C3500C0D586;
-			productRefGroup = 457DA0CD1F8F8C3500C0D586 /* Products */;
+			mainGroup = 45CBDA761F90A74C0026A007;
+			productRefGroup = 45CBDA801F90A74C0026A007 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				45506CCE1F905AC0008B55B6 /* copy_gen */,
-				45506CD21F905AC0008B55B6 /* copy_test */,
+				45CBDAA11F90A7740026A007 /* copy_gen */,
+				45CBDAA51F90A7740026A007 /* copy_test */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		45506CCD1F905AC0008B55B6 /* ShellScript */ = {
+		45CBDAA01F90A7740026A007 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -192,77 +194,35 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		45506CCB1F905AC0008B55B6 /* Sources */ = {
+		45CBDA9E1F90A7740026A007 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45506CD81F905AC0008B55B6 /* copy_generator.cc in Sources */,
-				45506CDD1F905AC0008B55B6 /* GenGen.cpp in Sources */,
+				45CBDAAB1F90A7740026A007 /* copy_generator.cc in Sources */,
+				45CBDAB01F90A7740026A007 /* GenGen.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		45506CD01F905AC0008B55B6 /* Sources */ = {
+		45CBDAA31F90A7740026A007 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				45506CDA1F905AC0008B55B6 /* copy_test.cc in Sources */,
+				45CBDAAD1F90A7740026A007 /* copy_test.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		45506CD51F905AC0008B55B6 /* PBXTargetDependency */ = {
+		45CBDAA81F90A7740026A007 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 45506CCE1F905AC0008B55B6 /* copy_gen */;
-			targetProxy = 45506CD41F905AC0008B55B6 /* PBXContainerItemProxy */;
+			target = 45CBDAA11F90A7740026A007 /* copy_gen */;
+			targetProxy = 45CBDAA71F90A7740026A007 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		45506CE51F905AC0008B55B6 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				GCC_ENABLE_CPP_RTTI = NO;
-				PRODUCT_NAME = copy_gen;
-			};
-			name = Debug;
-		};
-		45506CE61F905AC0008B55B6 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				GCC_ENABLE_CPP_RTTI = NO;
-				PRODUCT_NAME = copy_gen;
-			};
-			name = Release;
-		};
-		45506CE81F905AC0008B55B6 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/copy",
-				);
-				PRODUCT_NAME = copy_test;
-			};
-			name = Debug;
-		};
-		45506CE91F905AC0008B55B6 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/copy",
-				);
-				PRODUCT_NAME = copy_test;
-			};
-			name = Release;
-		};
-		457DA0E21F8F8C3500C0D586 /* Debug */ = {
+		45CBDA961F90A74D0026A007 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -310,7 +270,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					"${PROJECT_DIR}/../include",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -319,7 +282,7 @@
 			};
 			name = Debug;
 		};
-		457DA0E31F8F8C3500C0D586 /* Release */ = {
+		45CBDA971F90A74D0026A007 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -361,7 +324,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					"${PROJECT_DIR}/../include",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -369,37 +335,79 @@
 			};
 			name = Release;
 		};
+		45CBDAB81F90A7740026A007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GCC_ENABLE_CPP_RTTI = NO;
+				PRODUCT_NAME = copy_gen;
+			};
+			name = Debug;
+		};
+		45CBDAB91F90A7740026A007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GCC_ENABLE_CPP_RTTI = NO;
+				PRODUCT_NAME = copy_gen;
+			};
+			name = Release;
+		};
+		45CBDABA1F90A7740026A007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/copy",
+				);
+				PRODUCT_NAME = copy_test;
+			};
+			name = Debug;
+		};
+		45CBDABB1F90A7740026A007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/copy",
+				);
+				PRODUCT_NAME = copy_test;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		45506CE41F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_gen" */ = {
+		45CBDA7A1F90A74C0026A007 /* Build configuration list for PBXProject "Halide-elements" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				45506CE51F905AC0008B55B6 /* Debug */,
-				45506CE61F905AC0008B55B6 /* Release */,
+				45CBDA961F90A74D0026A007 /* Debug */,
+				45CBDA971F90A74D0026A007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		45506CE71F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_test" */ = {
+		45CBDABC1F90A7740026A007 /* Build configuration list for PBXNativeTarget "copy_gen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				45506CE81F905AC0008B55B6 /* Debug */,
-				45506CE91F905AC0008B55B6 /* Release */,
+				45CBDAB81F90A7740026A007 /* Debug */,
+				45CBDAB91F90A7740026A007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		457DA0C71F8F8C3500C0D586 /* Build configuration list for PBXProject "Halide-elements" */ = {
+		45CBDABD1F90A7740026A007 /* Build configuration list for PBXNativeTarget "copy_test" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				457DA0E21F8F8C3500C0D586 /* Debug */,
-				457DA0E31F8F8C3500C0D586 /* Release */,
+				45CBDABA1F90A7740026A007 /* Debug */,
+				45CBDABB1F90A7740026A007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 457DA0C41F8F8C3500C0D586 /* Project object */;
+	rootObject = 45CBDA771F90A74C0026A007 /* Project object */;
 }

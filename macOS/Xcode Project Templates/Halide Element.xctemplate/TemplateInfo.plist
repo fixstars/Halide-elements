@@ -22,7 +22,10 @@
         <key>SharedSettings</key>
         <dict>
             <key>HEADER_SEARCH_PATHS</key>
+            <array>
                 <string>/usr/local/include</string>
+                <string>${PROJECT_DIR}/../include</string>
+            </array>
             <key>LIBRARY_SEARCH_PATHS</key>
                 <string>/usr/local/lib</string>
             <key>CLANG_CXX_LANGUAGE_STANDARD</key>
@@ -161,8 +164,7 @@ public:
     }
 };
 
-RegisterGenerator&lt;Copy&gt; ___PACKAGENAME___{&quot;___PACKAGENAME___&quot;};
-</string>
+RegisterGenerator&lt;Copy&gt; ___PACKAGENAME___{&quot;___PACKAGENAME___&quot;};</string>
                             <key>TargetIndices</key>
                             <array>
                                 <string>0</string>
@@ -176,56 +178,36 @@ RegisterGenerator&lt;Copy&gt; ___PACKAGENAME___{&quot;___PACKAGENAME___&quot;};
 #include &lt;string&gt;
 #include &lt;exception&gt;
 
-#include &quot;HalideRuntime.h&quot;
-#include &quot;HalideBuffer.h&quot;
-
-#include &quot;___PACKAGENAME___.h&quot;
+#include &quot;copy.h&quot;
+#include &quot;test_common.h&quot;
 
 using std::string;
 using std::vector;
-using Halide::Runtime::Buffer;
-
-namespace {
-
-template&lt;typename... Rest&gt;
-string format(const char *fmt, const Rest&amp;... rest)
-{
-    int length = snprintf(NULL, 0, fmt, rest...) + 1; // Explicit place for null termination
-    vector&lt;char&gt; buf(length, 0);
-    snprintf(&amp;buf[0], length, fmt, rest...);
-    string s(buf.begin(), std::find(buf.begin(), buf.end(), '\0'));
-    return s;
-}
-
-}
 
 int main()
 {
     try {
         int ret = 0;
-        
+
         //
         // Run
         //
         const int width = 1024;
         const int height = 768;
-        Buffer&lt;uint8_t&gt; input(width, height);
-        Buffer&lt;uint8_t&gt; output(width, height);
-        for (int y=0; y&lt;height; ++y) {
-            for (int x=0; x&lt;width; ++x) {
-                input(x, y) = x + y;
-                output(x, y) = 0;
-            }
-        }
+        const std::vector&lt;int32_t&gt; extents{width, height};
+        auto input = mk_rand_buffer&lt;uint8_t&gt;(extents);
+        auto output = mk_null_buffer&lt;uint8_t&gt;(extents);
 
-        ___PACKAGENAME___(input, output);
+        copy(input, output);
 
         for (int y=0; y&lt;height; ++y) {
             for (int x=0; x&lt;width; ++x) {
                 uint8_t expect = input(x, y);
                 uint8_t actual = output(x, y);
                 if (expect != actual) {
-                    throw std::runtime_error(format(&quot;Error: expect(%d, %d) = %d, actual(%d, %d) = %d&quot;, x, y, expect, x, y, actual).c_str());
+                    throw std::runtime_error(format(&quot;Error: expect(%d, %d) = %d, actual(%d, %d) = %d&quot;,
+                                                    x, y, static_cast&lt;uint64_t&gt;(expect),
+                                                    x, y, static_cast&lt;uint64_t&gt;(actual)).c_str());
                 }
             }
         }
@@ -237,8 +219,7 @@ int main()
 
     printf(&quot;Success!\n&quot;);
     return 0;
-}
-</string>
+}</string>
                             <key>TargetIndices</key>
                             <array>
                                 <string>1</string>
@@ -284,39 +265,8 @@ int main()
                         <key>Makefile</key>
                         <dict>
                             <key>Beginning</key>
-                            <string>HALIDE_ROOT?=/usr/local/
-HALIDE_BUILD?=${HALIDE_ROOT}
-
-HALIDE_LIB_CMAKE:=${HALIDE_BUILD}/lib
-HALIDE_LIB_MAKE:=${HALIDE_BUILD}/bin
-HALIDE_LIB:=libHalide.so
-BUILD_BY_CMAKE:=$(shell ls ${HALIDE_LIB_CMAKE} | grep ${HALIDE_LIB})
-BUILD_BY_MAKE:=$(shell ls ${HALIDE_LIB_MAKE} | grep ${HALIDE_LIB})
-
-ifeq (${BUILD_BY_CMAKE}, ${HALIDE_LIB})
-	HALIDE_LIB_DIR=${HALIDE_LIB_CMAKE}
-else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
-	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
-endif
-
-CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR}
-LIBS:=-ldl -lpthread -lz
-
-.PHONY: clean
-
-all: ___PACKAGENAME____test
-
-___PACKAGENAME____gen: ___PACKAGENAME____generator.cc
-	g++ -fno-rtti ${CXXFLAGS} $&lt; ${HALIDE_ROOT}/tools/GenGen.cpp -o ___PACKAGENAME____gen ${LIBS} -lHalide
-
-___PACKAGENAME___.h: ___PACKAGENAME____gen
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./___PACKAGENAME____gen -o . -e h,static_library target=host
-
-___PACKAGENAME____test: ___PACKAGENAME____test.cc ___PACKAGENAME___.h ___PACKAGENAME___.a
-	g++ -I . ${CXXFLAGS} $&lt; -o $@ ___PACKAGENAME___.a -ldl -lpthread
-
-clean:
-	rm -rf ___PACKAGENAME____test ___PACKAGENAME____gen ___PACKAGENAME___.h ___PACKAGENAME___.a</string>
+                            <string>PROG:=___PACKAGENAME___
+include ../../common.mk</string>
                             <key>Path</key>
                             <string>Makefile</string>
                             <key>TargetIndices</key>
