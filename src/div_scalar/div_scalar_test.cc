@@ -7,11 +7,14 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "div_scalar.h"
+#include "div_scalar_u8.h"
+#include "div_scalar_u16.h"
+#include "div_scalar_u32.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, float _value, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -23,19 +26,19 @@ int main()
         const int height = 768;
         const float value = 2.0;
         const std::vector<int32_t> extents{width, height};
-        auto input = mk_rand_buffer<uint8_t>(extents);
-        auto output = mk_null_buffer<uint8_t>(extents);
+        auto input = mk_rand_buffer<T>(extents);
+        auto output = mk_null_buffer<T>(extents);
 
-        div_scalar(input, value, output);
+        func(input, value, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                uint8_t expect = input(x, y);
-                uint8_t actual = output(x, y);
+                T expect = input(x, y);
+                T actual = output(x, y);
                 float f = expect / value;
-                f = std::min(static_cast<float>(std::numeric_limits<uint8_t>::max()), f);
+                f = std::min(static_cast<float>(std::numeric_limits<T>::max()), f);
                 f = std::max(0.0f, f);
-                expect = round_to_nearest_even<uint8_t>(f);
+                expect = round_to_nearest_even<T>(f);
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
                 }
@@ -49,4 +52,11 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+    test<uint8_t>(div_scalar_u8);
+    test<uint16_t>(div_scalar_u16);
+    test<uint32_t>(div_scalar_u32);
 }
