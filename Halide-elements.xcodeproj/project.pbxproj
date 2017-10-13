@@ -7,58 +7,87 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		457DA1161F8F8CDD00C0D586 /* copy_generator.cc in Sources */ = {isa = PBXBuildFile; fileRef = 457DA1151F8F8CDD00C0D586 /* copy_generator.cc */; };
-		457DA1181F8F8CDD00C0D586 /* copy_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = 457DA1171F8F8CDD00C0D586 /* copy_test.cc */; };
-		457DA11B1F8F8CDD00C0D586 /* GenGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 457DA11A1F8F8CDD00C0D586 /* GenGen.cpp */; };
-		457DA11E1F8F8CDD00C0D586 /* libHalide.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 457DA11D1F8F8CDD00C0D586 /* libHalide.dylib */; };
-		457DA1201F8F8CDD00C0D586 /* copy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 457DA11F1F8F8CDD00C0D586 /* copy.a */; };
+		45506CD81F905AC0008B55B6 /* copy_generator.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45506CD71F905AC0008B55B6 /* copy_generator.cc */; };
+		45506CDA1F905AC0008B55B6 /* copy_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = 45506CD91F905AC0008B55B6 /* copy_test.cc */; };
+		45506CDD1F905AC0008B55B6 /* GenGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45506CDC1F905AC0008B55B6 /* GenGen.cpp */; };
+		45506CE01F905AC0008B55B6 /* libHalide.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 45506CDF1F905AC0008B55B6 /* libHalide.dylib */; };
+		45506CE21F905AC0008B55B6 /* copy.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45506CE11F905AC0008B55B6 /* copy.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		457DA1121F8F8CDD00C0D586 /* PBXContainerItemProxy */ = {
+		45506CD41F905AC0008B55B6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 457DA0C41F8F8C3500C0D586 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 457DA10C1F8F8CDD00C0D586;
+			remoteGlobalIDString = 45506CCE1F905AC0008B55B6;
 			remoteInfo = copy_gen;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		457DA10D1F8F8CDD00C0D586 /* copy_gen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_gen; sourceTree = BUILT_PRODUCTS_DIR; };
-		457DA1111F8F8CDD00C0D586 /* copy_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_test; sourceTree = BUILT_PRODUCTS_DIR; };
-		457DA1151F8F8CDD00C0D586 /* copy_generator.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_generator.cc; sourceTree = "<group>"; };
-		457DA1171F8F8CDD00C0D586 /* copy_test.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_test.cc; sourceTree = "<group>"; };
-		457DA11A1F8F8CDD00C0D586 /* GenGen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GenGen.cpp; path = /usr/local/src/halide/tools/GenGen.cpp; sourceTree = "<absolute>"; };
-		457DA11D1F8F8CDD00C0D586 /* libHalide.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libHalide.dylib; path = /usr/local/lib/libHalide.dylib; sourceTree = "<absolute>"; };
-		457DA11F1F8F8CDD00C0D586 /* copy.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = copy.a; sourceTree = "<group>"; };
-		457DA1211F8F8CDD00C0D586 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		45506CCF1F905AC0008B55B6 /* copy_gen */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_gen; sourceTree = BUILT_PRODUCTS_DIR; };
+		45506CD31F905AC0008B55B6 /* copy_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = copy_test; sourceTree = BUILT_PRODUCTS_DIR; };
+		45506CD71F905AC0008B55B6 /* copy_generator.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_generator.cc; sourceTree = "<group>"; };
+		45506CD91F905AC0008B55B6 /* copy_test.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = copy_test.cc; sourceTree = "<group>"; };
+		45506CDC1F905AC0008B55B6 /* GenGen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = GenGen.cpp; path = /usr/local/share/halide/tools/GenGen.cpp; sourceTree = "<absolute>"; };
+		45506CDF1F905AC0008B55B6 /* libHalide.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libHalide.dylib; path = /usr/local/lib/libHalide.dylib; sourceTree = "<absolute>"; };
+		45506CE11F905AC0008B55B6 /* copy.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = copy.a; sourceTree = "<group>"; };
+		45506CE31F905AC0008B55B6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		457DA10A1F8F8CDD00C0D586 /* Frameworks */ = {
+		45506CCC1F905AC0008B55B6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				457DA11E1F8F8CDD00C0D586 /* libHalide.dylib in Frameworks */,
+				45506CE01F905AC0008B55B6 /* libHalide.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		457DA10F1F8F8CDD00C0D586 /* Frameworks */ = {
+		45506CD11F905AC0008B55B6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				457DA1201F8F8CDD00C0D586 /* copy.a in Frameworks */,
+				45506CE21F905AC0008B55B6 /* copy.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		45506CD61F905AC0008B55B6 /* copy */ = {
+			isa = PBXGroup;
+			children = (
+				45506CD71F905AC0008B55B6 /* copy_generator.cc */,
+				45506CD91F905AC0008B55B6 /* copy_test.cc */,
+				45506CE31F905AC0008B55B6 /* Makefile */,
+				45506CDB1F905AC0008B55B6 /* tools */,
+				45506CDE1F905AC0008B55B6 /* lib */,
+			);
+			path = copy;
+			sourceTree = "<group>";
+		};
+		45506CDB1F905AC0008B55B6 /* tools */ = {
+			isa = PBXGroup;
+			children = (
+				45506CDC1F905AC0008B55B6 /* GenGen.cpp */,
+			);
+			name = tools;
+			sourceTree = "<group>";
+		};
+		45506CDE1F905AC0008B55B6 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				45506CDF1F905AC0008B55B6 /* libHalide.dylib */,
+				45506CE11F905AC0008B55B6 /* copy.a */,
+			);
+			name = lib;
+			sourceTree = "<group>";
+		};
 		457DA0C31F8F8C3500C0D586 = {
 			isa = PBXGroup;
 			children = (
-				457DA1141F8F8CDD00C0D586 /* copy */,
+				45506CD61F905AC0008B55B6 /* copy */,
 				457DA0CD1F8F8C3500C0D586 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,51 +95,22 @@
 		457DA0CD1F8F8C3500C0D586 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				457DA10D1F8F8CDD00C0D586 /* copy_gen */,
-				457DA1111F8F8CDD00C0D586 /* copy_test */,
+				45506CCF1F905AC0008B55B6 /* copy_gen */,
+				45506CD31F905AC0008B55B6 /* copy_test */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		457DA1141F8F8CDD00C0D586 /* copy */ = {
-			isa = PBXGroup;
-			children = (
-				457DA1151F8F8CDD00C0D586 /* copy_generator.cc */,
-				457DA1171F8F8CDD00C0D586 /* copy_test.cc */,
-				457DA1211F8F8CDD00C0D586 /* Makefile */,
-				457DA1191F8F8CDD00C0D586 /* tools */,
-				457DA11C1F8F8CDD00C0D586 /* lib */,
-			);
-			path = copy;
-			sourceTree = "<group>";
-		};
-		457DA1191F8F8CDD00C0D586 /* tools */ = {
-			isa = PBXGroup;
-			children = (
-				457DA11A1F8F8CDD00C0D586 /* GenGen.cpp */,
-			);
-			name = tools;
-			sourceTree = "<group>";
-		};
-		457DA11C1F8F8CDD00C0D586 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				457DA11D1F8F8CDD00C0D586 /* libHalide.dylib */,
-				457DA11F1F8F8CDD00C0D586 /* copy.a */,
-			);
-			name = lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		457DA10C1F8F8CDD00C0D586 /* copy_gen */ = {
+		45506CCE1F905AC0008B55B6 /* copy_gen */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 457DA1221F8F8CDD00C0D586 /* Build configuration list for PBXNativeTarget "copy_gen" */;
+			buildConfigurationList = 45506CE41F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_gen" */;
 			buildPhases = (
-				457DA1091F8F8CDD00C0D586 /* Sources */,
-				457DA10A1F8F8CDD00C0D586 /* Frameworks */,
-				457DA10B1F8F8CDD00C0D586 /* ShellScript */,
+				45506CCB1F905AC0008B55B6 /* Sources */,
+				45506CCC1F905AC0008B55B6 /* Frameworks */,
+				45506CCD1F905AC0008B55B6 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -118,24 +118,24 @@
 			);
 			name = copy_gen;
 			productName = copy_gen;
-			productReference = 457DA10D1F8F8CDD00C0D586 /* copy_gen */;
+			productReference = 45506CCF1F905AC0008B55B6 /* copy_gen */;
 			productType = "com.apple.product-type.tool";
 		};
-		457DA1101F8F8CDD00C0D586 /* copy_test */ = {
+		45506CD21F905AC0008B55B6 /* copy_test */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 457DA1251F8F8CDD00C0D586 /* Build configuration list for PBXNativeTarget "copy_test" */;
+			buildConfigurationList = 45506CE71F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_test" */;
 			buildPhases = (
-				457DA10E1F8F8CDD00C0D586 /* Sources */,
-				457DA10F1F8F8CDD00C0D586 /* Frameworks */,
+				45506CD01F905AC0008B55B6 /* Sources */,
+				45506CD11F905AC0008B55B6 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				457DA1131F8F8CDD00C0D586 /* PBXTargetDependency */,
+				45506CD51F905AC0008B55B6 /* PBXTargetDependency */,
 			);
 			name = copy_test;
 			productName = copy_test;
-			productReference = 457DA1111F8F8CDD00C0D586 /* copy_test */;
+			productReference = 45506CD31F905AC0008B55B6 /* copy_test */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -147,11 +147,11 @@
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Fixstars Corporation";
 				TargetAttributes = {
-					457DA10C1F8F8CDD00C0D586 = {
+					45506CCE1F905AC0008B55B6 = {
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Automatic;
 					};
-					457DA1101F8F8CDD00C0D586 = {
+					45506CD21F905AC0008B55B6 = {
 						CreatedOnToolsVersion = 9.0;
 						ProvisioningStyle = Automatic;
 					};
@@ -169,14 +169,14 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				457DA10C1F8F8CDD00C0D586 /* copy_gen */,
-				457DA1101F8F8CDD00C0D586 /* copy_test */,
+				45506CCE1F905AC0008B55B6 /* copy_gen */,
+				45506CD21F905AC0008B55B6 /* copy_test */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		457DA10B1F8F8CDD00C0D586 /* ShellScript */ = {
+		45506CCD1F905AC0008B55B6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -192,34 +192,76 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		457DA1091F8F8CDD00C0D586 /* Sources */ = {
+		45506CCB1F905AC0008B55B6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				457DA1161F8F8CDD00C0D586 /* copy_generator.cc in Sources */,
-				457DA11B1F8F8CDD00C0D586 /* GenGen.cpp in Sources */,
+				45506CD81F905AC0008B55B6 /* copy_generator.cc in Sources */,
+				45506CDD1F905AC0008B55B6 /* GenGen.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		457DA10E1F8F8CDD00C0D586 /* Sources */ = {
+		45506CD01F905AC0008B55B6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				457DA1181F8F8CDD00C0D586 /* copy_test.cc in Sources */,
+				45506CDA1F905AC0008B55B6 /* copy_test.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		457DA1131F8F8CDD00C0D586 /* PBXTargetDependency */ = {
+		45506CD51F905AC0008B55B6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 457DA10C1F8F8CDD00C0D586 /* copy_gen */;
-			targetProxy = 457DA1121F8F8CDD00C0D586 /* PBXContainerItemProxy */;
+			target = 45506CCE1F905AC0008B55B6 /* copy_gen */;
+			targetProxy = 45506CD41F905AC0008B55B6 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		45506CE51F905AC0008B55B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GCC_ENABLE_CPP_RTTI = NO;
+				PRODUCT_NAME = copy_gen;
+			};
+			name = Debug;
+		};
+		45506CE61F905AC0008B55B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GCC_ENABLE_CPP_RTTI = NO;
+				PRODUCT_NAME = copy_gen;
+			};
+			name = Release;
+		};
+		45506CE81F905AC0008B55B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/copy",
+				);
+				PRODUCT_NAME = copy_test;
+			};
+			name = Debug;
+		};
+		45506CE91F905AC0008B55B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/copy",
+				);
+				PRODUCT_NAME = copy_test;
+			};
+			name = Release;
+		};
 		457DA0E21F8F8C3500C0D586 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -327,74 +369,32 @@
 			};
 			name = Release;
 		};
-		457DA1231F8F8CDD00C0D586 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				GCC_ENABLE_CPP_RTTI = NO;
-				PRODUCT_NAME = copy_gen;
-			};
-			name = Debug;
-		};
-		457DA1241F8F8CDD00C0D586 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				GCC_ENABLE_CPP_RTTI = NO;
-				PRODUCT_NAME = copy_gen;
-			};
-			name = Release;
-		};
-		457DA1261F8F8CDD00C0D586 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/copy",
-				);
-				PRODUCT_NAME = copy_test;
-			};
-			name = Debug;
-		};
-		457DA1271F8F8CDD00C0D586 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/copy",
-				);
-				PRODUCT_NAME = copy_test;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		45506CE41F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_gen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45506CE51F905AC0008B55B6 /* Debug */,
+				45506CE61F905AC0008B55B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		45506CE71F905AC0008B55B6 /* Build configuration list for PBXNativeTarget "copy_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45506CE81F905AC0008B55B6 /* Debug */,
+				45506CE91F905AC0008B55B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		457DA0C71F8F8C3500C0D586 /* Build configuration list for PBXProject "Halide-elements" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				457DA0E21F8F8C3500C0D586 /* Debug */,
 				457DA0E31F8F8C3500C0D586 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		457DA1221F8F8CDD00C0D586 /* Build configuration list for PBXNativeTarget "copy_gen" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				457DA1231F8F8CDD00C0D586 /* Debug */,
-				457DA1241F8F8CDD00C0D586 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		457DA1251F8F8CDD00C0D586 /* Build configuration list for PBXNativeTarget "copy_test" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				457DA1261F8F8CDD00C0D586 /* Debug */,
-				457DA1271F8F8CDD00C0D586 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
