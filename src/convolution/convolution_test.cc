@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 
         const int width = 512;
         const int height = 512;
-        Buffer<uint8_t> input = mk_const_buffer<uint8_t>({4, width, height}, 1);
+        Buffer<uint8_t> input = mk_const_buffer<uint8_t>({width, height}, 1);
                 
         using fixed16_t = int16_t;
         constexpr uint32_t frac_bits = 10;
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
         Buffer<fixed16_t> kernel(reinterpret_cast<fixed16_t*>(kernel_data), 5, 5);
 
-        Buffer<uint8_t> output(4, width, height);
+        Buffer<uint8_t> output(width, height);
 
         convolution(input, kernel, 3, output);
 
