@@ -1,6 +1,8 @@
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
+#include <exception>
+#include <fstream>
 #include <limits>
 #include <random>
 #include <string>
@@ -93,6 +95,38 @@ Halide::Runtime::Buffer<T> mk_const_buffer(const std::vector<int32_t>& extents, 
     }
 
     return buf;
+}
+
+Halide::Runtime::Buffer<uint8_t> load_pgm(const std::string& fname)
+{
+    std::ifstream ifs(fname.c_str(), std::ios_base::binary);
+    if (!ifs.is_open()) {
+        throw std::runtime_error("File not found");
+    }
+    
+    std::string header;
+    ifs >> header;
+    if (header!=std::string("P5")) {
+        throw std::runtime_error("Invalid file");
+    }
+
+    int32_t width = 0;
+    int32_t height = 0;
+    ifs >> width;
+    ifs >> height;
+    if (width == 0 || height == 0) {
+        throw std::runtime_error("Invalid file");
+    }
+
+    int32_t max_depth = 0;
+    ifs >> max_depth;
+    if (max_depth != 255) {
+        throw std::runtime_error("Invalid file");
+    }
+
+    Halide::Runtime::Buffer<uint8_t> im(width, height);
+    ifs.read(reinterpret_cast<char *>(im.data()), width*height);
+    return im;
 }
 
 template<typename T>
