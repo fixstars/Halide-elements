@@ -108,7 +108,36 @@ static void mempool_fini(pool_t *pool)
     }
 }
 
-int save_ppm(const char *fname, const uint8_t* buffer, int32_t channel, int32_t width, int32_t height)
+int load_pgm(const char *fname, uint8_t *buffer, int32_t *width, int32_t *height)
+{
+    FILE *fd = fopen(fname, "r");
+    if (fd == NULL) {
+        printf("Invalid path\n");
+        return 1;
+    }
+
+    char header[256];
+    fscanf(fd, "%s\n", header);
+    int32_t w=0, h=0;
+    fscanf(fd, "%d %d\n", &w, &h);
+    int32_t max_depth;
+    fscanf(fd, "%d\n", &max_depth);
+    
+    if (width != NULL) {
+        *width = w;
+    }
+    if (height != NULL) {
+        *height = h;
+    }
+    if (buffer != NULL) {
+        fread(buffer, sizeof(uint8_t), w*h, fd);
+    }
+
+    fclose(fd);
+    return 0;
+}
+
+int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t width, int32_t height)
 {
     if (channel != 3 && channel != 4) {
         printf("Invalid format\n");

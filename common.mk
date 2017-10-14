@@ -9,6 +9,7 @@ BUILD_BY_MAKE:=$(shell ls ${HALIDE_LIB_MAKE} | grep ${HALIDE_LIB})
 
 DRIVER_ROOT=./${PROG}.hls/${PROG}_zynq.sdk/design_1_wrapper_hw_platform_0/drivers/${PROG}_hp_wrapper_v1_0/src/
 TARGET_SRC=${PROG}_run.c ${DRIVER_ROOT}/x${PROG}_hp_wrapper.c ${DRIVER_ROOT}/x${PROG}_hp_wrapper_linux.c
+TARGET_LIB=-lm
 CFLAGS=-std=c99 -D_GNU_SOURCE -O2 -mcpu=cortex-a9 -I${DRIVER_ROOT} -I../../include
 
 ifeq (${BUILD_BY_CMAKE}, ${HALIDE_LIB})
@@ -51,7 +52,7 @@ ${PROG}.hls.exec: ${PROG}.hls
 	@touch ${PROG}.hls.exec
 
 ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
-	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@
+	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@ ${TARGET_LIB}
 
 clean:
 	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}.h ${PROG}.a *.hls *.exec
