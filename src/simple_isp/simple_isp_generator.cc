@@ -86,11 +86,16 @@ private:
         return out;
     }
 
+    Expr fast_pow(Expr a, Expr b)
+    {
+		return reinterpret<float>(cast<int32_t>(b * (reinterpret<int32_t>(a) - 1064866805) + cast<float>(1064866805)));
+    }
+
     Func gamma_correction(Func in, Param<float> value)
     {
         Fixed16 v = Fixed16{in(c, x, y)};
         Func out;
-        out(c, x, y) = static_cast<Expr>(to_fixed16(pow(from_fixed<float>(v), value)));
+        out(c, x, y) = static_cast<Expr>(to_fixed16(fast_pow(from_fixed<float>(v), value)));
         return out;
     }
 
@@ -136,7 +141,7 @@ private:
         Fixed16 v = Fixed16{in(c, x, y)};
         
         Func out;
-        out(c, x, y) = static_cast<Expr>(select(c == 1, clamp(to_fixed16(pow(from_fixed<float>(v), value)), zero, one), v));
+        out(c, x, y) = static_cast<Expr>(select(c == 1, clamp(to_fixed16(fast_pow(from_fixed<float>(v), value)), zero, one), v));
         return out;
     }
 

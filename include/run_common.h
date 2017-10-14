@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -105,6 +106,36 @@ static void mempool_fini(pool_t *pool)
         pool->fd = 0;
         close(pool->fd);
     }
+}
+
+int save_ppm(const char *fname, const uint8_t* buffer, int32_t channel, int32_t width, int32_t height)
+{
+    if (channel != 3 && channel != 4) {
+        printf("Invalid format\n");
+        return 1;
+    }
+
+    FILE *fd = fopen(fname, "w");
+    if (fd == NULL) {
+        printf("Invalid path\n");
+        return 1;
+    }
+
+    fprintf(fd, "P6\n");
+    fprintf(fd, "%d %d\n", width, height);
+    fprintf(fd, "255\n", width, height);
+    
+    uint8_t *buf = (uint8_t*)malloc(3*width*height);
+    for (int32_t y=0; y<height; ++y) {
+        for (int32_t x=0; x<width; ++x) {
+            for (int32_t c=0; c<3; ++c) {
+                buf[y*3*width+x*3+c] = buffer[y*channel*width+x*channel+c];
+            }
+        }
+    }
+    fwrite(buf, sizeof(uint8_t), 3*width*height, fd);
+    free(buf);
+    fclose(fd);
 }
 
 #endif

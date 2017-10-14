@@ -1,6 +1,7 @@
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
+#include <cstring>
 #include <exception>
 #include <fstream>
 #include <limits>
@@ -128,6 +129,35 @@ Halide::Runtime::Buffer<uint8_t> load_pgm(const std::string& fname)
     ifs.read(reinterpret_cast<char *>(im.data()), width*height);
     return im;
 }
+
+void save_ppm(const std::string& fname, Halide::Runtime::Buffer<uint8_t>& buffer)
+{
+    std::ofstream ofs(fname.c_str());
+    if (!ofs.is_open()) {
+        throw std::runtime_error("File not found");
+    }
+    if (buffer.dimensions() != 3 || (buffer.extent(0) != 3 && buffer.extent(0) != 4)) {
+        throw std::runtime_error("Invalid buffer");
+    }
+    
+    uint32_t width = buffer.extent(1);
+    uint32_t height = buffer.extent(2);
+    std::vector<uint8_t> buf(3*width*height);
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            for (int c=0; c<3; ++c) {
+                buf[y*3*width+x*3+c] = buffer(c, x, y);
+            }
+        }
+    }
+
+    ofs << "P6" << std::endl;
+    ofs << width << " " << height << std::endl;
+    ofs << "255" << std::endl;
+   
+    ofs.write(reinterpret_cast<char *>(buf.data()), 3*width*height*sizeof(uint8_t));
+}
+
 
 template<typename T>
 T round_to_nearest_even(float v)

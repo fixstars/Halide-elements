@@ -45,9 +45,12 @@ ${PROG}_gen.hls: ${PROG}_generator.cc
 
 ${PROG}.hls: ${PROG}_gen.hls
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
-	cd ${PROG}.hls; make 
 
-${PROG}_run: ${PROG}_run.c ${PROG}.hls
+${PROG}.hls.exec: ${PROG}.hls
+	cd ${PROG}.hls; make 
+	@touch ${PROG}.hls.exec
+
+${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@
 
 clean:
