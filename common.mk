@@ -31,7 +31,7 @@ ${PROG}_gen: ${PROG}_generator.cc
 	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_TOOLS_DIR}/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
 
 ${PROG}_gen.exec: ${PROG}_gen
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
 	@touch ${PROG}_gen.exec
 
 ${PROG}.a: ${PROG}_gen.exec

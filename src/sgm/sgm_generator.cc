@@ -171,7 +171,7 @@ private:
          .update().unroll(x).unroll(y).unroll(r[0]);
 
         Func f("disparity");
-        f(x, y) = cast<uint32_t>(g(x, y)[0] * (UINT8_MAX+1) / disp);
+        f(x, y) = cast<uint8_t>(g(x, y)[0] * (UINT8_MAX+1) / disp);
 
         return f;
     }

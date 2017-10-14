@@ -4,6 +4,7 @@
 #include "HalideBuffer.h"
 
 #include "test_common.h"
+#include "run_common.h"
 
 #include "sgm.h"
 
@@ -14,14 +15,17 @@ int main(int argc, char **argv) {
         Buffer<uint8_t> in_l = load_pgm("data/left.pgm");
         Buffer<uint8_t> in_r = load_pgm("data/right.pgm");
 
-        const int width = in_l.extent(1);
-        const int height = in_l.extent(2);
+        const int width = in_l.extent(0);
+        const int height = in_l.extent(1);
 
         Buffer<uint8_t> out(width, height);
 
         sgm(in_l, in_r, out);
         
         Buffer<uint8_t> disp = load_pgm("data/disp.pgm");
+
+        save_pgm("disp2.pgm", disp.data(), width, height);
+        save_pgm("out_test.pgm", out.data(), width, height);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {

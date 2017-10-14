@@ -100,33 +100,24 @@ Halide::Runtime::Buffer<T> mk_const_buffer(const std::vector<int32_t>& extents, 
 
 Halide::Runtime::Buffer<uint8_t> load_pgm(const std::string& fname)
 {
-    std::ifstream ifs(fname.c_str(), std::ios_base::binary);
-    if (!ifs.is_open()) {
+    FILE *fd = fopen(fname.c_str(), "rb");
+    if (fd == NULL) {
         throw std::runtime_error("File not found");
     }
-    
-    std::string header;
-    ifs >> header;
-    if (header!=std::string("P5")) {
-        throw std::runtime_error("Invalid file");
-    }
 
-    int32_t width = 0;
-    int32_t height = 0;
-    ifs >> width;
-    ifs >> height;
-    if (width == 0 || height == 0) {
-        throw std::runtime_error("Invalid file");
-    }
-
-    int32_t max_depth = 0;
-    ifs >> max_depth;
+    char header[256];
+    fscanf(fd, "%s\n", header);
+    int32_t width=0, height=0;
+    fscanf(fd, "%d %d\n", &width, &height);
+    int32_t max_depth;
+    fscanf(fd, "%d\n", &max_depth);
     if (max_depth != 255) {
+        fclose(fd);
         throw std::runtime_error("Invalid file");
     }
-
     Halide::Runtime::Buffer<uint8_t> im(width, height);
-    ifs.read(reinterpret_cast<char *>(im.data()), width*height);
+    fread(reinterpret_cast<char *>(im.data()), sizeof(uint8_t), width*height, fd);
+    fclose(fd);
     return im;
 }
 

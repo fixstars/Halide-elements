@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -108,9 +109,9 @@ static void mempool_fini(pool_t *pool)
     }
 }
 
-int load_pgm(const char *fname, uint8_t *buffer, int32_t *width, int32_t *height)
+int load_pgm(const char *fname, uint8_t *buffer, int32_t width, int32_t height)
 {
-    FILE *fd = fopen(fname, "r");
+    FILE *fd = fopen(fname, "rb");
     if (fd == NULL) {
         printf("Invalid path\n");
         return 1;
@@ -120,19 +121,44 @@ int load_pgm(const char *fname, uint8_t *buffer, int32_t *width, int32_t *height
     fscanf(fd, "%s\n", header);
     int32_t w=0, h=0;
     fscanf(fd, "%d %d\n", &w, &h);
+    if (w != width || h != height) {
+        printf("Mismatched size\n");
+        return 1;
+    }
     int32_t max_depth;
     fscanf(fd, "%d\n", &max_depth);
-    
-    if (width != NULL) {
-        *width = w;
+
+    uint8_t *buf = (uint8_t*)malloc(w*h*sizeof(uint8_t));
+    if (buf == NULL) {
+        printf("Cannot allocate buffer\n");
+        fclose(fd);
+        return 1;
     }
-    if (height != NULL) {
-        *height = h;
-    }
-    if (buffer != NULL) {
-        fread(buffer, sizeof(uint8_t), w*h, fd);
+    fread(buf, sizeof(uint8_t), w*h, fd);
+    memcpy(buffer, buf, w*h*sizeof(uint8_t));
+    free(buf);
+
+    fclose(fd);
+    return 0;
+}
+
+int save_pgm(const char *fname, const uint8_t *buffer, int32_t width, int32_t height)
+{
+    FILE *fd = fopen(fname, "wb");
+    if (fd == NULL) {
+        printf("Invalid path\n");
+        return 1;
     }
 
+    fprintf(fd, "P5\n");
+    fprintf(fd, "%d %d\n", width, height);
+    fprintf(fd, "255\n");
+    
+    uint8_t *buf = (uint8_t*)malloc(width*height*sizeof(uint8_t));
+    memcpy(buf, buffer, width*height*sizeof(uint8_t));
+    fwrite(buf, sizeof(uint8_t), width*height, fd);
+    free(buf);
+    
     fclose(fd);
     return 0;
 }
@@ -144,7 +170,7 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
         return 1;
     }
 
-    FILE *fd = fopen(fname, "w");
+    FILE *fd = fopen(fname, "wb");
     if (fd == NULL) {
         printf("Invalid path\n");
         return 1;
@@ -152,7 +178,7 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
 
     fprintf(fd, "P6\n");
     fprintf(fd, "%d %d\n", width, height);
-    fprintf(fd, "255\n", width, height);
+    fprintf(fd, "255\n");
     
     uint8_t *buf = (uint8_t*)malloc(3*width*height);
     for (int32_t y=0; y<height; ++y) {
@@ -164,7 +190,9 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
     }
     fwrite(buf, sizeof(uint8_t), 3*width*height, fd);
     free(buf);
+    
     fclose(fd);
+    return 0;
 }
 
 #endif
