@@ -8,9 +8,9 @@ using namespace Halide::Element;
 template<typename T>
 class Copy : public Halide::Generator<Copy<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> width{"width", 1024};
+    Param<int32_t> height{"height", 768};
 
     Var x, y;
 
