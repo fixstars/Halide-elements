@@ -11,13 +11,11 @@ public:
     ImageParam src0{type_of<T>(), 2, "src0"}, src1{type_of<T>(), 2, "src1"};
     Param<int32_t> width{"width", 1024};
     Param<int32_t> height{"height", 768};
-    Param<int32_t> hist_width{"hist_width", 256};
+    Param<int32_t> hist_width{"hist_width", 256, 1, static_cast<int32_t>(sqrt(std::numeric_limits<int32_t>::max()))};
 
     Var x, y;
 
     Func build() {
-
-        hist_width.set_range(1, static_cast<int32_t>(sqrt(std::numeric_limits<int32_t>::max())));
 
         Func dst("dst");
         dst(x, y) = cast<uint32_t>(0);
