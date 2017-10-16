@@ -5,11 +5,12 @@
 using namespace Halide;
 using namespace Halide::Element;
 
-class Copy : public Halide::Generator<Copy> {
+template<typename T>
+class Copy : public Halide::Generator<Copy<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    ImageParam src{UInt(8), 2, "src"};
+    ImageParam src{type_of<T>(), 2, "src"};
 
     Var x, y;
 
@@ -24,4 +25,5 @@ public:
     }
 };
 
-RegisterGenerator<Copy> copy{"copy"};
+RegisterGenerator<Copy<uint8_t>> copy_u8{"copy_u8"};
+RegisterGenerator<Copy<uint16_t>> copy_u16{"copy_u16"};
