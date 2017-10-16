@@ -9,6 +9,7 @@ class Convolution : public Halide::Generator<Convolution> {
 
     GeneratorParam<int32_t> width{"width", 512};
     GeneratorParam<int32_t> height{"height", 512};
+    GeneratorParam<int32_t> unroll_factor{"unroll_factor", 2};
     ImageParam in{UInt(8), 2, "in"};
     ImageParam kernel{Int(16), 2, "kernel"};
     Param<int32_t> kernel_size{"kernel_size", 3, 1, 5};
@@ -37,7 +38,7 @@ public:
         schedule(in, {width, height});
         schedule(kernel, {5, 5});
         schedule(k, {5, 5});
-        schedule(out, {width, height});
+        schedule(out, {width, height}).unroll(x, unroll_factor);
       
         return out;
     }
