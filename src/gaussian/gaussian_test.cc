@@ -12,7 +12,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width, int32_t _window_height, float _sigma, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, int32_t _window_width, int32_t _window_height, float _sigma, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -29,7 +29,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
 
-        func(input, window_width, window_height, sigma, output);
+        func(input, width, height, window_width, window_height, sigma, output);
 
         float kernel_sum = 0;
         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
