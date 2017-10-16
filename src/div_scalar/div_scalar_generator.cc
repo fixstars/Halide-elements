@@ -6,9 +6,9 @@ using namespace Halide;
 template<typename T>
 class DivScalar : public Halide::Generator<DivScalar<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> width{"width", 1024};
+    Param<int32_t> height{"height", 768};
     Param<float> value{"value", 1};
 
     Var x, y;
