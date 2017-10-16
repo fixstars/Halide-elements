@@ -6,11 +6,13 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "gaussian.h"
+#include "gaussian_u8.h"
+#include "gaussian_u16.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width, int32_t _window_height, float _sigma, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -24,10 +26,10 @@ int main()
         const int window_height = 3;
         const float sigma = 1.0;
         const std::vector<int32_t> extents{width, height};
-        auto input = mk_rand_buffer<uint8_t>(extents);
-        auto output = mk_null_buffer<uint8_t>(extents);
+        auto input = mk_rand_buffer<T>(extents);
+        auto output = mk_null_buffer<T>(extents);
 
-        gaussian(input, window_width, window_height, sigma, output);
+        func(input, window_width, window_height, sigma, output);
 
         float kernel_sum = 0;
         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
@@ -49,8 +51,8 @@ int main()
                     }
                 }
                 expect_f /= kernel_sum;
-                uint8_t expect = round_to_nearest_even<uint8_t>(expect_f);
-                uint8_t actual = output(x, y);
+                T expect = round_to_nearest_even<T>(expect_f);
+                T actual = output(x, y);
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d, expect_f = %f", x, y, expect, x, y, actual, expect_f).c_str());
                 }
@@ -64,4 +66,10 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+    test<uint8_t>(gaussian_u8);
+    test<uint16_t>(gaussian_u16);
 }
