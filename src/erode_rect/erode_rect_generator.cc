@@ -10,15 +10,12 @@ public:
     ImageParam src{type_of<T>(), 2, "src"};
     Param<int32_t> width{"width", 1024};
     Param<int32_t> height{"height", 768};
-    Param<int32_t> window_width{"window_width", 3};
-    Param<int32_t> window_height{"window_height", 3};
+    Param<int32_t> window_width{"window_width", 3, 3, 17};
+    Param<int32_t> window_height{"window_height", 3, 3, 17};
 
     Var x, y;
 
     Func build() {
-
-        window_width.set_range(3, 17);
-        window_height.set_range(3, 17);
 
         Func input("input");
         input(x, y) = src(x, y);
