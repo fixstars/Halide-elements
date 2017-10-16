@@ -6,9 +6,9 @@ using namespace Halide;
 template<typename T>
 class Cmpgt : public Halide::Generator<Cmpgt<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src0{type_of<T>(), 2, "src0"}, src1{type_of<T>(), 2, "src1"};
+    Param<int32_t> width{"width", 1024};
+    Param<int32_t> height{"height", 768};
 
     Var x, y;
 
