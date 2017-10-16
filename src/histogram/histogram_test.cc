@@ -13,7 +13,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, int32_t _hist_width, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -28,9 +28,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<uint32_t>(extents_hist);
         uint32_t expect[hist_width];
-        uint32_t hist_size = std::numeric_limits<T>::max() + 1;
+        constexpr uint32_t hist_size = std::numeric_limits<T>::max() + 1;
         uint32_t hist[hist_size];
-        int bin_size = (hist_size + hist_width - 1) / hist_width;
+        const int bin_size = (hist_size + hist_width - 1) / hist_width;
 
         memset(hist, 0, sizeof(hist));
         for (int y=0; y<height; ++y) {
@@ -48,7 +48,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
             expect[i] = sum;
         }
 
-        func(input, output);
+        func(input, width, height, hist_width, output);
 
         for (int x=0; x<hist_width; ++x) {
             uint32_t actual = output(x);
