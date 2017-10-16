@@ -13,7 +13,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, int32_t _width, int32_t _height, int32_t _hist_width, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -28,9 +28,8 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
         auto input0 = mk_rand_buffer<T>(extents);
         auto input1 = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<uint32_t>(extents_hist);
-        uint32_t expect[hist_width][hist_width];
+        std::vector<uint32_t> expect(hist_width * hist_width);
 
-        memset(expect, 0, sizeof(expect));
         double step =
             hist_width / (static_cast<double>((std::numeric_limits<T>::max)()) + 1.0);
         for (int y=0; y<height; ++y) {
@@ -40,18 +39,18 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
                 int j_idx =
                     static_cast<int>(std::floor((static_cast<double>(input1(x, y))) * step));
                 if (i_idx < hist_width && j_idx < hist_width) {
-                    expect[i_idx][j_idx]++;
+                    expect[i_idx + j_idx * hist_width]++;
                 }
             }
         }
 
-        func(input0, input1, output);
+        func(input0, input1, width, height, hist_width, output);
 
         for (int y=0; y<hist_width; ++y) {
             for (int x=0; x<hist_width; ++x) {
                 uint32_t actual = output(x, y);
-                if (expect[x][y] != actual) {
-                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect[x][y], x, y, actual).c_str());
+                if (expect[x + y * hist_width] != actual) {
+                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect[x + y * hist_width], x, y, actual).c_str());
                 }
             }
         }
