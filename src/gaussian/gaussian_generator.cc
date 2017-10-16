@@ -3,14 +3,15 @@
 
 using namespace Halide;
 
-class Gaussian : public Halide::Generator<Gaussian> {
+template<typename T>
+class Gaussian : public Halide::Generator<Gaussian<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    ImageParam src{UInt(8), 2, "src"};
-    Param<int32_t> window_width{"window_width"};
-    Param<int32_t> window_height{"window_height"};
-    Param<float> sigma{"sigma"};
+    ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> window_width{"window_width", 3};
+    Param<int32_t> window_height{"window_height", 3};
+    Param<float> sigma{"sigma", 1.0};
 
     Var x, y;
 
@@ -27,10 +28,11 @@ public:
         kernel_sum.compute_root();
         Func dst("dst");
         Expr dstval = cast<float>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
-        dst(x,y) = cast<uint8_t>(round(dstval / kernel_sum()));
+        dst(x,y) = cast<T>(round(dstval / kernel_sum()));
 
         return dst;
     }
 };
 
-RegisterGenerator<Gaussian> gaussian{"gaussian"};
+RegisterGenerator<Gaussian<uint8_t>> gaussian_u8{"gaussian_u8"};
+RegisterGenerator<Gaussian<uint16_t>> gaussian_u16{"gaussian_u16"};
