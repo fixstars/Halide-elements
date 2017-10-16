@@ -3,15 +3,16 @@
 
 using namespace Halide;
 
-class Erode : public Halide::Generator<Erode> {
+template<typename T>
+class Erode : public Halide::Generator<Erode<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
     GeneratorParam<int32_t> iteration{"iteration", 2};
-    ImageParam src{UInt(8), 2, "src"};
+    ImageParam src{type_of<T>(), 2, "src"};
     ImageParam structure{UInt(8), 2, "structure"};
-    Param<int32_t> window_width{"window_width"};
-    Param<int32_t> window_height{"window_height"};
+    Param<int32_t> window_width{"window_width", 3};
+    Param<int32_t> window_height{"window_height", 3};
 
     Var x, y;
 
@@ -31,7 +32,7 @@ public:
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2), minimum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<uint8_t>().max(), clamped(x + r.x, y + r.y))));
+            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2), minimum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<T>().max(), clamped(x + r.x, y + r.y))));
             workbuf(x, y) = val;
             workbuf.compute_root();
             input = workbuf;
@@ -41,4 +42,5 @@ public:
     }
 };
 
-RegisterGenerator<Erode> erode{"erode"};
+RegisterGenerator<Erode<uint8_t>> erode_u8{"erode_u8"};
+RegisterGenerator<Erode<uint16_t>> erode_u16{"erode_u16"};

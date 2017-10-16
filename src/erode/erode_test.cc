@@ -7,11 +7,13 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "erode.h"
+#include "erode_u8.h"
+#include "erode_u16.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_structure_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
 {
     try {
         int ret = 0;
@@ -25,10 +27,10 @@ int main()
         const int window_height = 3;
         const int iteration = 2;
         const std::vector<int32_t> extents{width, height}, extents_structure{window_width, window_height};
-        auto input = mk_rand_buffer<uint8_t>(extents);
-        auto output = mk_null_buffer<uint8_t>(extents);
+        auto input = mk_rand_buffer<T>(extents);
+        auto output = mk_null_buffer<T>(extents);
         auto structure = mk_rand_buffer<uint8_t>(extents_structure);
-        uint8_t (*expect)[width][height], workbuf[2][width][height];
+        T (*expect)[width][height], workbuf[2][width][height];
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
@@ -49,7 +51,7 @@ int main()
         for (k=0; k<iteration; ++k) {
             for (int y=0; y<height; ++y) {
                 for (int x=0; x<width; ++x) {
-                    uint8_t min = std::numeric_limits<uint8_t>::max();
+                    T min = std::numeric_limits<T>::max();
                     for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
                         int yy = y + j >= 0 ? y + j: 0;
                         yy = yy < height ? yy : height - 1;
@@ -70,11 +72,11 @@ int main()
         }
         expect = &(workbuf[k%2]);
 
-        erode(input, structure, window_width, window_height, output);
+        func(input, structure, window_width, window_height, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                uint8_t actual = output(x, y);
+                T actual = output(x, y);
                 if ((*expect)[x][y] != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, (*expect)[x][y], x, y, actual).c_str());
                 }
@@ -88,4 +90,10 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+    test<uint8_t>(erode_u8);
+    test<uint16_t>(erode_u16);
 }
