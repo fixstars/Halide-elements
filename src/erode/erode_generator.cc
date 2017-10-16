@@ -6,10 +6,10 @@ using namespace Halide;
 template<typename T>
 class Erode : public Halide::Generator<Erode<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     GeneratorParam<int32_t> iteration{"iteration", 2};
     ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> width{"width", 1024};
+    Param<int32_t> height{"height", 768};
     ImageParam structure{UInt(8), 2, "structure"};
     Param<int32_t> window_width{"window_width", 3};
     Param<int32_t> window_height{"window_height", 3};
