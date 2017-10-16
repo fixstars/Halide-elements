@@ -63,7 +63,7 @@ public:
         ri = (ri & E(0x0000FFFF)) << 16 | (ri & E(0xFFFF0000)) >> 16;
         ri = cast<int32_t>(ri >> (32 - log2(n)));
 
-        stage = BoundaryConditions::repeat_edge(stage, {{0, 2}, {0, n}});
+        stage = BoundaryConditions::repeat_edge(stage, {{0, 2}, {0, n}, {0, batch_size}});
 
         Func out("out");
         out(c, i, k) = stage(c, ri, k);
