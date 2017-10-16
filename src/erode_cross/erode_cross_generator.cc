@@ -3,14 +3,15 @@
 
 using namespace Halide;
 
-class ErodeCross : public Halide::Generator<ErodeCross> {
+template<typename T>
+class ErodeCross : public Halide::Generator<ErodeCross<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
     GeneratorParam<int32_t> iteration{"iteration", 2};
-    ImageParam src{UInt(8), 2, "src"};
-    Param<int32_t> window_width{"window_width"};
-    Param<int32_t> window_height{"window_height"};
+    ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> window_width{"window_width", 3};
+    Param<int32_t> window_height{"window_height", 3};
 
     Var x, y;
 
@@ -37,4 +38,5 @@ public:
     }
 };
 
-RegisterGenerator<ErodeCross> erode_cross{"erode_cross"};
+RegisterGenerator<ErodeCross<uint8_t>> erode_cross_u8{"erode_cross_u8"};
+RegisterGenerator<ErodeCross<uint16_t>> erode_cross_u16{"erode_cross_u16"};
