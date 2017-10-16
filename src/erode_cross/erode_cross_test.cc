@@ -23,8 +23,8 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         //
         const int width = 1024;
         const int height = 768;
-        const int window_width = 4;
-        const int window_height = 4;
+        const int window_width = 3;
+        const int window_height = 3;
         const int iteration = 2;
         const std::vector<int32_t> extents{width, height};
         auto input = mk_rand_buffer<T>(extents);
