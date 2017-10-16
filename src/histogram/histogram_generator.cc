@@ -4,12 +4,13 @@
 
 using namespace Halide;
 
-class Histogram : public Halide::Generator<Histogram> {
+template<typename T>
+class Histogram : public Halide::Generator<Histogram<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    GeneratorParam<int32_t> hist_width{"hist_width", std::numeric_limits<uint8_t>::max() + 1};
-    ImageParam src{UInt(8), 2, "src"};
+    GeneratorParam<int32_t> hist_width{"hist_width", std::numeric_limits<T>::max() + 1};
+    ImageParam src{type_of<T>(), 2, "src"};
 
     Var x;
 
@@ -17,7 +18,7 @@ public:
 
         Func dst("dst");
         dst(x) = cast<uint32_t>(0);
-        Expr hist_size = std::numeric_limits<uint8_t>::max() + 1;
+        Expr hist_size = cast<uint32_t>(type_of<T>().max()) + 1;
         Func bin_size;
         bin_size() = (hist_size + hist_width - 1) / hist_width;
         bin_size.compute_root();
@@ -29,4 +30,5 @@ public:
     }
 };
 
-RegisterGenerator<Histogram> histogram{"histogram"};
+RegisterGenerator<Histogram<uint8_t>> histogram_u8{"histogram_u8"};
+RegisterGenerator<Histogram<uint16_t>> histogram_u16{"histogram_u16"};
