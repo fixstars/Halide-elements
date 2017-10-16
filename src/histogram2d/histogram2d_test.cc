@@ -7,11 +7,13 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "histogram2d.h"
+#include "histogram2d_u8.h"
+#include "histogram2d_u16.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -21,16 +23,16 @@ int main()
         //
         const int width = 1024;
         const int height = 768;
-        const int hist_width = std::numeric_limits<uint8_t>::max() + 1;
+        const int hist_width = 256;
         const std::vector<int32_t> extents{width, height}, extents_hist{hist_width, hist_width};
-        auto input0 = mk_rand_buffer<uint8_t>(extents);
-        auto input1 = mk_rand_buffer<uint8_t>(extents);
+        auto input0 = mk_rand_buffer<T>(extents);
+        auto input1 = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<uint32_t>(extents_hist);
         uint32_t expect[hist_width][hist_width];
 
         memset(expect, 0, sizeof(expect));
         double step =
-            hist_width / (static_cast<double>((std::numeric_limits<uint8_t>::max)()) + 1.0);
+            hist_width / (static_cast<double>((std::numeric_limits<T>::max)()) + 1.0);
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 int i_idx =
@@ -43,7 +45,7 @@ int main()
             }
         }
 
-        histogram2d(input0, input1, output);
+        func(input0, input1, output);
 
         for (int y=0; y<hist_width; ++y) {
             for (int x=0; x<hist_width; ++x) {
@@ -61,4 +63,10 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+    test<uint8_t>(histogram2d_u8);
+    test<uint16_t>(histogram2d_u16);
 }
