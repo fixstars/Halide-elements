@@ -42,11 +42,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
             for (int x=0; x<width; ++x) {
                 double expect_f = 0.0f;
                 for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
-                    int yy = y + j >= 0 ? y + j: 0;
-                    yy = yy < height ? yy : height - 1;
+                    int yy = std::min(std::max(0, y + j), height - 1);
                     for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
-                        int xx = x + i >= 0 ? x + i: 0;
-                        xx = xx < width ? xx : width - 1;
+                        int xx = std::min(std::max(0, x + i), width - 1);
                         expect_f += exp(-(i * i + j * j) / (2 * sigma * sigma)) * input(xx, yy);
                     }
                 }
