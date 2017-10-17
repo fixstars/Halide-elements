@@ -13,7 +13,7 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
 endif
 
-CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
+CXXFLAGS:=-std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include -march=native -Ofast
 LIBS:=-ldl -lpthread -lz
 
 .PHONY: clean
@@ -21,7 +21,7 @@ LIBS:=-ldl -lpthread -lz
 all: ${PROG}_test
 
 ${PROG}_gen: ${PROG}_generator.cc
-	g++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
+	clang++ -fno-rtti ${CXXFLAGS} $< ${HALIDE_ROOT}/tools/GenGen.cpp -o ${PROG}_gen ${LIBS} -lHalide
 
 ${PROG}_gen.exec: ${PROG}_gen
 	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./${PROG}_gen -o . -g ${PROG}_${type} -e h,static_library target=host;)
@@ -32,7 +32,7 @@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a): ${PROG}_gen.exec
 $(foreach type,${TYPE_LIST},${PROG}_${type}.h): ${PROG}_gen.exec
 
 ${PROG}_test: ${PROG}_test.cc $(foreach type,${TYPE_LIST},${PROG}_${type}.h ${PROG}_${type}.a)
-	g++ -I . ${CXXFLAGS} $< -o $@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a) -ldl -lpthread
+	clang++ -I . ${CXXFLAGS} $< -o $@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a) -ldl -lpthread
 
 clean:
 	rm -rf ${PROG}_test ${PROG}_gen ${PROG}_gen.exec $(foreach type,${TYPE_LIST},${PROG}_${type}.h ${PROG}_${type}.a)

@@ -34,7 +34,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         float kernel_sum = 0;
         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
             for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
-                kernel_sum += exp(-(i * i + j * j) / (2 * sigma * sigma));
+                kernel_sum += expf(-(i * i + j * j) / (2 * sigma * sigma));
             }
         }
 
@@ -47,7 +47,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
                     for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
                         int xx = x + i >= 0 ? x + i: 0;
                         xx = xx < width ? xx : width - 1;
-                        expect_f += exp(-(i * i + j * j) / (2 * sigma * sigma)) * input(xx, yy);
+                        expect_f += expf(-(i * i + j * j) / (2 * sigma * sigma)) * input(xx, yy);
                     }
                 }
                 expect_f /= kernel_sum;
