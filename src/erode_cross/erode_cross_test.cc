@@ -38,7 +38,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         }
 
         int k;
-        for (int k; k<iteration; ++k) {
+        for (k = 0; k<iteration; ++k) {
             for (int y=0; y<height; ++y) {
                 for (int x=0; x<width; ++x) {
                     T minx = std::numeric_limits<T>::max(), miny = std::numeric_limits<T>::max();
