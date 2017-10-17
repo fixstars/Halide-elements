@@ -9,7 +9,7 @@ public:
     ImageParam src{type_of<T>(), 2, "src"};
     Param<int32_t> width{"width", 1024};
     Param<int32_t> height{"height", 768};
-    Param<float> value{"value", 1};
+    Param<double> value{"value", 2.0};
 
     Var x, y;
 
@@ -17,7 +17,7 @@ public:
 
         Func dst("dst");
         Expr srcval = src(x, y);
-        Expr dstval = min(srcval / value, cast<float>(type_of<T>().max()));
+        Expr dstval = min(srcval / value, cast<double>(type_of<T>().max()));
         dstval = max(dstval, 0);
         dst(x, y) = cast<T>(round(dstval));
 

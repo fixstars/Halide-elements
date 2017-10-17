@@ -14,7 +14,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, float _value, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, double _value, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -24,7 +24,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         //
         const int width = 1024;
         const int height = 768;
-        const float value = 2.0;
+        const double value = 2.0;
         const std::vector<int32_t> extents{width, height};
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
@@ -35,9 +35,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
             for (int x=0; x<width; ++x) {
                 T expect = input(x, y);
                 T actual = output(x, y);
-                float f = expect / value;
-                f = std::min(static_cast<float>(std::numeric_limits<T>::max()), f);
-                f = std::max(0.0f, f);
+                double f = expect / value;
+                f = std::min(static_cast<double>(std::numeric_limits<T>::max()), f);
+                f = std::max(static_cast<double>(0.0f), f);
                 expect = round_to_nearest_even<T>(f);
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
