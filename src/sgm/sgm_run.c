@@ -47,12 +47,6 @@ int main(int argc, char *argv[])
         putchar('.'); 
         fflush(stdout); 
     }
-
-    disp = (uint8_t*)malloc(width*height*sizeof(uint8_t));
-    if (load_pgm("data/disp.pgm", disp, width, height)) {
-        printf("Cannot load disp.pgm\n");
-        goto finally;
-    }
     
     save_pgm("out.pgm", obuf.ptr, width, height);
 

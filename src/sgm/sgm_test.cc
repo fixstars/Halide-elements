@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
         
         Buffer<uint8_t> disp = load_pgm("data/disp.pgm");
 
-        save_pgm("disp2.pgm", disp.data(), width, height);
         save_pgm("out_test.pgm", out.data(), width, height);
 
         for (int y=0; y<height; ++y) {
