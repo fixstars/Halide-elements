@@ -53,6 +53,12 @@ int main(int argc, char *argv[])
     const float saturation_value = 0.6f;
     uint32_t reg_data = 0;
 
+    if (argc == 4) {
+        sscanf(argv[1], "%d", &optical_black_clamp_value);
+        sscanf(argv[2], "%f", &gamma_value);
+        sscanf(argv[3], "%f", &saturation_value);
+    }
+
     if (XSimple_isp_hp_wrapper_Initialize(&ins, "simple_isp_hp_wrapper") != XST_SUCCESS) {
         printf("Cannot initialize driver instance\n");
         goto finally;
