@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Kind</key>
+    <string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+    <key>Identifier</key>
+    <string>com.apple.dt.unit.commandLineTool.halideElement</string>
+    <key>Ancestors</key>
+    <array>
+        <string>com.apple.dt.unit.base</string>
+        <string>com.apple.dt.unit.osxBase</string>
+    </array>
+    <key>Concrete</key>
+    <true/>
+    <key>SortOrder</key>
+    <integer>50</integer>
+    <key>Description</key>
+    <string>This template creates a halide element.</string>
+    <key>Project</key>
+    <dict>
+        <key>SharedSettings</key>
+        <dict>
+            <key>HEADER_SEARCH_PATHS</key>
+            <array>
+                <string>/usr/local/include</string>
+                <string>${PROJECT_DIR}/../include</string>
+            </array>
+            <key>LIBRARY_SEARCH_PATHS</key>
+                <string>/usr/local/lib</string>
+            <key>CLANG_CXX_LANGUAGE_STANDARD</key>
+                <string>c++0x</string>
+            <key>CLANG_WARN_DOCUMENTATION_COMMENTS</key>
+                <string>NO</string>
+        </dict>
+    </dict>
+    <key>Targets</key>
+    <array>
+        <dict>
+            <key>Name</key>
+            <string>___PACKAGENAME____gen</string>
+            <key>ProductType</key>
+            <string>com.apple.product-type.tool</string>
+            <key>TargetIdentifier</key>
+            <string>com.apple.dt.commandLineToolTarget.halideElement.generator</string>
+            <key>BuildPhases</key>
+            <array>
+                <dict>
+                    <key>Class</key>
+                    <string>Sources</string>
+                </dict>
+                <dict>
+                    <key>Class</key>
+                    <string>Frameworks</string>
+                </dict>
+                <dict>
+                    <key>Class</key>
+                    <string>ShellScript</string>
+                    <key>ShellPath</key>
+                    <string>/bin/sh</string>
+                    <key>ShellScript</key>
+                    <string>cd ${PROJECT_DIR}/___PACKAGENAME___
+
+${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME} -o . -e h,static_library target=host
+
+cd -
+</string>
+                </dict>
+            </array>
+            <key>SharedSettings</key>
+            <dict>
+                <key>PRODUCT_NAME</key>
+                    <string>___PACKAGENAME____gen</string>
+                <key>GCC_ENABLE_CPP_RTTI</key>
+                    <string>NO</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>Name</key>
+            <string>___PACKAGENAME____test</string>
+            <key>ProductType</key>
+            <string>com.apple.product-type.tool</string>
+            <key>TargetIdentifier</key>
+            <string>com.apple.dt.commandLineToolTarget.halideElement.test</string>
+            <key>BuildPhases</key>
+            <array>
+                <dict>
+                    <key>Class</key>
+                    <string>Sources</string>
+                </dict>
+                <dict>
+                    <key>Class</key>
+                    <string>Frameworks</string>
+                </dict>
+            </array>
+            <key>SharedSettings</key>
+            <dict>
+                <key>PRODUCT_NAME</key>
+                    <string>___PACKAGENAME____test</string>
+            </dict>
+            <key>Dependencies</key>
+            <array>
+                <string>com.apple.dt.commandLineToolTarget.halideElement.generator</string>
+            </array>
+        </dict>
+    </array>
+    <key>Options</key>
+    <array>
+        <dict>
+            <key>Identifier</key>
+            <string>languageChoice</string>
+            <key>Name</key>
+            <string>Language:</string>
+            <key>Description</key>
+            <string>The primary implementation language for the command-line tool</string>
+            <key>Default</key>
+            <string>C++</string>
+            <key>Type</key>
+            <string>popup</string>
+            <key>Values</key>
+            <array>
+                <string>C++</string>
+            </array>
+            <key>Units</key>
+            <dict>
+                <key>C++</key>
+                <dict>
+                    <key>Nodes</key>
+                    <array>
+                        <string>___PACKAGENAME____generator.cc:comments</string>
+                        <string>___PACKAGENAME____test.cc:comments</string>
+                        <string>GenGen.cpp</string>
+                        <string>___PACKAGENAME____generator.cc</string>
+                        <string>___PACKAGENAME____test.cc</string>
+                        <string>libHalide.dylib</string>
+                        <string>___PACKAGENAME___.a</string>
+                        <string>Makefile</string>
+                        <string>.gitignore</string>
+                    </array>
+                    <key>Definitions</key>
+                    <dict>
+                        <key>___PACKAGENAME____generator.cc</key>
+                        <dict>
+                            <key>End</key>
+                            <string>#include &lt;iostream&gt;
+#include &quot;Halide.h&quot;
+
+using namespace Halide;
+
+class Copy : public Halide::Generator&lt;Copy&gt; {
+public:
+    GeneratorParam&lt;int32_t&gt; width{&quot;width&quot;, 1024};
+    GeneratorParam&lt;int32_t&gt; height{&quot;height&quot;, 768};
+    ImageParam src{UInt(8), 2, &quot;src&quot;};
+
+    Var x, y;
+
+    Func build() {
+
+        Func dst(&quot;dst&quot;);
+        dst(x, y) = src(x, y);
+        
+        return dst;
+    }
+};
+
+RegisterGenerator&lt;Copy&gt; ___PACKAGENAME___{&quot;___PACKAGENAME___&quot;};</string>
+                            <key>TargetIndices</key>
+                            <array>
+                                <string>0</string>
+                            </array>
+                        </dict>
+                        <key>___PACKAGENAME____test.cc</key>
+                        <dict>
+                            <key>End</key>
+                            <string>#include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;exception&gt;
+
+#include &quot;copy.h&quot;
+#include &quot;test_common.h&quot;
+
+using std::string;
+using std::vector;
+
+int main()
+{
+    try {
+        int ret = 0;
+
+        //
+        // Run
+        //
+        const int width = 1024;
+        const int height = 768;
+        const std::vector&lt;int32_t&gt; extents{width, height};
+        auto input = mk_rand_buffer&lt;uint8_t&gt;(extents);
+        auto output = mk_null_buffer&lt;uint8_t&gt;(extents);
+
+        copy(input, output);
+
+        for (int y=0; y&lt;height; ++y) {
+            for (int x=0; x&lt;width; ++x) {
+                uint8_t expect = input(x, y);
+                uint8_t actual = output(x, y);
+                if (expect != actual) {
+                    throw std::runtime_error(format(&quot;Error: expect(%d, %d) = %d, actual(%d, %d) = %d&quot;,
+                                                    x, y, static_cast&lt;uint64_t&gt;(expect),
+                                                    x, y, static_cast&lt;uint64_t&gt;(actual)).c_str());
+                }
+            }
+        }
+
+    } catch (const std::exception&amp; e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        return 1;
+    }
+
+    printf(&quot;Success!\n&quot;);
+    return 0;
+}</string>
+                            <key>TargetIndices</key>
+                            <array>
+                                <string>1</string>
+                            </array>
+                        </dict>
+                        <key>GenGen.cpp</key>
+                        <dict>
+                            <key>Path</key>
+                            <string>/usr/local/share/halide/tools/GenGen.cpp</string>
+                            <key>PathType</key>
+                            <string>Absolute</string>
+                            <key>Group</key>
+                            <string>tools</string>
+                            <key>TargetIndices</key>
+                            <array>
+                                <string>0</string>
+                            </array>
+                        </dict>
+                        <key>libHalide.dylib</key>
+                        <dict>
+                            <key>Path</key>
+                            <string>/usr/local/lib/libHalide.dylib</string>
+                            <key>PathType</key>
+                            <string>Absolute</string>
+                            <key>Group</key>
+                            <string>lib</string>
+                            <key>TargetIndices</key>
+                            <array>
+                                <string>0</string>
+                            </array>
+                        </dict>
+                        <key>___PACKAGENAME___.a</key>
+                        <dict>
+                            <key>Path</key>
+                            <string>___PACKAGENAME___.a</string>
+                            <key>Group</key>
+                            <string>lib</string>
+                            <key>TargetIndices</key>
+                            <array>
+                                <string>1</string>
+                            </array>
+                        </dict>
+                        <key>Makefile</key>
+                        <dict>
+                            <key>Beginning</key>
+                            <string>PROG:=___PACKAGENAME___
+include ../../common.mk</string>
+                            <key>Path</key>
+                            <string>Makefile</string>
+                            <key>TargetIndices</key>
+                            <array/>
+                        </dict>
+                        <key>.gitignore</key>
+                        <dict>
+                            <key>Beginning</key>
+                            <string>___PACKAGENAME___.a
+___PACKAGENAME___.h</string>
+                            <key>Path</key>
+                            <string>.gitignore</string>
+                            <key>TargetIndices</key>
+                            <array/>
+                        </dict>
+                    </dict>
+                </dict>
+            </dict>
+        </dict>
+    </array>
+</dict>
+</plist>
