@@ -14,7 +14,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, int32_t _width, int32_t _height, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -29,7 +29,7 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
         auto input1 = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
 
-        func(input0, input1, width, height, output);
+        func(input0, input1, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
