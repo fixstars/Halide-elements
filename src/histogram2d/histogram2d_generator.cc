@@ -8,10 +8,10 @@ using namespace Halide;
 template<typename T>
 class Histogram2D : public Halide::Generator<Histogram2D<T>> {
 public:
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+    GeneratorParam<int32_t> hist_width{"hist_width", 256, 1, static_cast<int32_t>(sqrt(std::numeric_limits<int32_t>::max()))};
     ImageParam src0{type_of<T>(), 2, "src0"}, src1{type_of<T>(), 2, "src1"};
-    Param<int32_t> width{"width", 1024};
-    Param<int32_t> height{"height", 768};
-    Param<int32_t> hist_width{"hist_width", 256, 1, static_cast<int32_t>(sqrt(std::numeric_limits<int32_t>::max()))};
 
     Var x, y;
 

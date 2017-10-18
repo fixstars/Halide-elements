@@ -13,7 +13,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, int32_t _width, int32_t _height, int32_t _hist_width, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_t *_src1_buffer, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -44,7 +44,7 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
             }
         }
 
-        func(input0, input1, width, height, hist_width, output);
+        func(input0, input1, output);
 
         for (int y=0; y<hist_width; ++y) {
             for (int x=0; x<hist_width; ++x) {
