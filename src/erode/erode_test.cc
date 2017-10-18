@@ -13,7 +13,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, struct halide_buffer_t *_structure_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_structure_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
 {
     try {
         int ret = 0;
@@ -72,7 +72,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         }
         expect = &(workbuf[k%2]);
 
-        func(input, width, height, structure, window_width, window_height, output);
+        func(input, structure, window_width, window_height, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
