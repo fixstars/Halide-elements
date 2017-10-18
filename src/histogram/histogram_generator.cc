@@ -7,10 +7,10 @@ using namespace Halide;
 template<typename T>
 class Histogram : public Halide::Generator<Histogram<T>> {
 public:
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+    GeneratorParam<int32_t> hist_width{"hist_width", std::numeric_limits<T>::max() + 1};
     ImageParam src{type_of<T>(), 2, "src"};
-    Param<int32_t> width{"width", 1024};
-    Param<int32_t> height{"height", 768};
-    Param<int32_t> hist_width{"hist_width", std::numeric_limits<T>::max() + 1};
 
     Var x;
 
