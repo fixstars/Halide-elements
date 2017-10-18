@@ -11,7 +11,7 @@ using std::string;
 using std::vector;
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_t _height, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -25,7 +25,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _width, int32_
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
 
-        func(input, width, height, output);
+        func(input, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
