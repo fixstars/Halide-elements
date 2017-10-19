@@ -1,3 +1,3 @@
 PROG:=histogram2d
 TYPE_LIST:=u8 u16
-include ../../roca_common.mk
+include ../../common.mk
