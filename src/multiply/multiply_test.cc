@@ -3,12 +3,15 @@
 #include <string>
 #include <exception>
 
-#include "multiply.h"
+#include "multiply_u8.h"
+#include "multiply_u16.h"
+#include "multiply_u32.h"
 #include "test_common.h"
 
 using namespace Halide::Runtime;
 
-int main(int argc, char **argv) {
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer1, struct halide_buffer_t *_src_buffer2, struct halide_buffer_t *_dst_buffer)) {
     try {
         int ret = 0;
 
@@ -18,12 +21,12 @@ int main(int argc, char **argv) {
         const int width = 1024;
         const int height = 768;
         const std::vector<int32_t> extents{width, height};
-        auto src1 = mk_rand_buffer<uint8_t>(extents);
-        auto src2 = mk_rand_buffer<uint8_t>(extents);
-        auto output = mk_null_buffer<uint8_t>(extents);
+        auto src1 = mk_rand_buffer<T>(extents);
+        auto src2 = mk_rand_buffer<T>(extents);
+        auto output = mk_null_buffer<T>(extents);
         
-        multiply(src1, src2, output);
-
+        func(src1, src2, output);
+        
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 uint8_t expect = src1(x, y) * src2(x, y);
@@ -41,4 +44,10 @@ int main(int argc, char **argv) {
 
     printf("Success!\n");
     return 0;
+}
+
+int main(int argc, char **argv) {
+    test<uint8_t>(multiply_u8);
+    test<uint16_t>(multiply_u16);
+    test<uint32_t>(multiply_u32);
 }
