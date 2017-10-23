@@ -65,9 +65,8 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         uint32_t actual_x = output(0);
         uint32_t actual_y = output(1);
         if (expect_x != actual_x || expect_y != actual_y) {
-            throw std::runtime_error(format("Error: expect = (%u, %u) (value = %s), actual = (%u, %u) (value = %s)",
-                                            expect_x, expect_y, std::to_string(input(expect_x, expect_y)).c_str(),
-                                            actual_x, actual_y, std::to_string(input(actual_x, actual_y)).c_str()).c_str());
+            throw std::runtime_error(format("Error: expect = (%u, %u), actual = (%u, %u)",
+                                            expect_x, expect_y, actual_x, actual_y))
         }
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
