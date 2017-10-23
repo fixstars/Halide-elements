@@ -11,8 +11,6 @@ public:
     GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
 
-    Var x{"x"}, y{"y"};
-    
     Func build() {
         Func dst("dst");
         RDom r(0, width, 0, height, "r");

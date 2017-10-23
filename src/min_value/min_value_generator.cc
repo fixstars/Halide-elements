@@ -12,11 +12,8 @@ public:
     ImageParam src{type_of<T>(), 2, "src"};
     ImageParam roi{type_of<uint8_t>(), 2, "roi"};
 
-    Var x{"x"}, y{"y"};
-    
     Func build() {
         Func count("count"), dst("dst");
-        Var d("d");
 
         RDom r(0, width, 0, height, "r");
         r.where(roi(r.x, r.y) != 0);
