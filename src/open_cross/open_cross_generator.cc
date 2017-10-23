@@ -15,36 +15,18 @@ public:
 
     Var x, y;
 
-    Func erode(Func src) {
-
+    // Generalized Func from erode/dilate
+    Func gen_erode(Func src_img, std::function<Expr(Expr)> f) {
+        
         Func input("input");
-        input(x, y) = src(x, y);
+        input(x, y) = src_img(x, y);
 
         RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
         r.where(r.x == 0 || r.y == 0);
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            Expr val = minimum(clamped(x + r.x, y + r.y));
-            workbuf(x, y) = val;
-            workbuf.compute_root();
-            input = workbuf;
-        }
-
-        return input;
-    }
-
-    Func dilate(Func src) {
-
-        Func input("input");
-        input(x, y) = src(x, y);
-
-        RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-        r.where(r.x == 0 || r.y == 0);
-        for (int32_t i = 0; i < iteration; i++) {
-            Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-            Func workbuf("workbuf");
-            Expr val = maximum(clamped(x + r.x, y + r.y));
+            Expr val = f(clamped(x + r.x, y + r.y));
             workbuf(x, y) = val;
             workbuf.compute_root();
             input = workbuf;
@@ -54,7 +36,11 @@ public:
     }
 
     Func build() {
-        return dilate(erode(src));
+        auto mn = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::minimum), std::placeholders::_1, "minimum");
+        Func erode = gen_erode(src, mn);
+        auto mx = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::maximum), std::placeholders::_1, "maximum");
+        Func dilate = gen_erode(erode, mx);
+        return dilate;
     }
 };
 
