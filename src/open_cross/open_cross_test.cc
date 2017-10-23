@@ -14,7 +14,7 @@
 
 // returns index of result workbuf
 template<typename T>
-int gen_erode(int width, int height, int window_width, int window_height, int iteration,
+int conv_cross(int width, int height, int window_width, int window_height, int iteration,
               T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, int k) {
     T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
 
@@ -66,11 +66,11 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
         }
 
         // erode
-        int k = gen_erode(width, height, window_width, window_height, iteration,
-                          &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), 0);
+        int k = conv_cross(width, height, window_width, window_height, iteration,
+                           &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), 0);
         // dilate
-        k = gen_erode(width, height, window_width, window_height, iteration,
-                      &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), k);
+        k = conv_cross(width, height, window_width, window_height, iteration,
+                       &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), k);
 
 
         expect = &(workbuf[k%2]);

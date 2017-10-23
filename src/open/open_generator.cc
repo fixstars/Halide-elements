@@ -17,7 +17,7 @@ public:
     Var x, y;
 
     // Generalized Func from erode/dilate
-    Func gen_erode(Func src_img, std::function<Expr(Expr)> f, Expr init) {
+    Func conv_with_structure(Func src_img, std::function<Expr(Expr)> f, Expr init) {
         Func input("input");
         input(x, y) = src_img(x, y);
 
@@ -40,10 +40,8 @@ public:
     }
 
     Func build() {
-        auto mn = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::minimum), std::placeholders::_1, "minimum");
-        Func erode = gen_erode(src, mn, type_of<T>().max());
-        auto mx = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::maximum), std::placeholders::_1, "maximum");
-        Func dilate = gen_erode(erode, mx, type_of<T>().min());
+        Func erode = conv_with_structure(src, [](Expr e){return Halide::minimum(e);}, type_of<T>().max());
+        Func dilate = conv_with_structure(erode, [](Expr e){return Halide::maximum(e);}, type_of<T>().min());
         return dilate;
     }
 };

@@ -14,7 +14,7 @@
 
 // returns index of result workbuf
 template<typename T>
-int gen_erode(int width, int height, int window_width, int window_height, int iteration,
+int conv_with_structure(int width, int height, int window_width, int window_height, int iteration,
               const Halide::Runtime::Buffer<uint8_t>& structure,
               T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
     T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
@@ -79,11 +79,11 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         }
         
         // erode
-        int k = gen_erode(width, height, window_width, window_height, iteration, structure,
-                          &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), allzero, 0);
+        int k = conv_with_structure(width, height, window_width, window_height, iteration, structure,
+                                    &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), allzero, 0);
         // dilate
-        k = gen_erode(width, height, window_width, window_height, iteration, structure,
-                      &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), allzero, k);
+        k = conv_with_structure(width, height, window_width, window_height, iteration, structure,
+                                &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), allzero, k);
         expect = &(workbuf[k%2]);
 
         func(input, structure, window_width, window_height, output);

@@ -16,7 +16,7 @@ public:
     Var x, y;
 
     // Generalized Func from erode/dilate
-    Func gen_erode(Func src_img, std::function<Expr(Expr)> f) {
+    Func conv_rect(Func src_img, std::function<Expr(Expr)> f) {
         Func input("input");
         input(x, y) = src_img(x, y);
 
@@ -34,10 +34,8 @@ public:
     }
 
     Func build() {
-        auto mn = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::minimum), std::placeholders::_1, "minimum");
-        Func erode = gen_erode(src, mn);
-        auto mx = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::maximum), std::placeholders::_1, "maximum");
-        Func dilate = gen_erode(erode, mx);
+        Func erode = conv_rect(src, [](Expr e){return minimum(e);});
+        Func dilate = conv_rect(erode, [](Expr e){return maximum(e);});
         return dilate;
     }
 };
