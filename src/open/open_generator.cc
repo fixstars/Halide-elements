@@ -16,10 +16,10 @@ public:
 
     Var x, y;
 
-    Func erode(Func src) {
-
+    // Generalized Func from erode/dilate
+    Func gen_erode(Func src_img, std::function<Expr(Expr)> f, Expr init) {
         Func input("input");
-        input(x, y) = src(x, y);
+        input(x, y) = src_img(x, y);
 
         RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
         Func allzero("allzero");
@@ -29,29 +29,8 @@ public:
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2), minimum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<T>().max(), clamped(x + r.x, y + r.y))));
-            workbuf(x, y) = val;
-            workbuf.compute_root();
-            input = workbuf;
-        }
-
-        return input;
-    }
-
-    Func dilate(Func src) {
-
-        Func input("input");
-        input(x, y) = src(x, y);
-
-        RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-        Func allzero("allzero");
-        allzero() = cast<bool>(true);
-        allzero() = allzero() && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
-        allzero.compute_root();
-        for (int32_t i = 0; i < iteration; i++) {
-            Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-            Func workbuf("workbuf");
-            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2), maximum(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<T>().min(), clamped(x + r.x, y + r.y))));
+            Expr val = select(allzero(), clamped(x - window_width / 2, y - window_height / 2),
+                              f(select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, init, clamped(x + r.x, y + r.y))));
             workbuf(x, y) = val;
             workbuf.compute_root();
             input = workbuf;
@@ -61,7 +40,11 @@ public:
     }
 
     Func build() {
-        return dilate(erode(src));
+        auto mn = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::minimum), std::placeholders::_1, "minimum");
+        Func erode = gen_erode(src, mn, type_of<T>().max());
+        auto mx = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::maximum), std::placeholders::_1, "maximum");
+        Func dilate = gen_erode(erode, mx, type_of<T>().min());
+        return erode;
     }
 };
 

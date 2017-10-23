@@ -12,6 +12,36 @@
 
 #include "test_common.h"
 
+// returns index of result workbuf
+template<typename T>
+int gen_erode(int width, int height, int window_width, int window_height, int iteration,
+              const Halide::Runtime::Buffer<uint8_t>& structure,
+              T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
+    T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
+
+    for (;k<iteration; ++k) {
+        for (int y=0; y<height; ++y) {
+            for (int x=0; x<width; ++x) {
+                T min = init;
+                for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
+                    int yy = y + j >= 0 ? y + j: 0;
+                    yy = yy < height ? yy : height - 1;
+                    for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
+                        if (structure(window_width/2+i, window_height/2+j) ||
+                            (allzero && i == -(window_width/2) && j == -(window_height/2))) {
+                            int xx = x + i >= 0 ? x + i: 0;
+                            xx = xx < width ? xx : width - 1;
+                            min = f(min, workbuf[k%2][xx][yy]);
+                        }
+                    }
+                }
+                workbuf[(k+1)%2][x][y] = min;
+            }
+        }
+    }
+    return k;
+}
+
 template<typename T>
 int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_structure_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
 {
@@ -46,56 +76,13 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
                 }
             }
         }
-
-        // erode
-        int k;
-        for (k=0; k<iteration; ++k) {
-            for (int y=0; y<height; ++y) {
-                for (int x=0; x<width; ++x) {
-                    T min = std::numeric_limits<T>::max();
-                    for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
-                        int yy = y + j >= 0 ? y + j: 0;
-                        yy = yy < height ? yy : height - 1;
-                        for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
-                            if (structure(window_width/2+i, window_height/2+j) ||
-                                (allzero && i == -(window_width/2) && j == -(window_height/2))) {
-                                int xx = x + i >= 0 ? x + i: 0;
-                                xx = xx < width ? xx : width - 1;
-                                if (min > workbuf[k%2][xx][yy]) {
-                                    min = workbuf[k%2][xx][yy];
-                                }
-                            }
-                        }
-                    }
-                    workbuf[(k+1)%2][x][y] = min;
-                }
-            }
-        }
-
-        // dilate
-        for (;k<2*iteration; ++k) {
-            for (int y=0; y<height; ++y) {
-                for (int x=0; x<width; ++x) {
-                    T max = std::numeric_limits<T>::min();
-                    for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
-                        int yy = y + j >= 0 ? y + j: 0;
-                        yy = yy < height ? yy : height - 1;
-                        for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
-                            if (structure(window_width/2+i, window_height/2+j) ||
-                                (allzero && i == -(window_width/2) && j == -(window_height/2))) {
-                                int xx = x + i >= 0 ? x + i: 0;
-                                xx = xx < width ? xx : width - 1;
-                                if (max < workbuf[k%2][xx][yy]) {
-                                    max = workbuf[k%2][xx][yy];
-                                }
-                            }
-                        }
-                    }
-                    workbuf[(k+1)%2][x][y] = max;
-                }
-            }
-        }
         
+        // erode
+        int k = gen_erode(width, height, window_width, window_height, iteration, structure,
+                          &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), allzero, 0);
+        // dilate
+        k = gen_erode(width, height, window_width, window_height, iteration, structure,
+                      &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), allzero, k);
         expect = &(workbuf[k%2]);
 
         func(input, structure, window_width, window_height, output);
