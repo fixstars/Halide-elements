@@ -19,7 +19,8 @@ int gen_erode(int width, int height, int window_width, int window_height, int it
               T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
     T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
 
-    for (;k<iteration; ++k) {
+    int itr;
+    for (itr=k; itr<k+iteration; ++itr) {
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 T min = init;
@@ -31,15 +32,15 @@ int gen_erode(int width, int height, int window_width, int window_height, int it
                             (allzero && i == -(window_width/2) && j == -(window_height/2))) {
                             int xx = x + i >= 0 ? x + i: 0;
                             xx = xx < width ? xx : width - 1;
-                            min = f(min, workbuf[k%2][xx][yy]);
+                            min = f(min, workbuf[itr%2][xx][yy]);
                         }
                     }
                 }
-                workbuf[(k+1)%2][x][y] = min;
+                workbuf[(itr+1)%2][x][y] = min;
             }
         }
     }
-    return k;
+    return itr;
 }
 
 template<typename T>

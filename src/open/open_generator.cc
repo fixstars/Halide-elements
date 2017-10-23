@@ -44,7 +44,7 @@ public:
         Func erode = gen_erode(src, mn, type_of<T>().max());
         auto mx = std::bind(static_cast<Expr(*)(Expr, const std::string&)>(Halide::maximum), std::placeholders::_1, "maximum");
         Func dilate = gen_erode(erode, mx, type_of<T>().min());
-        return erode;
+        return dilate;
     }
 };
 
