@@ -14,9 +14,9 @@ using std::vector;
 template <typename T>
 T min_value_ref(const Halide::Runtime::Buffer<T>& src, const Halide::Runtime::Buffer<uint8_t>& roi, const int width, const int height) {
 
-    T min = ::std::numeric_limits<T>::has_infinity
-        ? ::std::numeric_limits<T>::infinity()
-        : (::std::numeric_limits<T>::max)();
+    T min = std::numeric_limits<T>::has_infinity
+        ? std::numeric_limits<T>::infinity()
+        : (std::numeric_limits<T>::max)();
     int count = 0;
 
     for (int i = 0; i < height; i++) {
