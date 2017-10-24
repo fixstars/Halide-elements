@@ -1,6 +1,7 @@
 HALIDE_ROOT?=/usr/local/
 HALIDE_BUILD?=${HALIDE_ROOT}
 
+HALIDE_TOOLS_DIR=${HALIDE_ROOT}/tools/
 HALIDE_LIB_CMAKE:=${HALIDE_BUILD}/lib
 HALIDE_LIB_MAKE:=${HALIDE_BUILD}/bin
 HALIDE_LIB:=libHalide.so
@@ -15,10 +16,8 @@ CFLAGS=-std=c99 -D_GNU_SOURCE -O2 -mcpu=cortex-a9 -I${DRIVER_ROOT} -I../../inclu
 
 ifeq (${BUILD_BY_CMAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_CMAKE}
-	HALIDE_TOOLS_DIR=${HALIDE_ROOT}/../tools/
 else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
-	HALIDE_TOOLS_DIR=${HALIDE_ROOT}/tools/
 endif
 
 CXXFLAGS:=-O0 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
@@ -49,7 +48,7 @@ ${PROG}.hls: ${PROG}_gen.hls
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
 
 ${PROG}.hls.exec: ${PROG}.hls
-	cd ${PROG}.hls; make 
+	cd ${PROG}.hls; make
 	@touch ${PROG}.hls.exec
 
 ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
