@@ -1,7 +1,9 @@
 #include <iostream>
 #include "Halide.h"
+#include <Element.h>
 
 using namespace Halide;
+using namespace Halide::Element;
 
 class Copy : public Halide::Generator<Copy> {
 public:
@@ -12,10 +14,12 @@ public:
     Var x, y;
 
     Func build() {
-
         Func dst("dst");
         dst(x, y) = src(x, y);
-        
+
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
+
         return dst;
     }
 };
