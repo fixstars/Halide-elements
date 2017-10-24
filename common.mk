@@ -7,6 +7,7 @@ HALIDE_LIB:=libHalide.so
 BUILD_BY_CMAKE:=$(shell ls ${HALIDE_LIB_CMAKE} | grep ${HALIDE_LIB})
 BUILD_BY_MAKE:=$(shell ls ${HALIDE_LIB_MAKE} | grep ${HALIDE_LIB})
 
+VIVADO_HLS_ROOT?=/opt/Xilinx/Vivado_HLS/2017.2/
 DRIVER_ROOT=./${PROG}.hls/${PROG}_zynq.sdk/design_1_wrapper_hw_platform_0/drivers/${PROG}_hp_wrapper_v1_0/src/
 TARGET_SRC=${PROG}_run.c ${DRIVER_ROOT}/x${PROG}_hp_wrapper.c ${DRIVER_ROOT}/x${PROG}_hp_wrapper_linux.c
 TARGET_LIB=-lm
@@ -54,5 +55,11 @@ ${PROG}.hls.exec: ${PROG}.hls
 ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@ ${TARGET_LIB}
 
+${PROG}_csim.o: ${PROG}.hls
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}.hls/${PROG}.cc -c -o $@
+
+${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
+
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}.h ${PROG}.a *.hls *.exec
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}.h *.o *.hls *.exec
