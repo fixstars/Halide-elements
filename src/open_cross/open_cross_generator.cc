@@ -18,7 +18,7 @@ public:
     Var x, y;
 
     // Generalized Func from erode/dilate
-    Func conv_cross(Func src_img, std::function<Expr(Expr)> f) {
+    Func conv_cross(Func src_img, std::function<Expr(RDom, Expr)> f) {
         
         Func input("input");
         input(x, y) = src_img(x, y);
@@ -29,7 +29,7 @@ public:
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            Expr val = f(clamped(x + r.x, y + r.y));
+            Expr val = f(r, clamped(x + r.x, y + r.y));
             workbuf(x, y) = val;
             workbuf.compute_root();
             schedule(workbuf, {width, height});
@@ -40,8 +40,8 @@ public:
     }
 
     Func build() {
-        Func erode = conv_cross(src, [](Expr e){return minimum(e);});
-        Func dilate = conv_cross(erode, [](Expr e){return maximum(e);});
+        Func erode = conv_cross(src, [](RDom r, Expr e){return minimum_unroll(r, e);});
+        Func dilate = conv_cross(erode, [](RDom r, Expr e){return maximum_unroll(r, e);});
         schedule(src, {width, height});
         
         return dilate;
