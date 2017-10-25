@@ -44,7 +44,7 @@ int conv_with_structure(int width, int height, int window_width, int window_heig
 }
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_structure_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_structure_buffer, struct halide_buffer_t *_workbuf__1_buffer))
 {
     try {
         int ret = 0;
