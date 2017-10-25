@@ -4,8 +4,8 @@
 #include <exception>
 
 #include "multiply_u8.h"
-#include "multiply_u16.h"
-#include "multiply_u32.h"
+// #include "multiply_u16.h"
+// #include "multiply_u32.h"
 #include "test_common.h"
 
 using namespace Halide::Runtime;
@@ -48,6 +48,4 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer1, struct halide_buffer_
 
 int main(int argc, char **argv) {
     test<uint8_t>(multiply_u8);
-    test<uint16_t>(multiply_u16);
-    test<uint32_t>(multiply_u32);
 }

@@ -4,8 +4,8 @@
 #include <exception>
 
 #include "min_value_u8.h"
-#include "min_value_u16.h"
-#include "min_value_u32.h"
+// #include "min_value_u16.h"
+// #include "min_value_u32.h"
 #include "test_common.h"
 
 using std::string;
@@ -67,6 +67,6 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
 int main()
 {
     test<uint8_t>(min_value_u8);
-    test<uint16_t>(min_value_u16);
-    test<uint32_t>(min_value_u32);
+    // test<uint16_t>(min_value_u16);
+    // test<uint32_t>(min_value_u32);
 }

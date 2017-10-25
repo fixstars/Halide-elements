@@ -1,8 +1,10 @@
 #include <iostream>
 #include <typeinfo>
-#include "Halide.h"
+#include <Halide.h>
+#include <Element.h>
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class MinPos : public Halide::Generator<MinPos<T>> {
@@ -20,6 +22,10 @@ public:
         dst(d) = cast<uint32_t>(0);
         dst(0) = cast<uint32_t>(res[0]);
         dst(1) = cast<uint32_t>(res[1]);
+
+        schedule(src, {width, height});
+        schedule(dst, {2});
+
         return dst;
     }
 };

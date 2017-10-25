@@ -2,6 +2,7 @@
 #include <Element.h>
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class Multiply : public Halide::Generator<Multiply<T>> {
@@ -11,11 +12,15 @@ public:
     ImageParam src1{type_of<T>(), 2, "src1"};
     ImageParam src2{type_of<T>(), 2, "src2"};
     
-    Var x{"x"}, y{"y"};
-    
     Func build() {
+        Var x{"x"}, y{"y"};
+
         Func dst("dst");
         dst(x, y) = src1(x, y) * src2(x, y);
+
+        schedule(src1, {width, height});
+        schedule(src2, {width, height});
+        schedule(dst, {width, height});
         
         return dst;
     }

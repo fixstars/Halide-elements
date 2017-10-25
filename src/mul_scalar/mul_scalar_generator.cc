@@ -1,7 +1,9 @@
 #include <iostream>
-#include "Halide.h"
+#include <Halide.h>
+#include <Element.h>
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class MulScalar : public Halide::Generator<MulScalar<T>> {
@@ -20,6 +22,9 @@ public:
         Expr dstval = min(srcval * value, cast<float>(type_of<T>().max()));
         dstval = max(dstval, 0);
         dst(x, y) = cast<T>(round(dstval));
+
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
 
         return dst;
     }

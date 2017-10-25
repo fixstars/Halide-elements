@@ -51,5 +51,4 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
 int main()
 {
     test<uint8_t>(copy_u8);
-    test<uint16_t>(copy_u16);
 }

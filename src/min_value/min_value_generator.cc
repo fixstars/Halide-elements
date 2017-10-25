@@ -1,8 +1,10 @@
 #include <iostream>
 #include <typeinfo>
-#include "Halide.h"
+#include <Halide.h>
+#include <Element.h>
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class MinValue : public Halide::Generator<MinValue<T>> {
@@ -17,9 +19,17 @@ public:
 
         RDom r(0, width, 0, height, "r");
         r.where(roi(r.x, r.y) != 0);
-        count() = sum(select(roi(r.x, r.y) == 0, 0, 1));
+
+        Var x{"x"};
+        count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+
+        dst(x) = cast<T>(select(count(x) == 0, 0, minimum(src(r.x, r.y))));
+
+        schedule(src, {width, height});
+        schedule(roi, {width, height});
+        schedule(count, {1});
+        schedule(dst, {1});
         
-        dst() = cast<T>(select(count() == 0, 0, minimum(src(r.x, r.y))));
         return dst;
     }
 };

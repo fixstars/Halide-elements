@@ -1,7 +1,9 @@
 #include <iostream>
 #include "Halide.h"
+#include "Element.h"
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class Nand : public Halide::Generator<Nand<T>> {
@@ -17,6 +19,10 @@ public:
         Func dst("dst");
         Expr dstval = ~(src0(x, y) & src1(x, y));
         dst(x, y) = dstval;
+
+        schedule(src0, {width, height});
+        schedule(src1, {width, height});
+        schedule(dst, {width, height});
 
         return dst;
     }
