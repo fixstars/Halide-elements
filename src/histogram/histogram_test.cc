@@ -7,11 +7,13 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "histogram.h"
+#include "histogram_u8.h"
+#include "histogram_u16.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -21,14 +23,14 @@ int main()
         //
         const int width = 1024;
         const int height = 768;
-        const int hist_width = std::numeric_limits<uint8_t>::max() + 1;
+        const int hist_width = std::numeric_limits<T>::max() + 1;
         const std::vector<int32_t> extents{width, height}, extents_hist{hist_width};
-        auto input = mk_rand_buffer<uint8_t>(extents);
+        auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<uint32_t>(extents_hist);
         uint32_t expect[hist_width];
-        uint32_t hist_size = std::numeric_limits<uint8_t>::max() + 1;
+        constexpr uint32_t hist_size = std::numeric_limits<T>::max() + 1;
         uint32_t hist[hist_size];
-        int bin_size = (hist_size + hist_width - 1) / hist_width;
+        const int bin_size = (hist_size + hist_width - 1) / hist_width;
 
         memset(hist, 0, sizeof(hist));
         for (int y=0; y<height; ++y) {
@@ -46,7 +48,7 @@ int main()
             expect[i] = sum;
         }
 
-        histogram(input, output);
+        func(input, output);
 
         for (int x=0; x<hist_width; ++x) {
             uint32_t actual = output(x);
@@ -62,4 +64,10 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+    test<uint8_t>(histogram_u8);
+    test<uint16_t>(histogram_u16);
 }

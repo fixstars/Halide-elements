@@ -3,11 +3,12 @@
 
 using namespace Halide;
 
-class DivScalar : public Halide::Generator<DivScalar> {
+template<typename T>
+class DivScalar : public Halide::Generator<DivScalar<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    ImageParam src{UInt(8), 2, "src"};
+    ImageParam src{type_of<T>(), 2, "src"};
     Param<float> value{"value", 1};
 
     Var x, y;
@@ -16,12 +17,14 @@ public:
 
         Func dst("dst");
         Expr srcval = src(x, y);
-        Expr dstval = min(srcval / value, cast<float>(type_of<uint8_t>().max()));
+        Expr dstval = min(srcval / value, cast<float>(type_of<T>().max()));
         dstval = max(dstval, 0);
-        dst(x, y) = cast<uint8_t>(round(dstval));
+        dst(x, y) = cast<T>(round(dstval));
 
         return dst;
     }
 };
 
-RegisterGenerator<DivScalar> div_scalar{"div_scalar"};
+RegisterGenerator<DivScalar<uint8_t>> div_scalar_u8{"div_scalar_u8"};
+RegisterGenerator<DivScalar<uint16_t>> div_scalar_u16{"div_scalar_u16"};
+RegisterGenerator<DivScalar<uint32_t>> div_scalar_u32{"div_scalar_u32"};

@@ -3,21 +3,19 @@
 
 using namespace Halide;
 
-class ErodeRect : public Halide::Generator<ErodeRect> {
+template<typename T>
+class ErodeRect : public Halide::Generator<ErodeRect<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
     GeneratorParam<int32_t> iteration{"iteration", 2};
-    ImageParam src{UInt(8), 2, "src"};
-    Param<int32_t> window_width{"window_width"};
-    Param<int32_t> window_height{"window_height"};
+    ImageParam src{type_of<T>(), 2, "src"};
+    Param<int32_t> window_width{"window_width", 3, 3, 17};
+    Param<int32_t> window_height{"window_height", 3, 3, 17};
 
     Var x, y;
 
     Func build() {
-
-        window_width.set_range(3, 17);
-        window_height.set_range(3, 17);
 
         Func input("input");
         input(x, y) = src(x, y);
@@ -36,4 +34,5 @@ public:
     }
 };
 
-RegisterGenerator<ErodeRect> erode_rect{"erode_rect"};
+RegisterGenerator<ErodeRect<uint8_t>> erode_rect_u8{"erode_rect_u8"};
+RegisterGenerator<ErodeRect<uint16_t>> erode_rect_u16{"erode_rect_u16"};
