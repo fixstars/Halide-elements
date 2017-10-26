@@ -1,7 +1,9 @@
 #include <iostream>
 #include "Halide.h"
+#include "Element.h"
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class Equal : public Halide::Generator<Equal<T>> {
@@ -19,6 +21,10 @@ public:
         Expr dstval = cast<T>(select(srcval0 == srcval1, type_of<T>().max(), 0));
         dst(x, y) = dstval;
 
+        schedule(src0, {width, height});
+        schedule(src1, {width, height});
+        schedule(dst, {width, height});
+        
         return dst;
     }
 };

@@ -8,8 +8,8 @@
 #include "HalideBuffer.h"
 
 #include "cmpge_u8.h"
-#include "cmpge_u16.h"
-#include "cmpge_u32.h"
+// #include "cmpge_u16.h"
+// #include "cmpge_u32.h"
 
 #include "test_common.h"
 
@@ -53,6 +53,6 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
 int main()
 {
     test<uint8_t>(cmpge_u8);
-    test<uint16_t>(cmpge_u16);
-    test<uint32_t>(cmpge_u32);
+    // test<uint16_t>(cmpge_u16);
+    // test<uint32_t>(cmpge_u32);
 }

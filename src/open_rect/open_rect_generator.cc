@@ -27,7 +27,6 @@ public:
         for (int32_t i = 0; i < iteration; i++) {
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
-            schedule(workbuf, {width, height}); // <- this line cause SEGV!
             Expr val = f(r, clamped(x + r.x, y + r.y));
             workbuf(x, y) = val;
             workbuf.compute_root();
