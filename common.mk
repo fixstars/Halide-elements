@@ -32,9 +32,9 @@ ${PROG}_gen: ${PROG}_generator.cc
 
 ${PROG}_gen.exec: ${PROG}_gen
 ifdef TYPE_LIST
-	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=host-no_asserts;)
+	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=x86-64-no_asserts;)
 else
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=x86-64-no_asserts
 endif
 	@touch ${PROG}_gen.exec
 

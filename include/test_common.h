@@ -151,10 +151,10 @@ void save_ppm(const std::string& fname, Halide::Runtime::Buffer<uint8_t>& buffer
 
 
 template<typename T>
-T round_to_nearest_even(float v)
+T round_to_nearest_even(double v)
 {
-    float i;
-    float f = modff(v, &i);
+    double i;
+    double f = modf(v, &i);
     if (0.5 == f || -0.5 == f) {
         if (0 == static_cast<int64_t>(i) % 2) {
             return static_cast<T>(i);
