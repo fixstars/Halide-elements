@@ -51,6 +51,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, double _sigma, struct 
                 expect_f /= kernel_sum;
                 T expect = round_to_nearest_even<T>(expect_f);
                 T actual = output(x, y);
+
+                // HLS backend の C-simulation と LLVM backend で丸めの方法とexpの実装が異なるため、1以内の誤差を許している
+                // (C-simulation は round half away from zero だが、LLVM 版は round half to even)
                 if (abs(expect - actual) > 1) {
                     printf("dst(%d, %d) = %s = round_f32(%.20f)\n", x, y, std::to_string(expect).c_str(), expect_f);
                     fflush(stdout);

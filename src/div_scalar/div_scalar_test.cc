@@ -39,6 +39,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, double _value, struct 
                 f = std::min(static_cast<double>(std::numeric_limits<T>::max()), f);
                 f = std::max(static_cast<double>(0.0f), f);
                 expect = round_to_nearest_even<T>(f);
+
+                // HLS backend の C-simulation と LLVM backend で丸めの方法が異なるため、1以内の誤差を許している
+                // (C-simulation は round half away from zero だが、LLVM 版は round half to even)
                 if (abs(expect - actual) > 1) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d (f = %f)", x, y, expect, x, y, actual, f).c_str());
                 }
