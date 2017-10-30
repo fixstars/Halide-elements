@@ -43,11 +43,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
                 for (int x=0; x<width; ++x) {
                     T min = std::numeric_limits<T>::max();
                     for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
-                        int yy = y + j >= 0 ? y + j: 0;
-                        yy = yy < height ? yy : height - 1;
+                        int yy = std::min(std::max(0, y + j), height - 1);
                         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
-                            int xx = x + i >= 0 ? x + i: 0;
-                            xx = xx < width ? xx : width - 1;
+                            int xx = std::min(std::max(0, x + i), width - 1);
                             if (min > workbuf[k%2][xx][yy]) {
                                 min = workbuf[k%2][xx][yy];
                             }

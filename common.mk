@@ -32,9 +32,9 @@ ${PROG}_gen: ${PROG}_generator.cc
 
 ${PROG}_gen.exec: ${PROG}_gen
 ifdef TYPE_LIST
-	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=host;)
+	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=x86-64-no_asserts;)
 else
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=x86-64-no_asserts
 endif
 	@touch ${PROG}_gen.exec
 
@@ -100,4 +100,4 @@ ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@ ${TARGET_LIB}
 
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h *.o ${PROG}*.a *.hls *.exec ${PROG}_test_csim $(foreach type,${TYPE_LIST},${PROG}_${type}_test_csim)
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_*_test_csim ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec
