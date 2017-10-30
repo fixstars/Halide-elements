@@ -8,7 +8,7 @@
 #include "HalideBuffer.h"
 
 #include "histogram_u8.h"
-// #include "histogram_u16.h"
+#include "histogram_u16.h"
 
 #include "test_common.h"
 
@@ -68,6 +68,10 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(histogram_u8);
-    // test<uint16_t>(histogram_u16);
+#endif
+#ifdef TYPE_u16
+    test<uint16_t>(histogram_u16);
+#endif
 }

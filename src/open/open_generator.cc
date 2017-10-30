@@ -33,7 +33,7 @@ public:
         Func allzero("allzero");
         Var tmp("tmp");
         allzero(tmp) = cast<bool>(true);
-        allzero(tmp) = allzero(tmp) && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
+        allzero(tmp) = allzero(tmp) && (structure_(r.x + window_width / 2, r.y + window_height / 2) == 0);
         allzero.compute_root();
 
         schedule(allzero, {1});
@@ -41,7 +41,7 @@ public:
             Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
             Func workbuf("workbuf");
             Expr val = select(allzero(0), clamped(x - window_width / 2, y - window_height / 2),
-                              f(r, select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0, init, clamped(x + r.x, y + r.y))));
+                              f(r, select(structure_(r.x + window_width / 2, r.y + window_height / 2) == 0, init, clamped(x + r.x, y + r.y))));
             workbuf(x, y) = val;
             workbuf.compute_root();
             input = workbuf;

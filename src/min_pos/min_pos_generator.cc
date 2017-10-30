@@ -16,15 +16,18 @@ public:
     Func build() {
         Func dst("dst");
         RDom r(0, width, 0, height, "r");
-        Tuple res = argmin(src(r.x, r.y));
-
+        Func res("res");
+        Var x("x");
+        res(x) = argmin(r, src(r.x, r.y));
+        
         Var d("d");
         dst(d) = cast<uint32_t>(0);
-        dst(0) = cast<uint32_t>(res[0]);
-        dst(1) = cast<uint32_t>(res[1]);
+        dst(0) = cast<uint32_t>(res(0)[0]);
+        dst(1) = cast<uint32_t>(res(0)[1]);
 
         schedule(src, {width, height});
         schedule(dst, {2});
+        schedule(res, {1});
 
         return dst;
     }

@@ -21,6 +21,13 @@ public:
         r.where(roi(r.x, r.y) != 0);
 
         Var x{"x"};
+        // Func minimum_if("minimum_if");
+        // minimum_if(x) = type_of<T>().max();
+        // minimum_if(x) = select(roi(r.x, r.y) != 0,
+        //                        select(src(r.x, r.y) < minimum_if(x),
+        //                               src(r.x, r.y),
+        //                               minimum_if(x)),
+        //                        type_of<T>().max());
         count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
 
         dst(x) = cast<T>(select(count(x) == 0, 0, minimum(src(r.x, r.y))));
@@ -28,6 +35,7 @@ public:
         schedule(src, {width, height});
         schedule(roi, {width, height});
         schedule(count, {1});
+        // schedule(minimum_if, {1});
         schedule(dst, {1});
         
         return dst;

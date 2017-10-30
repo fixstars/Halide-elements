@@ -4,10 +4,10 @@
 #include <exception>
 
 #include "min_pos_u8.h"
-// #include "min_pos_u16.h"
-// #include "min_pos_u32.h"
-// #include "min_pos_f32.h"
-// #include "min_pos_f64.h"
+#include "min_pos_u16.h"
+#include "min_pos_u32.h"
+#include "min_pos_f32.h"
+#include "min_pos_f64.h"
 #include "test_common.h"
 
 using std::string;
@@ -79,9 +79,19 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(min_pos_u8);
-    // test<uint16_t>(min_pos_u16);
-    // test<uint32_t>(min_pos_u32);
-    // test<float>(min_pos_f32);
-    // test<double>(min_pos_f64);
+#endif
+#ifdef TYPE_u16
+    test<uint16_t>(min_pos_u16);
+#endif
+#ifdef TYPE_u32
+    test<uint32_t>(min_pos_u32);
+#endif
+#ifdef TYPE_f32
+    test<float>(min_pos_f32);
+#endif
+#ifdef TYPE_f64
+    test<double>(min_pos_f64);
+#endif
 }

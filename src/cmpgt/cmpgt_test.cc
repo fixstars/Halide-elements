@@ -8,8 +8,8 @@
 #include "HalideBuffer.h"
 
 #include "cmpgt_u8.h"
-// #include "cmpgt_u16.h"
-// #include "cmpgt_u32.h"
+#include "cmpgt_u16.h"
+#include "cmpgt_u32.h"
 
 #include "test_common.h"
 
@@ -52,7 +52,13 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(cmpgt_u8);
-    // test<uint16_t>(cmpgt_u16);
-    // test<uint32_t>(cmpgt_u32);
+#endif
+#ifdef TYPE_u16
+    test<uint16_t>(cmpgt_u16);
+#endif
+#ifdef TYPE_u32
+    test<uint32_t>(cmpgt_u32);
+#endif
 }

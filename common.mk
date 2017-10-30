@@ -44,7 +44,7 @@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a): ${PROG}_gen.exec
 $(foreach type,${TYPE_LIST},${PROG}_${type}.h): ${PROG}_gen.exec
 
 ${PROG}_test: ${PROG}_test.cc $(foreach type,${TYPE_LIST},${PROG}_${type}.h ${PROG}_${type}.a)
-	g++ -I . ${CXXFLAGS} $< -o $@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a) -ldl -lpthread
+	g++ $(foreach type,${TYPE_LIST},-DTYPE_${type}) -I . ${CXXFLAGS} $< -o $@ $(foreach type,${TYPE_LIST},${PROG}_${type}.a) -ldl -lpthread
 else
 ${PROG}.a: ${PROG}_gen.exec
 
@@ -57,33 +57,47 @@ endif
 ${PROG}_gen.hls: ${PROG}_generator.cc
 	g++ -D HALIDE_FOR_FPGA -fno-rtti ${CXXFLAGS} $< ${HALIDE_TOOLS_DIR}/GenGen.cpp -o ${PROG}_gen.hls ${LIBS} -lHalide
 
-${PROG}.hls: ${PROG}_gen.hls
 ifdef TYPE_LIST
+$(foreach type,${TYPE_LIST},${PROG}_${type}.hls): ${PROG}_gen.hls
 	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e hls target=fpga-64-vivado_hls;)
 else
+${PROG}.hls: ${PROG}_gen.hls
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
 endif
-	@touch ${PROG}_gen.exec
 
+ifdef TYPE_LIST
+define hls_template
+${PROG}_$(1).hls.exec: ${PROG}_$(1).hls
+	cd ${PROG}_$(1).hls; make
+	@touch ${PROG}_$(1).hls.exec
+
+${PROG}_$(1)_csim.o: ${PROG}_$(1).hls
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}_$(1).hls/${PROG}_$(1).cc -c -o ${PROG}_$(1)_csim.o
+
+${PROG}_$(1)_test_csim: ${PROG}_test.cc ${PROG}_$(1)_csim.o ${PROG}_$(1).h
+	g++ -DTYPE_$(1) -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $$< ${PROG}_$(1)_csim.o -o $$@ -ldl -lpthread
+endef
+$(foreach type,${TYPE_LIST},$(eval $(call hls_template,${type})))
+
+run_${PROG}_test_csim: $(foreach type,${TYPE_LIST},${PROG}_${type}_test_csim)
+	$(foreach type,${TYPE_LIST},./${PROG}_${type}_test_csim;)
+else
 ${PROG}.hls.exec: ${PROG}.hls
 	cd ${PROG}.hls; make
 	@touch ${PROG}.hls.exec
 
+${PROG}_csim.o: ${PROG}.hls
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}.hls/${PROG}.cc -c -o $@
+
+${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
+
+run_${PROG}_test_csim: ${PROG}_test_csim
+	./${PROG}_test_csim
+endif
+
 ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@ ${TARGET_LIB}
 
-$(foreach type,${TYPE_LIST},${PROG}_${type}_csim.o): ${PROG}.hls
-ifdef TYPE_LIST
-	$(foreach type,${TYPE_LIST}, g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}_${type}.hls/${PROG}_${type}.cc -c -o ${PROG}_${type}_csim.o;)
-else
-	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}.hls/${PROG}.cc -c -o $@
-endif
-
-PROG_CSIM_O_LIST=$(foreach type,${TYPE_LIST},${PROG}_${type}_csim.o)
-PROG_H_LIST=$(foreach type,${TYPE_LIST},${PROG}_${type}.h)
-
-${PROG}_test_csim: ${PROG}_test.cc ${PROG_CSIM_O_LIST} ${PROG_H_LIST}
-	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG_CSIM_O_LIST} -o $@ -ldl -lpthread
-
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h *.o ${PROG}*.a *.hls *.exec
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h *.o ${PROG}*.a *.hls *.exec ${PROG}_test_csim $(foreach type,${TYPE_LIST},${PROG}_${type}_test_csim)
