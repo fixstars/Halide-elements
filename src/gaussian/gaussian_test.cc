@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <exception>
-#include <csignal>
 
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
@@ -11,8 +10,6 @@
 #include "gaussian_u16.h"
 
 #include "test_common.h"
-
-#define TRAP(cond) if (cond) { raise(SIGTRAP); }
 
 template<typename T>
 int test(int (*func)(struct halide_buffer_t *_src_buffer, double _sigma, struct halide_buffer_t *_dst_buffer))

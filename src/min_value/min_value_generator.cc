@@ -28,7 +28,6 @@ public:
         schedule(src, {width, height});
         schedule(roi, {width, height});
         schedule(count, {1});
-        // schedule(minimum_if, {1});
         schedule(dst, {1});
         
         return dst;

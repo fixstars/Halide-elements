@@ -19,6 +19,7 @@ public:
         Func res("res");
         Var x("x");
         res(x) = argmin(r, src(r.x, r.y));
+        res.compute_root();
         
         Var d("d");
         dst(d) = cast<uint32_t>(0);
