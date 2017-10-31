@@ -1,10 +1,24 @@
+# Platform dependents
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	OS = Linux
+else ifeq ($(UNAME_S),Darwin)
+	OS = Mac
+else
+	$(error Unknown platform)
+endif
+
 HALIDE_ROOT?=/usr/local/
 HALIDE_BUILD?=${HALIDE_ROOT}
 
 HALIDE_TOOLS_DIR=${HALIDE_ROOT}/tools/
 HALIDE_LIB_CMAKE:=${HALIDE_BUILD}/lib
 HALIDE_LIB_MAKE:=${HALIDE_BUILD}/bin
-HALIDE_LIB:=libHalide.so
+ifeq ($(OS), Linux)
+	HALIDE_LIB:=libHalide.so
+else
+	HALIDE_LIB:=libHalide.dylib
+endif
 BUILD_BY_CMAKE:=$(shell ls ${HALIDE_LIB_CMAKE} | grep ${HALIDE_LIB})
 BUILD_BY_MAKE:=$(shell ls ${HALIDE_LIB_MAKE} | grep ${HALIDE_LIB})
 
@@ -32,9 +46,17 @@ ${PROG}_gen: ${PROG}_generator.cc
 
 ${PROG}_gen.exec: ${PROG}_gen
 ifdef TYPE_LIST
+ifeq ($(OS), Linux)
 	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=x86-64-no_asserts;)
 else
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=x86-64-no_asserts
+	$(foreach type,${TYPE_LIST},DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e h,static_library target=x86-64-no_asserts;)
+endif
+else
+ifeq ($(OS), Linux)
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+else
+	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+endif
 endif
 	@touch ${PROG}_gen.exec
 
@@ -59,10 +81,18 @@ ${PROG}_gen.hls: ${PROG}_generator.cc
 
 ifdef TYPE_LIST
 $(foreach type,${TYPE_LIST},${PROG}_${type}.hls): ${PROG}_gen.hls
+ifeq ($(OS), Linux)
 	$(foreach type,${TYPE_LIST},LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e hls target=fpga-64-vivado_hls;)
 else
+	$(foreach type,${TYPE_LIST},DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG}_${type} -e hls target=fpga-64-vivado_hls;)
+endif
+else
 ${PROG}.hls: ${PROG}_gen.hls
+ifeq ($(OS), Linux)
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
+else
+	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
+endif
 endif
 
 ifdef TYPE_LIST
@@ -73,7 +103,6 @@ ${PROG}_$(1).hls.exec: ${PROG}_$(1).hls
 
 ${PROG}_$(1)_csim.o: ${PROG}_$(1).hls
 	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}_$(1).hls/${PROG}_$(1).cc -c -o ${PROG}_$(1)_csim.o
-
 ${PROG}_$(1)_test_csim: ${PROG}_test.cc ${PROG}_$(1)_csim.o ${PROG}_$(1).h
 	g++ -DTYPE_$(1) -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $$< ${PROG}_$(1)_csim.o -o $$@ -ldl -lpthread
 endef
