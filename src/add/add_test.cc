@@ -7,7 +7,7 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "add.h"
+#include "add_u8.h"
 
 #include "test_common.h"
 
@@ -26,16 +26,22 @@ int main()
         auto input1 = mk_rand_buffer<uint8_t>(extents);
         auto output = mk_null_buffer<uint8_t>(extents);
 
-        add(input0, input1, output);
+        add_u8(input0, input1, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                uint8_t expect = (input0(x, y) > input1(x, y) ? std::numeric_limits<uint8_t>::max() : 0);
-                uint8_t actual = output(x, y);
+                uint16_t expect = input0(x, y) + input1(x, y);
+                if (expect > 255) expect = 255;
+                
+                uint16_t actual = static_cast<uint16_t>(output(x, y));
+                
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
+                //} else {
+                    //printf("%d", actual);
                 }
             }
+            //printf("¥n");
         }
 
     } catch (const std::exception& e) {
