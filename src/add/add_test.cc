@@ -37,11 +37,9 @@ int main()
                 
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
-                //} else {
-                    //printf("%d", actual);
                 }
             }
-            //printf("¥n");
+            
         }
 
     } catch (const std::exception& e) {
