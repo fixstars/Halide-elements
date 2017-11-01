@@ -100,4 +100,4 @@ ${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
 	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
 
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_run ${PROG}*.h ${PROG}*.a ${PROG}*.dSYM *.o *.hls *.exec
