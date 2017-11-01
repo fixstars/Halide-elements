@@ -40,8 +40,6 @@ public:
                     next(i, x, y) = select(i < chunk_middle,
                                            min(prev(i, x, y), prev(partner, x, y)),
                                            max(prev(i, x, y), prev(partner, x, y)));
-
-
                 } else {
                     // Regular pass
                     Expr partner = chunk_start + (chunk_index + chunk_size) % (chunk_size*2);
@@ -53,6 +51,7 @@ public:
                 }
 
                 schedule(next, {size, width, height});
+                next.unroll(i);
                 prev = next;
             }
         }
@@ -74,6 +73,9 @@ public:
         window(i, x, y) = cast<T>(0);
         window((r.x + offset_x) + (r.y + offset_y) * window_width, x, y) =
             clamped(x + r.x, y + r.y);
+        window.unroll(i);
+        window.update(0).unroll(r.x);
+        window.update(0).unroll(r.y);
         Func sorted = bitonic_sort(window, window_size);
 
         dst(x,y) = sorted(window_size / 2, x, y);
