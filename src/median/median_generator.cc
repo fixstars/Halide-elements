@@ -70,7 +70,7 @@ public:
         Func window("window");
 
         Var i{"i"};
-        window(i, x, y) = cast<T>(0);
+        window(i, x, y) = undef<T>();
         window((r.x + offset_x) + (r.y + offset_y) * window_width, x, y) =
             clamped(x + r.x, y + r.y);
         window.unroll(i);
