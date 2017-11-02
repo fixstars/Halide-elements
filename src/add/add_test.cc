@@ -43,6 +43,7 @@ int main()
         }
 
     } catch (const std::exception& e) {
+        printf("Error!!¥n");
         std::cerr << e.what() << std::endl;
         return 1;
     }
