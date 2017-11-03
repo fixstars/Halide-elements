@@ -41,7 +41,22 @@ Halide::Func add_scalar(Halide::Func src0, Halide::Expr val)
     return dst;
 }
 
+template<typename T>
+Halide::Func calc_and(Halide::Func src0, Halide::Func src1)
+{
+    using namespace Halide;
 
+    Var x, y;
+
+    Func dst("dst");
+    Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
+    
+    Expr dstval = srcval0 & srcval1;
+    
+    dst(x, y) = dstval;
+    
+    return dst;
+}
 
 }
 }
