@@ -13,7 +13,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width, int32_t _window_height, struct halide_buffer_t *_workbuf__1_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_workbuf__1_buffer))
 {
     try {
         int ret = 0;
@@ -57,7 +57,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
         }
         expect = &(workbuf[k%2]);
 
-        func(input, window_width, window_height, output);
+        func(input, output);
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
@@ -79,6 +79,10 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(erode_rect_u8);
+#endif
+#ifdef TYPE_u16
     test<uint16_t>(erode_rect_u16);
+#endif
 }

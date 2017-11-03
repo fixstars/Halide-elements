@@ -6,7 +6,7 @@ using namespace Halide;
 using namespace Halide::Element;
 
 template<typename T>
-class Equal : public Halide::Generator<Equal<T>> {
+class Nand : public Halide::Generator<Nand<T>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
@@ -17,18 +17,17 @@ public:
     Func build() {
 
         Func dst("dst");
-        Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
-        Expr dstval = cast<T>(select(srcval0 == srcval1, type_of<T>().max(), 0));
+        Expr dstval = ~(src0(x, y) & src1(x, y));
         dst(x, y) = dstval;
 
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(dst, {width, height});
-        
+
         return dst;
     }
 };
 
-RegisterGenerator<Equal<uint8_t>> equal_u8{"equal_u8"};
-RegisterGenerator<Equal<uint16_t>> equal_u16{"equal_u16"};
-RegisterGenerator<Equal<uint32_t>> equal_u32{"equal_u32"};
+RegisterGenerator<Nand<uint8_t>> nand_u8{"nand_u8"};
+RegisterGenerator<Nand<uint16_t>> nand_u16{"nand_u16"};
+RegisterGenerator<Nand<uint32_t>> nand_u32{"nand_u32"};
