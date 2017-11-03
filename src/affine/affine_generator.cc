@@ -1,8 +1,10 @@
 #include <iostream>
 #include <cmath>
 #include "Halide.h"
+#include "Element.h"
 
 using namespace Halide;
+using namespace Halide::Element;
 
 class Affine : public Generator<Affine> {
 public:
@@ -38,6 +40,11 @@ public:
         Func limited = BoundaryConditions::constant_exterior(input, 255);
         affine(x, y) = limited(tx(x, y), ty(x, y));
 
+        schedule(input, {width, height});
+        schedule(tx, {width, height});
+        schedule(ty, {width, height});
+        schedule(affine, {width, height});
+        
         return affine;
     }
 };

@@ -2,8 +2,10 @@
 #include <climits>
 #include <cassert>
 #include "Halide.h"
+#include "Element.h"
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class Histogram2D : public Halide::Generator<Histogram2D<T>> {
@@ -23,6 +25,10 @@ public:
         Expr idx0 = cast<int32_t>(src0(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
         Expr idx1 = cast<int32_t>(src1(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
         dst(idx0, idx1) += cast<uint32_t>(1);
+
+        schedule(src0, {width, height});
+        schedule(src1, {width, height});
+        schedule(dst, {hist_width, hist_width});
 
         return dst;
     }

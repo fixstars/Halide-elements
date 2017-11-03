@@ -12,7 +12,7 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width, int32_t _window_height, double _sigma, struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer, double _sigma, struct halide_buffer_t *_dst_buffer))
 {
     try {
         int ret = 0;
@@ -29,8 +29,8 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
 
-        func(input, window_width, window_height, sigma, output);
-
+        func(input, sigma, output);
+        
         double kernel_sum = 0;
         for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
             for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
@@ -51,7 +51,12 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
                 expect_f /= kernel_sum;
                 T expect = round_to_nearest_even<T>(expect_f);
                 T actual = output(x, y);
-                if (expect != actual) {
+
+                // HLS backend の C-simulation と LLVM backend で丸めの方法とexpの実装が異なるため、1以内の誤差を許している
+                // (C-simulation は round half away from zero だが、LLVM 版は round half to even)
+                if (abs(expect - actual) > 1) {
+                    printf("dst(%d, %d) = %s = round_f32(%.20f)\n", x, y, std::to_string(expect).c_str(), expect_f);
+                    fflush(stdout);
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d, expect_f = %f", x, y, expect, x, y, actual, expect_f).c_str());
                 }
             }
@@ -68,6 +73,10 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, int32_t _window_width,
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(gaussian_u8);
+#endif
+#ifdef TYPE_u16
     test<uint16_t>(gaussian_u16);
+#endif
 }

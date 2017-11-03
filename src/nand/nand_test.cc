@@ -1,15 +1,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <climits>
 #include <exception>
+#include <climits>
 
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "cmpge_u8.h"
-#include "cmpge_u16.h"
-#include "cmpge_u32.h"
+#include "nand_u8.h"
+#include "nand_u16.h"
+#include "nand_u32.h"
 
 #include "test_common.h"
 
@@ -33,7 +33,7 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                T expect = (input0(x, y) >= input1(x, y) ? std::numeric_limits<T>::max() : 0);
+                T expect = ~ (input0(x, y) & input1(x, y));
                 T actual = output(x, y);
                 if (expect != actual) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
@@ -53,12 +53,12 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
 int main()
 {
 #ifdef TYPE_u8
-    test<uint8_t>(cmpge_u8);
+    test<uint8_t>(nand_u8);
 #endif
 #ifdef TYPE_u16
-    test<uint16_t>(cmpge_u16);
+    test<uint16_t>(nand_u16);
 #endif
 #ifdef TYPE_u32
-    test<uint32_t>(cmpge_u32);
+    test<uint32_t>(nand_u32);
 #endif
 }
