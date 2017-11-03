@@ -1,12 +1,16 @@
-#include <iostream>
-#include <limits>
+#ifndef HALIDE_ELEMENT_ARITHMETIC_H
+#define HALIDE_ELEMENT_ARITHMETIC_H
+
 #include "Halide.h"
 
-using namespace Halide;
+namespace Halide {
+namespace Element {
 
 template<typename T>
-Func add(Func src0, Func src1)
+Halide::Func add(Halide::Func src0, Halide::Func src1)
 {
+    using namespace Halide;
+
     Var x, y;
 
     Func dst("dst");
@@ -18,3 +22,8 @@ Func add(Func src0, Func src1)
     
     return dst;
 }
+
+}
+}
+
+#endif

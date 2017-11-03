@@ -8,6 +8,8 @@
 
 #include <Halide.h>
 
+#include "Arithmetic.h"
+
 namespace Halide {
 namespace Element {
 
