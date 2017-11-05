@@ -66,6 +66,10 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
 
 int main()
 {
+#ifdef TYPE_u8
     test<uint8_t>(histogram2d_u8);
+#endif
+#ifdef TYPE_u16
     test<uint16_t>(histogram2d_u16);
+#endif
 }

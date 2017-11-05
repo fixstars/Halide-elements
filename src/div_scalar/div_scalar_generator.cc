@@ -1,7 +1,9 @@
 #include <iostream>
 #include "Halide.h"
+#include "Element.h"
 
 using namespace Halide;
+using namespace Halide::Element;
 
 template<typename T>
 class DivScalar : public Halide::Generator<DivScalar<T>> {
@@ -21,6 +23,9 @@ public:
         dstval = max(dstval, 0);
         dst(x, y) = cast<T>(round(dstval));
 
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
+        
         return dst;
     }
 };
