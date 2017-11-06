@@ -4,6 +4,7 @@
 #include "HalideBuffer.h"
 
 #include "test_common.h"
+#include "run_common.h"
 
 #include "sgm.h"
 

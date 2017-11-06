@@ -170,59 +170,6 @@ T round_to_nearest_even(double v)
     }
 }
 
-int save_pgm(const char *fname, const uint8_t *buffer, int32_t width, int32_t height)
-{
-    FILE *fd = fopen(fname, "wb");
-    if (fd == NULL) {
-        printf("Invalid path\n");
-        return 1;
-    }
-
-    fprintf(fd, "P5\n");
-    fprintf(fd, "%d %d\n", width, height);
-    fprintf(fd, "255\n");
-    
-    uint8_t *buf = (uint8_t*)malloc(width*height*sizeof(uint8_t));
-    memcpy(buf, buffer, width*height*sizeof(uint8_t));
-    fwrite(buf, sizeof(uint8_t), width*height, fd);
-    free(buf);
-    
-    fclose(fd);
-    return 0;
-}
-
-int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t width, int32_t height)
-{
-    if (channel != 3 && channel != 4) {
-        printf("Invalid format\n");
-        return 1;
-    }
-
-    FILE *fd = fopen(fname, "wb");
-    if (fd == NULL) {
-        printf("Invalid path\n");
-        return 1;
-    }
-
-    fprintf(fd, "P6\n");
-    fprintf(fd, "%d %d\n", width, height);
-    fprintf(fd, "255\n");
-    
-    uint8_t *buf = (uint8_t*)malloc(3*width*height);
-    for (int32_t y=0; y<height; ++y) {
-        for (int32_t x=0; x<width; ++x) {
-            for (int32_t c=0; c<3; ++c) {
-                buf[y*3*width+x*3+c] = buffer[y*channel*width+x*channel+c];
-            }
-        }
-    }
-    fwrite(buf, sizeof(uint8_t), 3*width*height, fd);
-    free(buf);
-    
-    fclose(fd);
-    return 0;
-}
-
 }
 
 #endif /* TEST_COMMON_H */

@@ -18,7 +18,7 @@ typedef struct {
     int32_t dim;
     int32_t extent[4];
     uint32_t addr;
-} buffer_t;
+} dma_buffer_t;
 
 typedef struct {
     int fd;
@@ -31,7 +31,7 @@ typedef struct {
 static int mempool_init(pool_t *pool)
 {
     int fd = 0;
-    unsigned char attr[1024];
+    char attr[1024];
 
     if ((fd  = open("/dev/udmabuf0", O_RDWR | O_SYNC)) == -1) {
         printf("cannot open udmabuf0\n");
@@ -78,7 +78,7 @@ static int mempool_init(pool_t *pool)
     return 0;
 }
 
-static int mempool_alloc(pool_t *pool, buffer_t *buf)
+static int mempool_alloc(pool_t *pool, dma_buffer_t *buf)
 {
     // Align to 4KiB
     size_t size = (buf->size + 4096 - 1) / 4096 * 4096;
