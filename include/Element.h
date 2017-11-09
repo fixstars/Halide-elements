@@ -408,7 +408,7 @@ Fixed<BASE_T, FB> select(Expr condition, const Fixed<BASE_T, FB>& true_value, co
 template<typename BASE_T, uint32_t FB, typename... Args>
 Fixed<BASE_T, FB> select(Expr c0, const Fixed<BASE_T, FB>& v0, Expr c1, const Fixed<BASE_T, FB>& v1, Args&&... args)
 {
-    return Fixed<BASE_T, FB>{select(c0, v0, select(c1, v1, std::forward<Args>(args)...))};
+    return Fixed<BASE_T, FB>{select(c0, static_cast<Expr>(v0), static_cast<Expr>(select(c1, v1, std::forward<Args>(args)...)))};
 }
 
 template<typename BASE_T, uint32_t FB>

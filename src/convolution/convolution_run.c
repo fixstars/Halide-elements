@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
     int32_t ksz_max = 5;
     int32_t ksz = 3;
      
-    buffer_t ibuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t),    .dim=0, .addr=0};
-    buffer_t kbuf = {.ptr=NULL, .size=ksz_max*ksz_max*sizeof(int16_t), .dim=0, .addr=0};
-    buffer_t obuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t),    .dim=0, .addr=0};
+    dma_buffer_t ibuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t),    .dim=0, .addr=0};
+    dma_buffer_t kbuf = {.ptr=NULL, .size=ksz_max*ksz_max*sizeof(int16_t), .dim=0, .addr=0};
+    dma_buffer_t obuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t),    .dim=0, .addr=0};
     
     if (XConvolution_hp_wrapper_Initialize(&ins, "convolution_hp_wrapper") != XST_SUCCESS) {
         printf("Cannot initialize driver instance\n");
