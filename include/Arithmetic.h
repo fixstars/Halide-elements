@@ -53,6 +53,22 @@ Halide::Func multiply(Halide::Func src1, Halide::Func src2) {
     return dst;
 }
 
+template <typename T>
+Halide::Func mul_scalar(Halide::Func src0, Halide::Expr val) {
+    using namespace Halide;
+
+    Var x, y;
+    
+    Func dst("dst");
+
+    Expr srcval = src0(x, y);
+    Expr dstval = min(srcval * val, cast<float>(type_of<T>().max()));
+    dstval = max(dstval, 0);
+    dst(x, y) = cast<T>(round(dstval));
+
+    return dst;
+}
+
 }
 }
 
