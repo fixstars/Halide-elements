@@ -81,6 +81,18 @@ Halide::Func nand(Halide::Func src0, Halide::Func src1) {
     return dst;
 }
 
+template <typename T>
+Halide::Func nor(Halide::Func src0, Halide::Func src1) {
+    using namespace Halide;
+
+    Var x, y;
+    
+    Func dst("dst");
+    dst(x, y) = ~(src0(x, y) | src1(x, y));
+    
+    return dst;
+}
+
 
 }
 }
