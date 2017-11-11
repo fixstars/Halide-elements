@@ -10,28 +10,6 @@ namespace Element {
 //
 // Fixed point
 //
-template<typename T>
-struct Upper;
-
-template<>
-struct Upper<int16_t> {
-    using type = int32_t;
-};
-
-template<>
-struct Upper<int32_t> {
-    using type = int64_t;
-};
-
-template<>
-struct Upper<float> {
-    using type = float;
-};
-
-template<>
-struct Upper<double> {
-    using type = double;
-};
 
 template<typename BASE_T, uint32_t FB>
 struct Fixed {
@@ -207,92 +185,6 @@ Fixed<BASE_T, FB> sum_unroll(RDom r, const Fixed<BASE_T, FB>& x)
     return Fixed<BASE_T, FB>{cast<BASE_T>(sum_unroll(r, cast<UPPER_T>(x.v)))};
 }
 
-template <uint32_t FB>
-Func bin_active_fixed32(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    f(c, x, y, n) = Fixed<int32_t, FB>{bottom(c, x, y, n)} >= to_fixed<int32_t, FB>(.0f);
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func scale_fixed32(Func bottom, ImageParam weight, ImageParam bias,
-                           const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 v = Fixed32{bottom(c, x, y, n)};
-    Fixed32 w = Fixed32{weight(c)};
-    Fixed32 b = Fixed32{bias(c)};
-    
-    f(c, x, y, n) = static_cast<Expr>(v * w + b);
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func bn_fixed32(Func bottom, ImageParam mean, ImageParam variance,
-                        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 b = Fixed32{bottom(c, x, y, n)};
-    Fixed32 m = Fixed32{mean(c)};
-    Fixed32 v = Fixed32{variance(c)};
-
-    f(c, x, y, n) = static_cast<Expr>((b - m) / (to_fixed<int32_t, FB>(sqrt(from_fixed<float>(v))) + to_fixed<int32_t, FB>(.001f)));
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func fc_fixed32(Func bottom, ImageParam weight, ImageParam bias,
-                        const std::vector<int32_t>& weight_shape,
-                        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var i("i"), n("n");
-    Func f;
-    RDom r(0, weight_shape[0]);
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 v = Fixed32{bottom(r.x, n)};
-    Fixed32 w = Fixed32{weight(r.x, i)};
-    Fixed32 b = Fixed32{bias(i)};
-
-    f(i, n) = static_cast<Expr>(mac(r, v, w) + b);
-
-    top_shape = {
-        weight_shape[1],
-        bottom_shape[1]
-    };
-
-    return f;
-}
-
-template <uint32_t FB>
-Func tofloat(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var i("i"), n("n");
-    Func f;
-    f(i, n) = from_fixed<float>(Fixed<int32_t, FB>{bottom(i, n)});
-
-    top_shape = bottom_shape;
-
-    return f;
-}
 
 } //namespace Element
 } //namespace Halide
