@@ -58,6 +58,48 @@ Halide::Func calc_and(Halide::Func src0, Halide::Func src1)
     return dst;
 }
 
+template<typename T>
+Halide::Func and_scalar(Halide::Func src0, Halide::Expr val)
+{
+    using namespace Halide;
+
+    Var x, y;
+
+    Func dst("dst");
+    Expr srcval0 = src0(x, y), srcval1 = val;
+    
+    Expr dstval = srcval0 & srcval1;
+    
+    dst(x, y) = dstval;
+    
+    return dst;
+}
+
+template<typename T>
+Halide::Func average(Halide::ImageParam src, int32_t window_width, int32_t window_height)
+{
+    using namespace Halide;
+
+    Var x, y;
+
+    Func clamped = BoundaryConditions::repeat_edge(src);
+    Expr w_half = div_round_to_zero(window_width, 2);
+    Expr h_half = div_round_to_zero(window_height, 2);
+
+    RDom r(-w_half, window_width, -h_half, window_height);
+
+
+    Func dst("dst");
+
+    Expr dstval = cast<T>(round(sum(cast<float>(clamped(x + r.x, y + r.y))) / cast<float>(window_width * window_height)));
+    
+    dst(x, y) = dstval;
+    
+    return dst;
+}
+
+
+
 }
 }
 

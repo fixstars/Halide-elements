@@ -246,6 +246,16 @@ template<typename T>
 struct Upper;
 
 template<>
+struct Upper<uint8_t> {
+    using type = uint16_t;
+};
+
+template<>
+struct Upper<uint16_t> {
+    using type = uint32_t;
+};
+
+template<>
 struct Upper<int16_t> {
     using type = int32_t;
 };
