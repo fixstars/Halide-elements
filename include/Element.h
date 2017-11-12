@@ -9,6 +9,7 @@
 #include <Halide.h>
 
 #include "Arithmetic.h"
+#include "Algorithm.h"
 
 namespace Halide {
 namespace Element {
@@ -439,29 +440,6 @@ Fixed<BASE_T, FB> sum_unroll(RDom r, const Fixed<BASE_T, FB>& x)
     return Fixed<BASE_T, FB>{cast<BASE_T>(sum_unroll(r, cast<UPPER_T>(x.v)))};
 }
 
-//
-// Complex Expression
-//
-
-struct ComplexExpr {
-    Expr x;
-    Expr y;
-};
-
-ComplexExpr operator+(const ComplexExpr& a, const ComplexExpr& b)
-{
-    return {a.x+b.x, a.y+b.y};
-}
-
-ComplexExpr operator-(const ComplexExpr& a, const ComplexExpr& b)
-{
-    return {a.x-b.x, a.y-b.y};
-}
-
-ComplexExpr operator*(const ComplexExpr& a, const ComplexExpr& b)
-{
-    return {a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x};
-}
 
 //
 // Convolutional Neural Network
@@ -886,26 +864,6 @@ Func tofloat(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<
 
     top_shape = bottom_shape;
 
-    return f;
-}
-
-// 
-// Sdheculing
-//
-ImageParam& schedule(ImageParam& ip, const std::vector<int32_t>& shape)
-{
-    for (size_t i=0; i<shape.size(); ++i) {
-        ip.dim(i).set_bounds(0, shape[i]);
-    }
-    return ip;
-}
-
-Func& schedule(Func& f, const std::vector<int32_t>& shape)
-{
-    f.compute_root();
-    for (size_t i=0; i<shape.size(); ++i) {
-        f.bound(f.args()[i], 0, shape[i]);
-    }
     return f;
 }
 
