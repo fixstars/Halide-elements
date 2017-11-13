@@ -12,3 +12,6 @@
   - DSP: 204
   - FF: 27705
   - LUT: 20361
+
+---
+Project Name: FFT, Category: Library
