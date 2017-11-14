@@ -12,7 +12,7 @@ public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
     GeneratorParam<int32_t> iteration{"iteration", 2};
-    ImageParam src{type_of<T>(), 2, "src"};
+    ImageParam input{type_of<T>(), 2, "input"};
     ImageParam structure{UInt(8), 2, "structure"};
     GeneratorParam<int32_t> window_width{"window_width", 3, 3, 17};
     GeneratorParam<int32_t> window_height{"window_height", 3, 3, 17};
@@ -20,15 +20,12 @@ public:
     Var x, y;
 
 	Func build() {
-		Func input("input");
-		input(x, y) = src(x, y);
-
-		Func structure_("structure_");
-		structure_(x, y) = structure(x, y);
-		schedule(structure, {window_width, window_height});
-		schedule(structure_, {window_width, window_height});
-
-		return dilate<T>(input,width,height,window_width,window_height,structure_,iteration);
+		Func output("output");
+        output(x, y) = dilate<T>(lambda(_, input(_)), width, height, window_width, window_height, lambda(_, structure(_)), iteration)(x, y);
+        schedule(input, {width, height});
+        schedule(structure, {window_width, window_height});
+        schedule(output, {width, height});
+        return output;
     }
 };
 
