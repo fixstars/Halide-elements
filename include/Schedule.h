@@ -1,13 +1,13 @@
-#ifndef HALIDE_ELEMENT_SCHEDULE_H
-#define HALIDE_ELEMENT_SCHEDULE_H
+#pragma once
 
+#include <vector>
 #include <Halide.h>
 
 namespace Halide {
 namespace Element {
 
 // 
-// Sdheculing
+// Scheduling
 //
 ImageParam& schedule(ImageParam& ip, const std::vector<int32_t>& shape)
 {
@@ -28,5 +28,3 @@ Func& schedule(Func& f, const std::vector<int32_t>& shape)
 
 } // Element
 } // Halide
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef HALIDE_ELEMENT_COMPLEX_H
-#define HALIDE_ELEMENT_COMPLEX_H
+#pragma once
 
 #include <Halide.h>
 
@@ -31,5 +30,3 @@ ComplexExpr operator*(const ComplexExpr& a, const ComplexExpr& b)
 
 } // Element
 } // Halide
-
-#endif
