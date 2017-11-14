@@ -7,6 +7,38 @@
 namespace Halide {
 namespace Element {
 
+Func affine(Func in, int32_t width, int32_t height, Param<float> degrees, 
+            Param<float> scale_x, Param<float> scale_y,
+            Param<float> shift_x, Param<float> shift_y, Param<float> skew_y) 
+{
+    Var x, y;
+    Expr cos_deg = cos(degrees * (float)M_PI / 180.0f);
+    Expr sin_deg = sin(degrees * (float)M_PI / 180.0f);
+    Expr tan_skew_y = tan(skew_y * (float)M_PI / 180.0f);
+    Expr det = scale_x * scale_y;
+    Expr a00 = scale_y * cos_deg;
+    Expr a10 = scale_y * sin_deg;
+    Expr a20 = - (a00 * shift_x + a10 * shift_y);
+    Expr a01 = - scale_x * (sin_deg + cos_deg * tan_skew_y);
+    Expr a11 =   scale_x * (cos_deg - sin_deg * tan_skew_y);
+    Expr a21 = - (a01 * shift_x + a11 * shift_y);
+
+    Func tx("tx"), ty("ty");
+    tx(x,y) = cast<int>((a00*x + a10*y + a20) / det);
+    ty(x,y) = cast<int>((a01*x + a11*y + a21) / det);
+
+    Func affine("affine");
+    Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
+    affine(x, y) = limited(tx(x, y), ty(x, y));
+
+    schedule(in, {width, height});
+    schedule(tx, {width, height});
+    schedule(ty, {width, height});
+    schedule(affine, {width, height});
+    
+    return affine;
+}
+
 template<typename T>
 Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma) 
 {
