@@ -19,7 +19,6 @@ public:
 
     // Generalized Func from erode/dilate
     Func conv_cross(Func src_img, std::function<Expr(RDom, Expr)> f) {
-        
         Func input("input");
         input(x, y) = src_img(x, y);
         schedule(input, {width, height});
