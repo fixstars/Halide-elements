@@ -7,6 +7,34 @@
 namespace Halide {
 namespace Element {
 
+template<typename T>
+Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma) 
+{
+    Var x{"x"}, y{"y"};
+    
+    Func clamped = BoundaryConditions::repeat_edge(in, 0, width, 0, height);
+    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
+    Func kernel("kernel");
+    kernel(x, y) = exp(-(x * x + y * y) / (2 * sigma * sigma));
+    kernel.compute_root();
+
+    Func kernel_sum("kernel_sum");
+    kernel_sum(x) = sum(kernel(r.x, r.y));
+    kernel_sum.compute_root();
+    Func dst("dst");
+    Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
+    dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
+
+    schedule(in, {width, height});
+    kernel.compute_root();
+    kernel.bound(x, -(window_width / 2), window_width);
+    kernel.bound(y, -(window_height / 2), window_height);
+    schedule(kernel_sum, {1});
+    schedule(dst, {width, height});
+    
+    return dst;
+}
+
 Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t kernel_size, int32_t unroll_factor) {
     Var x, y;
 
