@@ -2,6 +2,7 @@
 
 #include <Halide.h>
 
+#include "Reduction.h"
 #include "Util.h"
 
 namespace Halide {
