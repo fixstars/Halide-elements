@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
     int32_t n = 256;
     int32_t batch_size = 4;
         
-    buffer_t ibuf = {.ptr=NULL, .size=n*batch_size*sizeof(float2), .dim=0, .addr=0};
-    buffer_t obuf = {.ptr=NULL, .size=n*batch_size*sizeof(float2), .dim=0, .addr=0};
+    dma_buffer_t ibuf = {.ptr=NULL, .size=n*batch_size*sizeof(float2), .dim=0, .addr=0};
+    dma_buffer_t obuf = {.ptr=NULL, .size=n*batch_size*sizeof(float2), .dim=0, .addr=0};
        
     if (XFft_hp_wrapper_Initialize(&ins, "fft_hp_wrapper") != XST_SUCCESS) {
         printf("Cannot initialize driver instance\n");
