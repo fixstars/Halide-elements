@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Halide.h>
-#include "Element.h"
 
 namespace Halide {
 namespace Element {
@@ -177,43 +176,6 @@ Func color_interpolation_hsv2rgb(Func in)
 
     Func out;
     out(c, x, y) = static_cast<Expr>(select(c == 0, r, c == 1, g, b));
-    return out;
-}
-
-Func simple_isp(Func in, Param<uint16_t> optical_black_value, 
-                Param<float> gamma_value, Param<float> saturation_value, 
-                int32_t width, int32_t height) 
-{
-    constexpr uint32_t frac_bits = 10;
-    Var c, x, y;
-    Func f0("optical_black_clamp");
-    f0(x, y) = optical_black_clamp(in, optical_black_value)(x, y);
-
-    Func f0_ = BoundaryConditions::mirror_interior(f0, 0, width, 0, height);
-
-    Func f1("color_interpolation_raw2rgb");
-    f1(c, x, y) = color_interpolation_raw2rgb<frac_bits>(f0_)(c, x, y);
-
-    Func f2("gamma_correction");
-    f2(c, x, y) = gamma_correction<frac_bits>(f1, gamma_value)(c,x,y);
-
-    Func f3("color_interpolation_rgb2hsv");
-    f3(c, x, y) = color_interpolation_rgb2hsv<frac_bits>(f2)(c, x, y);
-
-    Func f4("saturation_adjustment");
-    f4(c, x, y) = saturation_adjustment<frac_bits>(f3, saturation_value)(c, x, y);
-
-    Func f5("color_interpolation_hsv2rgb");
-    f5(c, x, y) = color_interpolation_hsv2rgb<frac_bits>(f4)(c, x, y);
-
-    Func out("out");
-    out(c, x, y) = select(c == 3, 0, denormalize<frac_bits>(f5)(c, x, y));
-
-    schedule(in, {width, height});
-    schedule(f2, {3, width, height}).unroll(c);
-    schedule(f4, {3, width, height}).unroll(c);
-    schedule(out, {4, width, height}).unroll(c);
-    
     return out;
 }
 
