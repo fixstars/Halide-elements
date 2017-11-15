@@ -2,6 +2,7 @@
 
 #include <Halide.h>
 
+#include "Reduction.h"
 #include "Util.h"
 
 namespace Halide {
@@ -26,7 +27,7 @@ inline Fixed<BASE_T, FB> to_fixed(Expr x)
 {
     throw_assert(x.defined(), "conversion of undefined Expr");
     if (x.type().is_float()) {
-        return Fixed<BASE_T, FB>{cast<BASE_T>(x * make_const(type_of<BASE_T>(), 1<<FB))};
+        return Fixed<BASE_T, FB>{cast<BASE_T>(x * Halide::Internal::make_const(type_of<BASE_T>(), 1<<FB))};
     } else {
         return Fixed<BASE_T, FB>{cast<BASE_T>(x) << FB};
     }
