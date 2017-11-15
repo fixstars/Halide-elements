@@ -1,6 +1,5 @@
 #include <Halide.h>
 #include <Element.h>
-#include <Sgm.h>
 
 using namespace Halide;
 using namespace Halide::Element;
@@ -18,7 +17,7 @@ class SGM : public Halide::Generator<SGM> {
 public:
     Func build()
     {
-        return sgm(in_l, in_r, disp, width, height);
+        return semi_global_matching(in_l, in_r, disp, width, height);
     }
 
 private:
