@@ -1,6 +1,6 @@
 #include <Halide.h>
 #include <Element.h>
-#include "Image.h"
+#include "ImageProcessing.h"
 
 using namespace Halide;
    
