@@ -10,11 +10,18 @@ template<typename T>
 class AddScalar : public Halide::Generator<AddScalar<T>> {
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    ImageParam src0{type_of<T>(), 2, "src0"}, src1{type_of<T>(), 1, "src1"};
+    ImageParam src{type_of<T>(), 2, "src"};
+    Param<double> value{"value", 1};
 
 public:
     Func build() {
-        return Element::add_scalar<T>(src0, src1(0));
+        Func dst("dst");
+        dst = Element::add_scalar<T>(src, value);
+
+        Element::schedule(src, {width, height});
+        Element::schedule(dst, {width, height});
+
+        return dst;
     }
 };
 
