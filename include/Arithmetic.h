@@ -41,6 +41,16 @@ Halide::Func add_scalar(Halide::Func src0, Halide::Expr val)
     return dst;
 }
 
+Halide::Func min(Halide::Func src0, Halide::Func src1)
+{
+    Var x, y;
+
+    Func dst("dst");
+    dst(x, y) = min(src0(x, y), src1(x, y));
+
+    return dst;
+}
+
 template<typename T>
 Func integral(Func in, int32_t width, int32_t height) {
     Var x("x"), y("y");
