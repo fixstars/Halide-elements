@@ -18,15 +18,15 @@ public:
     Func build() {
         Var x{"x"}, y{"y"}, c{"c"};
         Func dst{"dst"};
-        dst(x, y, c) = cast<T>(0);
-        dst(x, y, 0) = src0(x, y);
-        dst(x, y, 1) = src1(x, y);
-        dst(x, y, 2) = src2(x, y);
-        
+        dst(c, x, y) = select(c == 0, src0(x, y),
+                              c == 1, src1(x, y),
+                              src2(x, y));
+        dst.unroll(c);
+
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(src2, {width, height});
-        schedule(dst, {width, height, 3});
+        schedule(dst, {3, width, height});
         
         return dst;
     }
