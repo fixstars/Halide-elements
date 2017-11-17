@@ -41,7 +41,22 @@ Halide::Func add_scalar(Halide::Func src0, Halide::Expr val)
     return dst;
 }
 
+template<typename T>
+Func integral(Func in, int32_t width, int32_t height) {
+    Var x("x"), y("y");
+    Func dst("dst"), integral("integral");
+    integral(x, y) = cast<uint64_t>(in(x, y));
 
+    RDom r1(1, width - 1, 0, height, "r1");
+    integral(r1.x, r1.y) += integral(r1.x - 1, r1.y);
+
+    RDom r2(0, width, 1, height - 1, "r2");
+    integral(r2.x, r2.y) += integral(r2.x, r2.y - 1);
+    schedule(integral, {width, height});
+    dst(x, y) = cast<T>(integral(x, y));
+
+    return dst;
+}
 
 }
 }

@@ -10,23 +10,13 @@ class Integral : public Halide::Generator<Integral<T, D>> {
 public:
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    
+
     ImageParam src{type_of<T>(), 2, "src"};
 
     Func build() {
-        Var x{"x"}, y{"y"};
-        Func dst{"dst"}, integral("integral");
-        integral(x, y) = cast<uint64_t>(src(x, y));
+        Func dst = integral<D>(src, width, height);
 
-        RDom r1(1, width - 1, 0, height, "r1");
-        integral(r1.x, r1.y) += integral(r1.x - 1, r1.y);
-
-        RDom r2(0, width, 1, height - 1, "r2");
-        integral(r2.x, r2.y) += integral(r2.x, r2.y - 1);
-
-        dst(x, y) = cast<D>(integral(x, y));
         schedule(src, {width, height});
-        schedule(integral, {width, height});
         schedule(dst, {width, height});
 
         return dst;
