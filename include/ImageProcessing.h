@@ -271,5 +271,30 @@ Func color_interpolation_hsv2rgb(Func in)
     return out;
 }
 
+Func merge3(Func in0, Func in1, Func in2, int32_t width, int32_t height) {
+    Var x{"x"}, y{"y"}, c{"c"};
+    Func dst{"merge3"};
+
+    dst(c, x, y) = select(c == 0, in0(x, y),
+                          c == 1, in1(x, y),
+                          in2(x, y));
+    dst.unroll(c);
+
+    return dst;
+}
+
+Func merge4(Func in0, Func in1, Func in2, Func in3, int32_t width, int32_t height) {
+    Var x{"x"}, y{"y"}, c{"c"};
+    Func dst{"merge4"};
+
+    dst(c, x, y) = select(c == 0, in0(x, y),
+                          c == 1, in1(x, y),
+                          c == 2, in2(x, y),
+                          in3(x, y));
+    dst.unroll(c);
+
+    return dst;
+}
+
 } // Element
 } // Halide

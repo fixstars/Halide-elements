@@ -16,18 +16,12 @@ public:
     ImageParam src2{type_of<T>(), 2, "src2"};
 
     Func build() {
-        Var x{"x"}, y{"y"}, c{"c"};
-        Func dst{"dst"};
-        dst(c, x, y) = select(c == 0, src0(x, y),
-                              c == 1, src1(x, y),
-                              src2(x, y));
-        dst.unroll(c);
-
+        Func dst = Halide::Element::merge3(src0, src1, src2, width, height);
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(src2, {width, height});
         schedule(dst, {3, width, height});
-        
+
         return dst;
     }
 };

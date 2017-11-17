@@ -17,20 +17,13 @@ public:
     ImageParam src3{type_of<T>(), 2, "src3"};
 
     Func build() {
-        Var x{"x"}, y{"y"}, c{"c"};
-        Func dst{"dst"};
-        dst(c, x, y) = select(c == 0, src0(x, y),
-                              c == 1, src1(x, y),
-                              c == 2, src2(x, y),
-                              src3(x, y));
-        dst.unroll(c);
-        
+        Func dst = merge4(src0, src1, src2, src3, width, height);
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(src2, {width, height});
         schedule(src3, {width, height});
         schedule(dst, {4, width, height});
-        
+
         return dst;
     }
 };
