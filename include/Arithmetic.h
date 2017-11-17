@@ -51,6 +51,48 @@ Halide::Func min(Halide::Func src0, Halide::Func src1)
     return dst;
 }
 
+Halide::Func max(Halide::Func src0, Halide::Func src1)
+{
+    Var x, y;
+
+    Func dst("dst");
+    dst(x, y) = max(src0(x, y), src1(x, y));
+
+    return dst;
+}
+
+Func max_pos(Func in, int32_t width, int32_t height) {
+    Func dst("dst");
+    RDom r(0, width, 0, height, "r");
+    Func res("res");
+    Var x("x");
+    res(x) = argmax(r, in(r.x, r.y));
+    schedule(res, {1});
+
+    Var d("d");
+    dst(d) = cast<uint32_t>(0);
+    dst(0) = cast<uint32_t>(res(0)[0]);
+    dst(1) = cast<uint32_t>(res(0)[1]);
+
+    return dst;
+}
+
+template<typename T>
+Func max_value(Func in, Func roi, int32_t width, int32_t height) {
+    Func count("count"), dst("dst");
+
+    RDom r(0, width, 0, height, "r");
+    r.where(roi(r.x, r.y) != 0);
+
+    Var x{"x"};
+    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+
+    dst(x) = cast<T>(select(count(x) == 0, 0, maximum(in(r.x, r.y))));
+
+    schedule(count, {1});
+    return dst;
+}
+
 template<typename T>
 Func integral(Func in, int32_t width, int32_t height) {
     Var x("x"), y("y");
@@ -67,7 +109,6 @@ Func integral(Func in, int32_t width, int32_t height) {
 
     return dst;
 }
-
 }
 }
 
