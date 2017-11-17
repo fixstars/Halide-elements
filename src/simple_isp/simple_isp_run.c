@@ -1,7 +1,7 @@
 #include "run_common.h"
 #include "xsimple_isp_hp_wrapper.h"
 
-void fill_bayer_pattern(buffer_t *buf, int width, int height)
+void fill_bayer_pattern(dma_buffer_t *buf, int width, int height)
 {
     for (int y=0; y<height; ++y) {
         for (int x=0; x<width; ++x) {
@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
     int32_t height = 2486;
     int32_t channel = 4;
     
-    buffer_t ibuf = {.ptr=NULL, .size=width*height*sizeof(uint16_t),        .dim=0, .addr=0};
-    buffer_t obuf = {.ptr=NULL, .size=channel*width*height*sizeof(uint8_t), .dim=0, .addr=0};
+    dma_buffer_t ibuf = {.ptr=NULL, .size=width*height*sizeof(uint16_t),        .dim=0, .addr=0};
+    dma_buffer_t obuf = {.ptr=NULL, .size=channel*width*height*sizeof(uint8_t), .dim=0, .addr=0};
 
     const uint16_t optical_black_clamp_value = 16;
     const float gamma_value = 1.0f/1.8f;

@@ -130,3 +130,4 @@ ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 
 clean:
 	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_*_test_csim ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec *.dSYM
+

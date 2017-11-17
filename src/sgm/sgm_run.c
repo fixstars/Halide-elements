@@ -8,9 +8,9 @@ int main(int argc, char *argv[])
     int32_t width = 641;
     int32_t height = 555;
     
-    buffer_t lbuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
-    buffer_t rbuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
-    buffer_t obuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
+    dma_buffer_t lbuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
+    dma_buffer_t rbuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
+    dma_buffer_t obuf = {.ptr=NULL, .size=width*height*sizeof(uint8_t), .dim=0, .addr=0};
  
     uint8_t *disp = NULL;
   
