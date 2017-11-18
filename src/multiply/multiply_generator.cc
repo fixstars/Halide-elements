@@ -13,16 +13,7 @@ public:
     ImageParam src2{type_of<T>(), 2, "src2"};
     
     Func build() {
-        Var x{"x"}, y{"y"};
-
-        Func dst("dst");
-        dst(x, y) = src1(x, y) * src2(x, y);
-
-        schedule(src1, {width, height});
-        schedule(src2, {width, height});
-        schedule(dst, {width, height});
-        
-        return dst;
+        return multiply<T>(src1, src2);
     }
 };
 

@@ -15,17 +15,7 @@ public:
     Var x, y;
 
     Func build() {
-
-        Func dst("dst");
-        Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
-        Expr dstval = cast<T>(select(srcval0 == srcval1, type_of<T>().max(), 0));
-        dst(x, y) = dstval;
-
-        schedule(src0, {width, height});
-        schedule(src1, {width, height});
-        schedule(dst, {width, height});
-        
-        return dst;
+        return equal<T>(src0, src1);
     }
 };
 
