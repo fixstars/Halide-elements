@@ -83,6 +83,19 @@ Halide::Func fft(Halide::Func in, const int32_t n, const int32_t batch_size)
     return out;
 }
 
+template<typename T>
+Halide::Func copy(Halide::Func src)
+{
+    using namespace Halide;
+
+    Var x, y;
+
+    Func dst("dst");
+    dst(x, y) = src(x, y);
+
+    return dst;
+}
+
 } // Element
 } // Halide
 
