@@ -41,7 +41,107 @@ Halide::Func add_scalar(Halide::Func src0, Halide::Expr val)
     return dst;
 }
 
+template <typename T>
+Halide::Func multiply(Halide::Func src1, Halide::Func src2) {
+    using namespace Halide;
 
+    Var x, y;
+    
+    Func dst("dst");
+    dst(x, y) = src1(x, y) * src2(x, y);
+    
+    return dst;
+}
+
+template <typename T>
+Halide::Func mul_scalar(Halide::Func src0, Halide::Expr val) {
+    using namespace Halide;
+
+    Var x, y;
+    
+    Func dst("dst");
+
+    Expr srcval = src0(x, y);
+    Expr dstval = min(srcval * val, cast<float>(type_of<T>().max()));
+    dstval = max(dstval, 0);
+    dst(x, y) = cast<T>(round(dstval));
+
+    return dst;
+}
+
+template <typename T>
+Halide::Func div_scalar(Halide::Func src, Halide::Expr val) {
+    Var x, y;
+    
+    Func dst("dst");
+
+    Expr srcval = src(x, y);
+    Expr dstval = min(srcval / val, cast<double>(type_of<T>().max()));
+    dstval = max(dstval, 0);
+    dst(x, y) = cast<T>(round(dstval));
+
+    return dst;
+}
+
+template <typename T>
+Halide::Func nand(Halide::Func src0, Halide::Func src1) {
+    using namespace Halide;
+
+    Var x, y;
+    
+    Func dst("dst");
+    dst(x, y) = ~(src0(x, y) & src1(x, y));
+    
+    return dst;
+}
+
+template <typename T>
+Halide::Func nor(Halide::Func src0, Halide::Func src1) {
+    using namespace Halide;
+
+    Var x, y;
+    
+    Func dst("dst");
+    dst(x, y) = ~(src0(x, y) | src1(x, y));
+    
+    return dst;
+}
+
+template <typename T>
+Halide::Func equal(Halide::Func src0, Halide::Func src1) {
+    Var x, y;
+    
+    Func dst("dst");    
+    Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
+    Expr dstval = cast<T>(select(srcval0 == srcval1, type_of<T>().max(), 0));
+    dst(x, y) = dstval;
+
+    return dst;
+}
+
+template <typename T>
+Halide::Func cmpgt(Halide::Func src0, Halide::Func src1) {
+    Var x, y;
+    
+    Func dst("dst");
+    Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
+    Expr dstval = cast<T>(select(srcval0 > srcval1, type_of<T>().max(), 0));
+    dst(x, y) = dstval;
+    
+    return dst;
+}
+
+template <typename T>
+Halide::Func cmpge(Halide::Func src0, Halide::Func src1) {
+    Var x, y;
+    
+    Func dst("dst");
+    Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
+    Expr dstval = cast<T>(select(srcval0 >= srcval1, type_of<T>().max(), 0));;
+    dst(x, y) = dstval;
+
+    return dst;
+}
 
 }
 }
