@@ -15,31 +15,9 @@ public:
     GeneratorParam<int32_t> window_width{"window_width", 3, 3, 17};
     GeneratorParam<int32_t> window_height{"window_height", 3, 3, 17};
 
-    Var x, y;
-
-    // Generalized Func from erode/dilate
-    Func conv_rect(Func src_img, std::function<Expr(RDom, Expr)> f) {
-        Func input("input");
-        input(x, y) = src_img(x, y);
-        schedule(input, {width, height});
-
-        RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-        for (int32_t i = 0; i < iteration; i++) {
-            Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-            Func workbuf("workbuf");
-            Expr val = f(r, clamped(x + r.x, y + r.y));
-            workbuf(x, y) = val;
-            workbuf.compute_root();
-            input = workbuf;
-            schedule(workbuf, {width, height});
-        }
-
-        return input;
-    }
-
     Func build() {
-        Func erode = conv_rect(src, [](RDom r, Expr e){return minimum_unroll(r, e);});
-        Func dilate = conv_rect(erode, [](RDom r, Expr e){return maximum_unroll(r, e);});
+        Func erode = conv_rect(src, [](RDom r, Expr e){return minimum_unroll(r, e);}, width, height, iteration, window_width, window_height);
+        Func dilate = conv_rect(erode, [](RDom r, Expr e){return maximum_unroll(r, e);}, width, height, iteration, window_width, window_height);
 
         schedule(src, {width, height});
         
