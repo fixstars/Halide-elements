@@ -127,6 +127,18 @@ Halide::Func cmpgt(Halide::Func src0, Halide::Func src1) {
     Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
     Expr dstval = cast<T>(select(srcval0 > srcval1, type_of<T>().max(), 0));
     dst(x, y) = dstval;
+    
+    return dst;
+}
+
+template <typename T>
+Halide::Func cmpge(Halide::Func src0, Halide::Func src1) {
+    Var x, y;
+    
+    Func dst("dst");
+    Expr srcval0 = src0(x, y), srcval1 = src1(x, y);
+    Expr dstval = cast<T>(select(srcval0 >= srcval1, type_of<T>().max(), 0));;
+    dst(x, y) = dstval;
 
     return dst;
 }
