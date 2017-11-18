@@ -70,6 +70,20 @@ Halide::Func mul_scalar(Halide::Func src0, Halide::Expr val) {
 }
 
 template <typename T>
+Halide::Func div_scalar(Halide::Func src, Halide::Expr val) {
+    Var x, y;
+    
+    Func dst("dst");
+
+    Expr srcval = src(x, y);
+    Expr dstval = min(srcval / val, cast<double>(type_of<T>().max()));
+    dstval = max(dstval, 0);
+    dst(x, y) = cast<T>(round(dstval));
+
+    return dst;
+}
+
+template <typename T>
 Halide::Func nand(Halide::Func src0, Halide::Func src1) {
     using namespace Halide;
 
