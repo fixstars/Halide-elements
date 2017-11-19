@@ -36,6 +36,52 @@ Halide::Func dilate(Halide::Func input, int32_t width, int32_t height, int32_t w
 	return input;
 }
 
+template<typename T>
+Halide::Func dilate_rect(Halide::Func input, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+	using namespace Halide;
+	using namespace Halide::Element;
+
+	Var x, y;
+
+	RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
+
+	for (int32_t i = 0; i < iteration; i++) {
+		Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+		Func workbuf("workbuf");
+		Expr val = maximum_unroll(r, clamped(x + r.x, y + r.y));
+		workbuf(x, y) = val;
+		schedule(workbuf, {width, height});
+		input = workbuf;
+	}
+
+	schedule(input, {width, height});
+	return input;
+}
+
+template<typename T>
+Halide::Func dilate_cross(Halide::Func input, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+	using namespace Halide;
+	using namespace Halide::Element;
+
+	Var x, y;
+
+	RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
+
+	for (int32_t i = 0; i < iteration; i++) {
+		Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+		Func workbuf("workbuf");
+		Expr val = maximum_unroll(r, select(r.x==0||r.y==0, clamped(x + r.x, y + r.y), type_of<T>().min()));
+		workbuf(x, y) = val;
+		schedule(workbuf, {width, height});
+		input = workbuf;
+	}
+
+	schedule(input, {width, height});
+	return input;
+}
+
 Func conv_rect(Func src_img, std::function<Expr(RDom, Expr)> f, int32_t width, int32_t height, int32_t iteration, int32_t window_width, int32_t window_height) {
     Var x, y;
 
@@ -191,6 +237,6 @@ Halide::Func erode_rect(Halide::Func src, int32_t width, int32_t height, int32_t
     return input;
 }
 
-} // Element
-} // Halide
+} // namespace Element
+} // namespace Halide
 
