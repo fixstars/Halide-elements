@@ -1,41 +1,53 @@
+#include <climits>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <exception>
-#include <climits>
 
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
 #include "average_u8.h"
+#include "average_u16.h"
 
 #include "test_common.h"
 
-int main()
+template<typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
 {
+
     try {
+        using upper_t = typename Halide::Element::Upper<T>::type;
+
         int ret = 0;
 
         //
         // Run
         //
-        const int width = 32;
-        const int height = 24;
-        const uint8_t add_val = 128;
+        const int32_t width = 1024;
+        const int32_t height = 768;
+        const int32_t window_width = 3;
+        const int32_t window_height = 3;
         const std::vector<int32_t> extents{width, height};
-        auto input0 = mk_rand_buffer<uint8_t>(extents);
- 
-        auto output = mk_null_buffer<uint8_t>(extents);
+        auto input = mk_rand_buffer<T>(extents);
+        auto output = mk_null_buffer<T>(extents);
 
-        average_u8(input0, output);
+        func(input, output);
 
-        for (int y=0; y<height; ++y) {
-            for (int x=0; x<width; ++x) {
-                uint32_t expect;
-                int ax, ay;
-                expect = 0;
-                for (int wx = -1; wx < 2; wx++) {
-                    for (int wy = -1; wy < 2; wy++) {
+        const int32_t wx_lower = -window_width / 2;
+        const int32_t wx_upper = wx_lower + window_width;
+        const int32_t wy_lower = -window_height / 2;
+        const int32_t wy_upper = wy_lower + window_height;
+        const int32_t window_area = window_width * window_height;
+
+        for (int32_t y = 0; y < height; ++y) {
+            for (int32_t x = 0; x < width; ++x) {
+                int32_t ax, ay;
+                upper_t f = 0;
+
+                for (int32_t wy = wy_lower; wy < wy_upper; wy++) {
+                    for (int32_t wx = wx_lower; wx < wx_upper; wx++) {
                         ax = x + wx;
                         ay = y + wy;
 
@@ -43,25 +55,20 @@ int main()
                         if (ay < 0) ay = 0;
                         if (width <= ax) ax = width - 1;
                         if (height <= ay) ay = height - 1;
-                        
-                        expect += static_cast<uint32_t>(input0(ax, ay));
-                        //std::cout << "ax=" << ax << ":ay=" << ay << ":input=" << static_cast<uint32_t>(input0(ax, ay)) << ":exp=" << expect << std::endl;
+
+                        f += input(ax, ay);
+
                     }
                 }
-                expect = static_cast<uint32_t>(roundf(static_cast<float>(expect) / 9.0f));
+                T expect = static_cast<T>(roundf(static_cast<float>(f) / static_cast<float>(window_area)));
 
+                T actual = output(x, y);
 
-                
-                uint8_t actual = output(x, y);
-                
                 if (expect != actual) {
-
-                    std::cout << "org:" ;
-                    
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect, x, y, actual).c_str());
                 }
             }
-            
+
         }
 
     } catch (const std::exception& e) {
@@ -72,4 +79,14 @@ int main()
 
     printf("Success!\n");
     return 0;
+}
+
+int main()
+{
+#ifdef TYPE_u8
+    test<uint8_t>(average_u8);
+#endif
+#ifdef TYPE_u16
+    test<uint16_t>(average_u16);
+#endif
 }

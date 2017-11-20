@@ -12,6 +12,8 @@
 #include "HalideBuffer.h"
 #include "HalideRuntime.h"
 
+#include "Util.h"
+
 namespace {
 
 template<typename... Rest>
@@ -24,6 +26,42 @@ std::string format(const char *fmt, const Rest&... rest)
     return s;
 }
 
+static std::random_device rd;
+static std::mt19937 mt(rd());
+
+template<typename T>
+T mk_rand_int_scalar()
+{
+    std::uniform_int_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+
+    return dist(mt);
+}
+
+template<typename T>
+T mk_rand_real_scalar()
+{
+    std::uniform_real_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+
+    return dist(mt);
+}
+
+template<typename T>
+T mk_rand_scalar()
+{
+    return mk_rand_int_scalar<T>();
+}
+
+template<>
+float mk_rand_scalar<float>()
+{
+    return mk_rand_real_scalar<float>();
+}
+
+template<>
+double mk_rand_scalar<double>()
+{
+    return mk_rand_real_scalar<double>();
+}
 
 template<typename T>
 Halide::Runtime::Buffer<T> mk_rand_int_buffer(const std::vector<int32_t>& extents)
@@ -31,8 +69,6 @@ Halide::Runtime::Buffer<T> mk_rand_int_buffer(const std::vector<int32_t>& extent
     Halide::Runtime::Buffer<T> buf(extents);
     const int32_t size = std::accumulate(extents.begin(), extents.end(), 1, std::multiplies<int32_t>());
 
-    std::random_device rd;
-    std::mt19937 mt(rd());
     std::uniform_int_distribution<T> dist(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
 
     for (int32_t i=0; i<size; ++i) {
@@ -43,15 +79,13 @@ Halide::Runtime::Buffer<T> mk_rand_int_buffer(const std::vector<int32_t>& extent
 }
 
 template<typename T>
-Halide::Runtime::Buffer<T> mk_rand_real_buffer(const std::vector<int32_t>& extents, 
-                                               T min_value = std::numeric_limits<T>::min(), 
+Halide::Runtime::Buffer<T> mk_rand_real_buffer(const std::vector<int32_t>& extents,
+                                               T min_value = std::numeric_limits<T>::min(),
                                                T max_value = std::numeric_limits<T>::max())
 {
     Halide::Runtime::Buffer<T> buf(extents);
     const int32_t size = std::accumulate(extents.begin(), extents.end(), 1, std::multiplies<int32_t>());
 
-    std::random_device rd;
-    std::mt19937 mt(rd());
     std::uniform_real_distribution<T> dist(min_value, max_value);
 
     for (int32_t i=0; i<size; ++i) {
@@ -130,7 +164,7 @@ void save_ppm(const std::string& fname, Halide::Runtime::Buffer<uint8_t>& buffer
     if (buffer.dimensions() != 3 || (buffer.extent(0) != 3 && buffer.extent(0) != 4)) {
         throw std::runtime_error("Invalid buffer");
     }
-    
+
     uint32_t width = buffer.extent(1);
     uint32_t height = buffer.extent(2);
     std::vector<uint8_t> buf(3*width*height);
@@ -145,7 +179,7 @@ void save_ppm(const std::string& fname, Halide::Runtime::Buffer<uint8_t>& buffer
     ofs << "P6" << std::endl;
     ofs << width << " " << height << std::endl;
     ofs << "255" << std::endl;
-   
+
     ofs.write(reinterpret_cast<char *>(buf.data()), 3*width*height*sizeof(uint8_t));
 }
 

@@ -10,11 +10,19 @@ template<typename T>
 class Add : public Halide::Generator<Add<T>> {
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
-    ImageParam src0{type_of<T>(), 2, "src0"}, src1{type_of<T>(), 2, "src1"};
+    ImageParam src0{type_of<T>(), 2, "src0"};
+    ImageParam src1{type_of<T>(), 2, "src1"};
 
 public:
     Func build() {
-        return Element::add<T>(src0, src1);
+        Func dst("dst");
+        dst =  Element::add<T>(src0, src1);
+
+        Element::schedule(src0, {width, height});
+        Element::schedule(src1, {width, height});
+        Element::schedule(dst, {width, height});
+
+        return dst;
     }
 };
 
