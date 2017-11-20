@@ -5,12 +5,10 @@
 #include <vector>
 #include <exception>
 
-#include <Halide.h>
-
 namespace Halide {
 namespace Element {
 
-void throw_assert(bool condition, const char *msg) 
+void throw_assert(bool condition, const char *msg)
 {
     if (!condition) {
         throw std::runtime_error(msg);
@@ -19,6 +17,21 @@ void throw_assert(bool condition, const char *msg)
 
 template<typename T>
 struct Upper;
+
+template<>
+struct Upper<uint8_t> {
+    using type = uint16_t;
+};
+
+template<>
+struct Upper<uint16_t> {
+    using type = uint32_t;
+};
+
+template<>
+struct Upper<uint32_t> {
+    using type = uint64_t;
+};
 
 template<>
 struct Upper<int16_t> {
@@ -43,4 +56,3 @@ struct Upper<double> {
 
 } //namespace Element
 } //namespace Halide
-

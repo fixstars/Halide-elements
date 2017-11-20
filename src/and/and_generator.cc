@@ -7,7 +7,7 @@
 using namespace Halide;
 
 template<typename T>
-class Add : public Halide::Generator<Add<T>> {
+class And : public Halide::Generator<And<T>> {
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
     ImageParam src0{type_of<T>(), 2, "src0"};
@@ -16,7 +16,7 @@ class Add : public Halide::Generator<Add<T>> {
 public:
     Func build() {
         Func dst("dst");
-        dst =  Element::add<T>(src0, src1);
+        dst = Element::calc_and<T>(src0, src1);
 
         Element::schedule(src0, {width, height});
         Element::schedule(src1, {width, height});
@@ -26,6 +26,6 @@ public:
     }
 };
 
-RegisterGenerator<Add<uint8_t>> add_u8{"add_u8"};
-RegisterGenerator<Add<uint16_t>> add_u16{"add_u16"};
-RegisterGenerator<Add<uint32_t>> add_u32{"add_u32"};
+RegisterGenerator<And<uint8_t>> and_u8{"and_u8"};
+RegisterGenerator<And<uint16_t>> and_u16{"and_u16"};
+RegisterGenerator<And<uint32_t>> and_u32{"and_u32"};
