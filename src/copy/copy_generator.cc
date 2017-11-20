@@ -15,13 +15,7 @@ public:
     Var x, y;
 
     Func build() {
-        Func dst("dst");
-        dst(x, y) = src(x, y);
-
-        schedule(src, {width, height});
-        schedule(dst, {width, height});
-
-        return dst;
+        return copy<T>(src);
     }
 };
 

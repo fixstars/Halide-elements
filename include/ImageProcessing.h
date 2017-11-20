@@ -271,5 +271,34 @@ Func color_interpolation_hsv2rgb(Func in)
     return out;
 }
 
+template<typename T>
+Func prewitt(Func input, int32_t width, int32_t height)
+{
+    Var x, y;
+    Func input_f("input_f");
+    input_f(x, y) = cast<float>(input(x, y));
+
+    Func clamped = BoundaryConditions::repeat_edge(input_f, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+    Func diff_x("diff_x"), diff_y("diff_y");
+    diff_x(x, y) = -clamped(x-1, y-1) + clamped(x+1, y-1) +
+                   -clamped(x-1, y  ) + clamped(x+1, y  ) +
+                   -clamped(x-1, y+1) + clamped(x+1, y+1);
+
+    diff_y(x, y) = -clamped(x-1, y-1) + clamped(x-1, y+1) +
+                   -clamped(x  , y-1) + clamped(x  , y+1) +
+                   -clamped(x+1, y-1) + clamped(x+1, y+1);
+
+    Func output("output");
+    output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
+
+    schedule(input_f, {width, height});
+    schedule(diff_x, {width, height});
+    schedule(diff_y, {width, height});
+    schedule(output, {width, height});
+
+    return output;
+}
+
 } // Element
 } // Halide
