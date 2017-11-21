@@ -7,11 +7,66 @@
 namespace Halide {
 namespace Element {
 
-Func affine(Func in, int32_t width, int32_t height, Param<float> degrees, 
+Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
             Param<float> scale_x, Param<float> scale_y,
-            Param<float> shift_x, Param<float> shift_y, Param<float> skew_y) 
+            Param<float> shift_x, Param<float> shift_y, Param<float> skew_y)
 {
-    Var x, y;
+    // This affine transformation applies these operations below for an input image.
+    //   1. scale about the origin
+    //   2. shear in y direction
+    //   3. rotation about the origin
+    //   4. translation
+    //
+    // The applied matrix M consists of multiplied matrix by each operation:
+    //
+    //     M = M_translation * M_rotation * M_shear_y * M_scale
+    //
+    // So we can write a formula using Y, X, and M for affine transformation,
+    //
+    //     Y = M * X
+    //
+    //   where Y is the output image and X is the input image.
+    //
+    // But in Halide, we consider the formula from the output coordinates, so
+    // calculate the inverse of matrix M, then rewrite as follows:
+    //
+    //     X = M^(-1) * Y
+    //
+    // Now let's take a look at the detail as below.
+    // At first, matrix M is divided to translation and the others, and decompose it like this.
+    //
+    //         [ A  b ]
+    //     Y = [      ] * X
+    //         [ 0  1 ]
+    //
+    //   where A is M_rotation * M_shear_y * M_scale, and b = M_translation.
+    //
+    // Then, rewrite to the inverse formula.
+    //
+    //         [ A^(-1) -A^(-1)*b ]
+    //     X = [                  ] * Y
+    //         [   0         1    ]
+    //
+    // Next A is originally the matrix as follows:
+    //
+    //     A = M_rotation * M_shear_y * M_scale
+    //
+    //         [ cos_deg -sin_deg ]   [  1          0 ]   [ scale_x   0     ]
+    //       = [                  ] * [               ] * [                 ]
+    //         [ sin_deg  cos_deg ]   [ tan_skew_y  1 ]   [  0      scale_y ]
+    //
+    //         [ scale_x*(cos_deg-sin_deg*tan_skew_y)  -scale_y*sin_deg ]
+    //       = [                                                        ]
+    //         [ scale_x*(sin_deg+cos_deg*tan_skew_y)   scale_y*cos_deg ]
+    //
+    // Now we can get A^(-1) as follows:
+    //
+    //               1    [  scale_y*cos_deg                      scale_y*sin_deg                      ]
+    //     A^(-1) = --- * [                                                                            ]
+    //              det   [ -scale_x*(sin_deg+cos_deg*tan_skew_y) scale_x*(cos_deg-sin_deg*tan_skew_y) ]
+    //
+    //  where det = scale_x*scale_y.
+    //
     Expr cos_deg = cos(degrees * (float)M_PI / 180.0f);
     Expr sin_deg = sin(degrees * (float)M_PI / 180.0f);
     Expr tan_skew_y = tan(skew_y * (float)M_PI / 180.0f);
@@ -23,10 +78,22 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Expr a11 =   scale_x * (cos_deg - sin_deg * tan_skew_y);
     Expr a21 = - (a01 * shift_x + a11 * shift_y);
 
+    // Here X can be described by Y, A, and b like this.
+    //
+    //         [ A^(-1) -A^(-1)*b ]
+    //     X = [                  ] * Y
+    //         [   0         1    ]
+    //
+    //   where Y = (x,y) and X = (tx, ty).
+    //
+    Var x, y;
     Func tx("tx"), ty("ty");
-    tx(x,y) = cast<int>((a00*x + a10*y + a20) / det);
-    ty(x,y) = cast<int>((a01*x + a11*y + a21) / det);
+    tx(x, y) = cast<int>((a00*x + a10*y + a20) / det);
+    ty(x, y) = cast<int>((a01*x + a11*y + a21) / det);
 
+    // CAUTION: the coordinates of the input image cannot be out of the original width and height.
+    //          so they are limited and the outside is set to 255 which is a white color.
+    //
     Func affine("affine");
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
@@ -35,15 +102,15 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     schedule(tx, {width, height});
     schedule(ty, {width, height});
     schedule(affine, {width, height});
-    
+
     return affine;
 }
 
 template<typename T>
-Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma) 
+Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma)
 {
     Var x{"x"}, y{"y"};
-    
+
     Func clamped = BoundaryConditions::repeat_edge(in, 0, width, 0, height);
     RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
     Func kernel("kernel");
@@ -63,7 +130,7 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
     schedule(dst, {width, height});
-    
+
     return dst;
 }
 
@@ -80,7 +147,7 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
 
     Func k;
     k(x, y) = kernel(x, y);
-    
+
     constexpr uint32_t frac_bits = 10;
     using Fixed16 = Fixed<int16_t, frac_bits>;
     Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
@@ -93,7 +160,7 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
     schedule(out, {width, height}).unroll(x, unroll_factor);
-    
+
     return out;
 }
 
@@ -133,7 +200,7 @@ Func saturation_adjustment(Func in, Param<float> value)
     Fixed<int16_t, frac_bits> one = to_fixed16<frac_bits>(1);
 
     Fixed<int16_t, frac_bits> v = Fixed<int16_t, frac_bits>{in(x, y, c)};
-    
+
     Func out;
     out(c, x, y) = static_cast<Expr>(select(c == 1, clamp(to_fixed16<frac_bits>(fast_pow(from_fixed<float>(v), value)), zero, one), v));
     return out;
@@ -177,7 +244,7 @@ Func color_interpolation_raw2rgb(Func in)
 
 template<uint32_t frac_bits>
 Func color_interpolation_rgb2hsv(Func in)
-{   
+{
     using Fixed16 = Fixed<int16_t, frac_bits>;
 
     Var x, y, c;
@@ -190,7 +257,7 @@ Func color_interpolation_rgb2hsv(Func in)
     Fixed16 r = Fixed16{in(0, x, y)};
     Fixed16 g = Fixed16{in(1, x, y)};
     Fixed16 b = Fixed16{in(2, x, y)};
-    
+
     Fixed16 minv = min(r, min(g, b));
     Fixed16 maxv = max(r, max(g, b));
     Fixed16 diff = select(maxv == minv, Fixed16{1}, maxv - minv);
@@ -199,20 +266,19 @@ Func color_interpolation_rgb2hsv(Func in)
                         maxv == r,    (g-b)/diff,
                         maxv == g,    (b-r)/diff+two,
                                         (r-g)/diff+four);
-    
+
     h = select(h < zero, h+six, h) / six;
 
     Fixed16 dmaxv = select(maxv == zero, Fixed16{1}, maxv);
     Fixed16 s = select(maxv == zero, zero, (maxv-minv)/dmaxv);
     Fixed16 v = maxv;
-    
+
     Func out;
-    out(c, x, y) = static_cast<Expr>(select(c == 0, h, 
-                                            c == 1, s, 
+    out(c, x, y) = static_cast<Expr>(select(c == 0, h,
+                                            c == 1, s,
                                                     v));
     return out;
 }
-
 
 template<uint32_t frac_bits>
 Func color_interpolation_hsv2rgb(Func in)
@@ -386,6 +452,35 @@ Func laplacian(Func in, int32_t width, int32_t height) {
     kernel.bound(y, -1, 3);
 
     return dst;
+}
+
+template<typename T>
+Func prewitt(Func input, int32_t width, int32_t height)
+{
+    Var x, y;
+    Func input_f("input_f");
+    input_f(x, y) = cast<float>(input(x, y));
+
+    Func clamped = BoundaryConditions::repeat_edge(input_f, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+    Func diff_x("diff_x"), diff_y("diff_y");
+    diff_x(x, y) = -clamped(x-1, y-1) + clamped(x+1, y-1) +
+                   -clamped(x-1, y  ) + clamped(x+1, y  ) +
+                   -clamped(x-1, y+1) + clamped(x+1, y+1);
+
+    diff_y(x, y) = -clamped(x-1, y-1) + clamped(x-1, y+1) +
+                   -clamped(x  , y-1) + clamped(x  , y+1) +
+                   -clamped(x+1, y-1) + clamped(x+1, y+1);
+
+    Func output("output");
+    output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
+
+    schedule(input_f, {width, height});
+    schedule(diff_x, {width, height});
+    schedule(diff_y, {width, height});
+    schedule(output, {width, height});
+
+    return output;
 }
 
 } // Element

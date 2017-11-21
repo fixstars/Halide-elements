@@ -16,17 +16,7 @@ public:
     Var x, y;
 
     Func build() {
-
-        Func dst("dst");
-        Expr srcval = src(x, y);
-        Expr dstval = min(srcval * value, cast<float>(type_of<T>().max()));
-        dstval = max(dstval, 0);
-        dst(x, y) = cast<T>(round(dstval));
-
-        schedule(src, {width, height});
-        schedule(dst, {width, height});
-
-        return dst;
+        return mul_scalar<T>(src, value);
     }
 };
 

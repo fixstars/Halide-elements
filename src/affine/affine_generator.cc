@@ -2,7 +2,6 @@
 #include <cmath>
 #include "Halide.h"
 #include "Element.h"
-#include "ImageProcessing.h"
 
 using namespace Halide;
 
