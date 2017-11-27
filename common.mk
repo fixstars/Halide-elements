@@ -35,6 +35,7 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 endif
 
 CXXFLAGS:=-O0 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
+CSIM_CXXFLAGS:=-O2 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
 LIBS:=-ldl -lpthread -lz
 
 .PHONY: clean
@@ -102,9 +103,9 @@ ${PROG}_$(1).hls.exec: ${PROG}_$(1).hls
 	@touch ${PROG}_$(1).hls.exec
 
 ${PROG}_$(1)_csim.o: ${PROG}_$(1).hls
-	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}_$(1).hls/${PROG}_$(1).cc -c -o ${PROG}_$(1)_csim.o
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CSIM_CXXFLAGS} -std=c++03 ${PROG}_$(1).hls/${PROG}_$(1).cc -c -o ${PROG}_$(1)_csim.o
 ${PROG}_$(1)_test_csim: ${PROG}_test.cc ${PROG}_$(1)_csim.o ${PROG}_$(1).h
-	g++ -DTYPE_$(1) -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $$< ${PROG}_$(1)_csim.o -o $$@ -ldl -lpthread
+	g++ -DTYPE_$(1) -I . -I ${VIVADO_HLS_ROOT}/include ${CSIM_CXXFLAGS} $$< ${PROG}_$(1)_csim.o -o $$@ -ldl -lpthread
 endef
 $(foreach type,${TYPE_LIST},$(eval $(call hls_template,${type})))
 
@@ -116,10 +117,10 @@ ${PROG}.hls.exec: ${PROG}.hls
 	@touch ${PROG}.hls.exec
 
 ${PROG}_csim.o: ${PROG}.hls
-	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} -std=c++03 ${PROG}.hls/${PROG}.cc -c -o $@
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CSIM_CXXFLAGS} -std=c++03 ${PROG}.hls/${PROG}.cc -c -o $@
 
 ${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
-	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
+	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CSIM_CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
 
 run_${PROG}_test_csim: ${PROG}_test_csim
 	./${PROG}_test_csim
@@ -130,4 +131,3 @@ ${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
 
 clean:
 	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_*_test_csim ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec *.dSYM
-

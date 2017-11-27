@@ -7,9 +7,9 @@
 namespace Halide {
 namespace Element {
 
-Func affine(Func in, int32_t width, int32_t height, Param<float> degrees, 
+Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
             Param<float> scale_x, Param<float> scale_y,
-            Param<float> shift_x, Param<float> shift_y, Param<float> skew_y) 
+            Param<float> shift_x, Param<float> shift_y, Param<float> skew_y)
 {
     // This affine transformation applies these operations below for an input image.
     //   1. scale about the origin
@@ -107,10 +107,10 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
 }
 
 template<typename T>
-Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma) 
+Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Param<double> sigma)
 {
     Var x{"x"}, y{"y"};
-    
+
     Func clamped = BoundaryConditions::repeat_edge(in, 0, width, 0, height);
     RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
     Func kernel("kernel");
@@ -130,7 +130,7 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
     schedule(dst, {width, height});
-    
+
     return dst;
 }
 
@@ -147,7 +147,7 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
 
     Func k;
     k(x, y) = kernel(x, y);
-    
+
     constexpr uint32_t frac_bits = 10;
     using Fixed16 = Fixed<int16_t, frac_bits>;
     Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
@@ -160,7 +160,7 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
     schedule(out, {width, height}).unroll(x, unroll_factor);
-    
+
     return out;
 }
 
@@ -200,7 +200,7 @@ Func saturation_adjustment(Func in, Param<float> value)
     Fixed<int16_t, frac_bits> one = to_fixed16<frac_bits>(1);
 
     Fixed<int16_t, frac_bits> v = Fixed<int16_t, frac_bits>{in(x, y, c)};
-    
+
     Func out;
     out(c, x, y) = static_cast<Expr>(select(c == 1, clamp(to_fixed16<frac_bits>(fast_pow(from_fixed<float>(v), value)), zero, one), v));
     return out;
@@ -244,7 +244,7 @@ Func color_interpolation_raw2rgb(Func in)
 
 template<uint32_t frac_bits>
 Func color_interpolation_rgb2hsv(Func in)
-{   
+{
     using Fixed16 = Fixed<int16_t, frac_bits>;
 
     Var x, y, c;
@@ -257,7 +257,7 @@ Func color_interpolation_rgb2hsv(Func in)
     Fixed16 r = Fixed16{in(0, x, y)};
     Fixed16 g = Fixed16{in(1, x, y)};
     Fixed16 b = Fixed16{in(2, x, y)};
-    
+
     Fixed16 minv = min(r, min(g, b));
     Fixed16 maxv = max(r, max(g, b));
     Fixed16 diff = select(maxv == minv, Fixed16{1}, maxv - minv);
@@ -266,20 +266,19 @@ Func color_interpolation_rgb2hsv(Func in)
                         maxv == r,    (g-b)/diff,
                         maxv == g,    (b-r)/diff+two,
                                         (r-g)/diff+four);
-    
+
     h = select(h < zero, h+six, h) / six;
 
     Fixed16 dmaxv = select(maxv == zero, Fixed16{1}, maxv);
     Fixed16 s = select(maxv == zero, zero, (maxv-minv)/dmaxv);
     Fixed16 v = maxv;
-    
+
     Func out;
-    out(c, x, y) = static_cast<Expr>(select(c == 0, h, 
-                                            c == 1, s, 
+    out(c, x, y) = static_cast<Expr>(select(c == 0, h,
+                                            c == 1, s,
                                                     v));
     return out;
 }
-
 
 template<uint32_t frac_bits>
 Func color_interpolation_hsv2rgb(Func in)
@@ -336,6 +335,123 @@ Func color_interpolation_hsv2rgb(Func in)
     Func out;
     out(c, x, y) = static_cast<Expr>(select(c == 0, r, c == 1, g, b));
     return out;
+}
+
+Func merge3(Func in0, Func in1, Func in2, int32_t width, int32_t height) {
+    Var x{"x"}, y{"y"}, c{"c"};
+    Func merge3{"merge3"};
+
+    merge3(c, x, y) = select(c == 0, in0(x, y),
+                             c == 1, in1(x, y),
+                             in2(x, y));
+    merge3.unroll(c);
+
+    return merge3;
+}
+
+Func merge4(Func in0, Func in1, Func in2, Func in3, int32_t width, int32_t height) {
+    Var x{"x"}, y{"y"}, c{"c"};
+    Func merge4{"merge4"};
+
+    merge4(c, x, y) = select(c == 0, in0(x, y),
+                             c == 1, in1(x, y),
+                             c == 2, in2(x, y),
+                             in3(x, y));
+    merge4.unroll(c);
+
+    return merge4;
+}
+
+Func bitonic_sort(Func input, int32_t size, int32_t width, int32_t height) {
+    // rounding the size of input up to power of two
+    input = BoundaryConditions::constant_exterior(input, input.value().type().max(),
+        {{0, size}, {0, cast<int>(width)}, {0, cast<int>(height)}});
+    size = std::pow(2, std::ceil(std::log2((double)size)));
+
+    Func next, prev = input;
+
+    Var x{"x"}, y{"y"}, i{"i"};
+
+    for (int pass_size = 1; pass_size < size; pass_size <<= 1) {
+        for (int chunk_size = pass_size; chunk_size > 0; chunk_size >>= 1) {
+            next = Func("bitonic_pass_" + std::to_string(pass_size) + "_" + std::to_string(chunk_size));
+            Expr chunk_start = (i/(2*chunk_size))*(2*chunk_size);
+            Expr chunk_end = (i/(2*chunk_size) + 1)*(2*chunk_size);
+            Expr chunk_middle = chunk_start + chunk_size;
+            Expr chunk_index = i - chunk_start;
+            if (pass_size == chunk_size && pass_size > 1) {
+                // Flipped pass
+                Expr partner = 2*chunk_middle - i - 1;
+                // We need a clamp here to help out bounds inference
+                partner = clamp(partner, chunk_start, chunk_end-1);
+                next(i, x, y) = select(i < chunk_middle,
+                                       min(prev(i, x, y), prev(partner, x, y)),
+                                       max(prev(i, x, y), prev(partner, x, y)));
+            } else {
+                // Regular pass
+                Expr partner = chunk_start + (chunk_index + chunk_size) % (chunk_size*2);
+                next(i, x, y) = select(i < chunk_middle,
+                                       min(prev(i, x, y), prev(partner, x, y)),
+                                       max(prev(i, x, y), prev(partner, x, y)));
+
+
+            }
+
+            schedule(next, {size, width, height});
+            next.unroll(i);
+            prev = next;
+        }
+    }
+
+    return next;
+}
+
+Func median(Func in, int32_t width, int32_t height, int32_t window_width, int32_t window_height) {
+    Expr offset_x = window_width / 2, offset_y = window_height / 2;
+    int32_t window_size = window_width * window_height;
+
+    Func clamped = BoundaryConditions::repeat_edge(in, {{0, width}, {0, height}});
+    RDom r(-offset_x, window_width, -offset_y, window_height);
+
+    Func window("window");
+
+    Var x{"x"}, y{"y"}, i{"i"};
+    window(i, x, y) = undef(in.value().type());
+    window((r.x + offset_x) + (r.y + offset_y) * window_width, x, y) =
+        clamped(x + r.x, y + r.y);
+    window.unroll(i);
+    window.update(0).unroll(r.x);
+    window.update(0).unroll(r.y);
+
+    Func sorted = bitonic_sort(window, window_size, width, height);
+    Func median("median");
+    median(x, y) = sorted(window_size / 2, x, y);
+
+    schedule(window, {window_size, width, height});
+    return median;
+}
+
+template<typename T>
+Func laplacian(Func in, int32_t width, int32_t height) {
+    Var x{"x"}, y{"y"};
+
+    Func clamped = BoundaryConditions::repeat_edge(in, {{0, width}, {0, height}});
+    Func kernel("kernel");
+    kernel(x, y) = cast<double>(-1);
+    kernel(0, 0) = cast<double>(8);
+
+    RDom r(-1, 3, -1, 3);
+    Func dst("dst");
+    Expr dstval = sum(cast<double>(clamped(x + r.x, y + r.y)) * kernel(r.x, r.y));
+    dstval = select(dstval < 0, -dstval, dstval);
+    dstval = select(dstval > type_of<T>().max(), cast<double>(type_of<T>().max()), dstval);
+    dst(x, y) = cast<T>(dstval);
+
+    kernel.compute_root();
+    kernel.bound(x, -1, 3);
+    kernel.bound(y, -1, 3);
+
+    return dst;
 }
 
 template<typename T>
