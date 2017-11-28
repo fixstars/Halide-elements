@@ -1,22 +1,29 @@
-#include <iostream>
+#include <cstdint>
+
 #include <Halide.h>
 #include <Element.h>
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class MulScalar : public Halide::Generator<MulScalar<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
     Param<float> value{"value", 1};
 
-    Var x, y;
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
 
     Func build() {
-        return mul_scalar<T>(src, value);
+        Func dst{"dst"};
+
+        dst = Element::mul_scalar<T>(src, value);
+
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
+
+        return dst;
     }
 };
 

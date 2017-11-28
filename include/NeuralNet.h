@@ -58,9 +58,9 @@ Func conv_fixed32(Func bottom, ImageParam weight, ImageParam bias,
 
     Func f;
     RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
-    
+
     using Fixed32 = Fixed<int32_t, FB>;
-    
+
     Fixed32 v = Fixed32{in(r.x, x*stride - pad + r.y, y*stride - pad + r.z, n)};
     Fixed32 w = Fixed32{weight(r.x, r.y, r.z, c)};
     Fixed32 b = Fixed32{bias(c)};
@@ -141,16 +141,16 @@ Func bin_conv_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImagePar
 
     Func f;
     RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
-    
+
     using Fixed32 = Fixed<int32_t, FB>;
     Fixed32 elem_num = to_fixed<int32_t, FB>(weight_shape[0] * weight_shape[1] * weight_shape[2]);
     Expr v = in(r.x, x*stride - pad + r.y, y*stride - pad + r.z, n);
     Expr w = weight(r.x, r.y, r.z, c);
     Fixed32 a = Fixed32{alpha(c)};
     Fixed32 b = Fixed32{bias(c)};
-    
+
     f(c, x, y, n) = static_cast<Expr>((-elem_num + (sum(r, to_fixed<int32_t, FB>(!v ^ w)) << 1)) * a + b);
-  
+
     top_shape = {
         weight_shape[3],
         (bottom_shape[1] - weight_shape[1] + 2*pad) / stride + 1,
@@ -244,7 +244,7 @@ Func scale_fixed32(Func bottom, ImageParam weight, ImageParam bias,
     Fixed32 v = Fixed32{bottom(c, x, y, n)};
     Fixed32 w = Fixed32{weight(c)};
     Fixed32 b = Fixed32{bias(c)};
-    
+
     f(c, x, y, n) = static_cast<Expr>(v * w + b);
 
     top_shape = bottom_shape;
@@ -398,15 +398,11 @@ Func softmax(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<
     RDom r(0, bottom_shape[0]);
 
     norm(i, n) = exp(bottom(i, n) - maximum(r, bottom(r.x, n)));
-    norm.compute_root();
+    schedule(norm, top_shape);
 
     f(i, n) = norm(i, n) / sum(r, norm(r.x, n));
 
     top_shape = bottom_shape;
-
-    // Constraints
-    norm.bound(i, 0, top_shape[0])
-        .bound(n, 0, top_shape[1]);
 
     if (unrolled) {
         norm.unroll(i);

@@ -3,7 +3,7 @@
 #include "Element.h"
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class Erode : public Halide::Generator<Erode<T>> {
@@ -17,7 +17,16 @@ public:
     GeneratorParam<int32_t> window_height{"window_height", 3, 3, 17};
 
     Func build() {
-        return erode<T>(src, width, height, window_width, window_height, structure, iteration);
+        Var x{"x"}, y{"y"};
+        Func dst("dst");
+
+        dst(x, y) = Element::erode<T>(src, width, height, window_width, window_height, structure, iteration)(x, y);
+
+        schedule(src, {width, height});
+        schedule(structure, {window_width, window_height});
+        schedule(dst, {width, height});
+
+        return dst;
     }
 };
 

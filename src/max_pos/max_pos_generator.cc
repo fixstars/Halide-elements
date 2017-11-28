@@ -1,20 +1,23 @@
-#include <iostream>
-#include <typeinfo>
+#include <cstdint>
 #include <Halide.h>
 #include <Element.h>
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class MaxPos : public Halide::Generator<MaxPos<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
 
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+
     Func build() {
-        Func dst = max_pos(src, width, height);
+        Func dst{"dst"};
+
+        dst = Element::max_pos(src, width, height);
+
         schedule(src, {width, height});
         schedule(dst, {2});
 

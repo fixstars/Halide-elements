@@ -1,20 +1,21 @@
-#include <iostream>
+#include <cstdint>
 #include "Halide.h"
 #include "Element.h"
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T, typename D>
 class Integral : public Halide::Generator<Integral<T, D>> {
 public:
+    ImageParam src{type_of<T>(), 2, "src"};
+
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
 
-    ImageParam src{type_of<T>(), 2, "src"};
-
     Func build() {
-        Func dst = integral<D>(src, width, height);
+        Func dst{"dst"};
+        dst = Element::integral<D>(src, width, height);
 
         schedule(src, {width, height});
         schedule(dst, {width, height});

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
 #include <vector>
+
 #include <Halide.h>
 
 #include "Schedule.h"
@@ -10,233 +13,218 @@ namespace Halide {
 namespace Element {
 
 template<typename T>
-Halide::Func dilate(Halide::Func input, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Halide::Func structure_, int32_t iteration)
+Func dilate(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Func structure, int32_t iteration)
 {
-	using namespace Halide;
-	using namespace Halide::Element;
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
 
-	Var x, y;
-
-	RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-	Func allzero("allzero");
-	allzero(x) = cast<bool>(true);
-	allzero(x) = allzero(x) && (structure_(r.x + window_width / 2, r.y + window_height / 2) == 0);
-	schedule(allzero, {1});
-
-	for (int32_t i = 0; i < iteration; i++) {
-		Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-		Func workbuf("workbuf");
-		Expr val = select(allzero(0), clamped(x - window_width / 2, y - window_height / 2), maximum_unroll(r, select(structure_(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<T>().min(), clamped(x + r.x, y + r.y))));
-		workbuf(x, y) = val;
-		schedule(workbuf, {width, height});
-		input = workbuf;
-	}
-
-	schedule(input, {width, height});
-	return input;
-}
-
-template<typename T>
-Halide::Func dilate_rect(Halide::Func input, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
-{
-	using namespace Halide;
-	using namespace Halide::Element;
-
-	Var x, y;
-
-	RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-
-	for (int32_t i = 0; i < iteration; i++) {
-		Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-		Func workbuf("workbuf");
-		Expr val = maximum_unroll(r, clamped(x + r.x, y + r.y));
-		workbuf(x, y) = val;
-		schedule(workbuf, {width, height});
-		input = workbuf;
-	}
-
-	schedule(input, {width, height});
-	return input;
-}
-
-template<typename T>
-Halide::Func dilate_cross(Halide::Func input, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
-{
-	using namespace Halide;
-	using namespace Halide::Element;
-
-	Var x, y;
-
-	RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-
-	for (int32_t i = 0; i < iteration; i++) {
-		Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-		Func workbuf("workbuf");
-		Expr val = maximum_unroll(r, select(r.x==0||r.y==0, clamped(x + r.x, y + r.y), type_of<T>().min()));
-		workbuf(x, y) = val;
-		schedule(workbuf, {width, height});
-		input = workbuf;
-	}
-
-	schedule(input, {width, height});
-	return input;
-}
-
-Func conv_rect(Func src_img, std::function<Expr(RDom, Expr)> f, int32_t width, int32_t height, int32_t iteration, int32_t window_width, int32_t window_height) {
-    Var x, y;
-
-    Func input("input");
-    input(x, y) = src_img(x, y);
-    schedule(input, {width, height});
-
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-    for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = f(r, clamped(x + r.x, y + r.y));
-        workbuf(x, y) = val;
-        workbuf.compute_root();
-        input = workbuf;
-        schedule(workbuf, {width, height});
-    }
-
-    return input;
-}
-
-
-Func conv_cross(Func src_img, std::function<Expr(RDom, Expr)> f, int32_t width, int32_t height, int32_t iteration, int32_t window_width, int32_t window_height) {
-    Var x, y;
-
-    Func input("input");
-    input(x, y) = src_img(x, y);
-    schedule(input, {width, height});
-
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-    r.where(r.x == 0 || r.y == 0);
-    for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = f(r, clamped(x + r.x, y + r.y));
-        workbuf(x, y) = val;
-        workbuf.compute_root();
-        schedule(workbuf, {width, height});
-        input = workbuf;
-    }
-
-    return input;
-}
-
-
-Func conv_with_structure(Func src_img, std::function<Expr(RDom, Expr)> f, Expr init, Func structure, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration) {
-    Var x, y;
-
-    Func input("input");
-    input(x, y) = src_img(x, y);
-    schedule(input, {width, height});
-
-    Func structure_("structure_");
-    structure_(x, y) = structure(x, y);
-    schedule(structure_, {window_width, window_height});
-
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-    Func allzero("allzero");
-    Var tmp("tmp");
-    allzero(tmp) = cast<bool>(true);
-    allzero(tmp) = allzero(tmp) && (structure_(r.x + window_width / 2, r.y + window_height / 2) == 0);
-    allzero.compute_root();
-
-    schedule(allzero, {1});
-    for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = select(allzero(0), clamped(x - window_width / 2, y - window_height / 2),
-                            f(r, select(structure_(r.x + window_width / 2, r.y + window_height / 2) == 0, init, clamped(x + r.x, y + r.y))));
-        workbuf(x, y) = val;
-        workbuf.compute_root();
-        input = workbuf;
-        schedule(workbuf, {width, height});
-    }
-
-    return input;
-}
-
-template<typename T>
-Halide::Func erode(Halide::Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Halide::Func structure, int32_t iteration)
-{
-    Var x, y;
-    Func input("input");
-    input(x, y) = src(x, y);
-
-    Func structure_("structure_");
-    structure_(x, y) = structure(x, y);
-    schedule(structure, {window_width, window_height});
-    schedule(structure_, {window_width, window_height});
-    
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
-    Func allzero("allzero");
+    Func allzero{"allzero"};
     allzero(x) = cast<bool>(true);
-    allzero(x) = allzero(x) && (structure_(r.x + window_width / 2, r.y + window_height / 2) == 0);
+    allzero(x) = allzero(x) && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
     schedule(allzero, {1});
+
+    Func dst = src;
+
     for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = select(allzero(0), clamped(x - window_width / 2, y - window_height / 2), minimum_unroll(r, select(structure_(r.x + window_width / 2, r.y + window_height / 2) == 0, type_of<T>().max(), clamped(x + r.x, y + r.y))));
-        workbuf(x, y) = val;
-        schedule(workbuf, {width, height});
-        input = workbuf;
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = select(allzero(0),
+                               clamped(x - window_width / 2, y - window_height / 2),
+                               maximum_unroll(r, select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0,
+                                                        type_of<T>().min(),
+                                                        clamped(x + r.x, y + r.y))));
+        dst = workbuf;
     }
 
-    schedule(src, {width, height});
-
-    return input;
+    return dst;
 }
 
 template<typename T>
-Halide::Func erode_cross(Halide::Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+Func dilate_rect(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
 {
-    Var x, y;
-    Func input("input");
-    input(x, y) = src(x, y);
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
 
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = maximum_unroll(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
+    }
+
+    return dst;
+}
+
+template<typename T>
+Func dilate_cross(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
     r.where(r.x == 0 || r.y == 0);
+
+    Func dst = src;
+
     for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = minimum_unroll(r, clamped(x + r.x, y + r.y));
-        workbuf(x, y) = val;
-        workbuf.compute_root();
-        input = workbuf;
-        schedule(workbuf, {width, height});
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = maximum_unroll(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
     }
 
-    schedule(src, {width, height});
+    return dst;
+}
 
-    return input;
+Func conv_rect(Func src, std::function<Expr(RDom, Expr)> f, int32_t width, int32_t height, int32_t iteration, int32_t window_width, int32_t window_height) {
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
+
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = f(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
+    }
+
+    return dst;
+}
+
+
+Func conv_cross(Func src, std::function<Expr(RDom, Expr)> f, int32_t width, int32_t height, int32_t iteration, int32_t window_width, int32_t window_height) {
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
+    r.where(r.x == 0 || r.y == 0);
+
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf("workbuf");
+        workbuf(x, y) = f(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
+    }
+
+    return dst;
+}
+
+
+Func conv_with_structure(Func src, std::function<Expr(RDom, Expr)> f, Expr init, Func structure,
+                         int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration) {
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
+
+    Func allzero{"allzero"};
+    allzero(x) = cast<bool>(true);
+    allzero(x) = allzero(x) && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
+    schedule(allzero, {1});
+
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf("workbuf");
+        workbuf(x, y)= select(allzero(0),
+                              clamped(x - window_width / 2, y - window_height / 2),
+                              f(r, select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0,
+                                          init,
+                                          clamped(x + r.x, y + r.y))));
+        dst = workbuf;
+    }
+
+    return dst;
 }
 
 template<typename T>
-Halide::Func erode_rect(Halide::Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+Func erode(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Func structure, int32_t iteration)
 {
-    Var x, y;
-    Func input("input");
-    input(x, y) = src(x, y);
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
 
-    RDom r(-(window_width / 2), window_width, -(window_height / 2), window_height);
+    Func allzero{"allzero"};
+    allzero(x) = cast<bool>(true);
+    allzero(x) = allzero(x) && (structure(r.x + window_width / 2, r.y + window_height / 2) == 0);
+    schedule(allzero, {1});
+
+    Func dst = src;
+
     for (int32_t i = 0; i < iteration; i++) {
-        Func clamped = BoundaryConditions::repeat_edge(input, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
-        Func workbuf("workbuf");
-        Expr val = minimum_unroll(r, clamped(x + r.x, y + r.y));
-        workbuf(x, y) = val;
-        workbuf.compute_root();
-        input = workbuf;
-        schedule(workbuf, {width, height});
-    }
-    schedule(src, {width, height});
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
-    return input;
+        Func workbuf("workbuf" + std::to_string(i));
+        workbuf(x, y) = select(allzero(0),
+                               clamped(x - window_width / 2, y - window_height / 2),
+                               minimum_unroll(r, select(structure(r.x + window_width / 2, r.y + window_height / 2) == 0,
+                                                        type_of<T>().max(),
+                                                        clamped(x + r.x, y + r.y))));
+
+        dst = workbuf;
+    }
+
+    return dst;
+}
+
+template<typename T>
+Func erode_cross(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
+    r.where(r.x == 0 || r.y == 0);
+
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = minimum_unroll(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
+    }
+
+    return dst;
+}
+
+template<typename T>
+Func erode_rect(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+    Var x{"x"}, y{"y"};
+    RDom r{-(window_width / 2), window_width, -(window_height / 2), window_height};
+
+    Func dst = src;
+
+    for (int32_t i = 0; i < iteration; i++) {
+        schedule(dst, {width, height});
+        Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+        Func workbuf{"workbuf" + std::to_string(i)};
+        workbuf(x, y) = minimum_unroll(r, clamped(x + r.x, y + r.y));
+
+        dst = workbuf;
+    }
+
+    return dst;
 }
 
 } // namespace Element
 } // namespace Halide
-

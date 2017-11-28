@@ -1,21 +1,23 @@
-#include <iostream>
-#include <typeinfo>
+#include <cstdint>
 #include <Halide.h>
 #include <Element.h>
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class MaxValue : public Halide::Generator<MaxValue<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
     ImageParam roi{type_of<uint8_t>(), 2, "roi"};
 
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+
     Func build() {
-        Func dst = max_value<T>(src, roi, width, height);
+        Func dst{"dst"};
+
+        dst = Element::max_value<T>(src, roi, width, height);
 
         schedule(src, {width, height});
         schedule(roi, {width, height});

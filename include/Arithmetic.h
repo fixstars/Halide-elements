@@ -8,17 +8,16 @@ namespace Halide {
 namespace Element {
 
 template<typename T>
-Halide::Func add(Halide::Func src0, Halide::Func src1)
+Func add(Func src0, Func src1)
 {
-    using namespace Halide;
     using upper_t = typename Upper<T>::type;
 
-    Var x, y;
+    Var x{"x"}, y{"y"};
+
+    Expr srcval0 = cast<upper_t>(src0(x, y)), srcval1 = cast<upper_t>(src1(x, y));
+    Expr dstval = min(srcval0 + srcval1, cast<upper_t>(type_of<T>().max()));
 
     Func dst;
-    Expr srcval0 = cast<upper_t>(src0(x, y)), srcval1 = cast<upper_t>(src1(x, y));
-
-    Expr dstval = min(srcval0 + srcval1, cast<upper_t>(type_of<T>().max()));
     dst(x, y) = cast<T>(dstval);
 
     return dst;
@@ -26,25 +25,21 @@ Halide::Func add(Halide::Func src0, Halide::Func src1)
 
 
 template<typename T>
-Halide::Func add_scalar(Halide::Func src, Halide::Expr val)
+Func add_scalar(Func src, Expr val)
 {
-    using namespace Halide;
-
-    Var x, y;
-
-    Func dst;
+    Var x{"x"}, y{"y"};
 
     Expr dstval = clamp(round(cast<double>(src(x, y)) + val), 0, cast<double>(type_of<T>().max()));
+
+    Func dst;
     dst(x, y) = cast<T>(dstval);
 
     return dst;
 }
 
-Halide::Func calc_and(Halide::Func src0, Halide::Func src1)
+Func calc_and(Func src0, Func src1)
 {
-    using namespace Halide;
-
-    Var x, y;
+    Var x{"x"}, y{"y"};
 
     Func dst;
     dst(x, y) = src0(x, y) & src1(x, y);
@@ -52,11 +47,9 @@ Halide::Func calc_and(Halide::Func src0, Halide::Func src1)
     return dst;
 }
 
-Halide::Func and_scalar(Halide::Func src0, Halide::Expr val)
+Func and_scalar(Func src0, Expr val)
 {
-    using namespace Halide;
-
-    Var x, y;
+    Var x{"x"}, y{"y"};
 
     Func dst;
     dst(x, y) = src0(x, y) & val;
@@ -65,12 +58,11 @@ Halide::Func and_scalar(Halide::Func src0, Halide::Expr val)
 }
 
 template<typename T>
-Halide::Func average(Halide::ImageParam src, int32_t window_width, int32_t window_height)
+Func average(ImageParam src, int32_t window_width, int32_t window_height)
 {
-    using namespace Halide;
     using upper_t = typename Upper<T>::type;
 
-    Var x, y;
+    Var x{"x"}, y{"y"};
 
     Func clamped = BoundaryConditions::repeat_edge(src);
     Expr w_half = div_round_to_zero(window_width, 2);
@@ -84,164 +76,235 @@ Halide::Func average(Halide::ImageParam src, int32_t window_width, int32_t windo
     return dst;
 }
 
-Halide::Func multiply(Halide::Func src1, Halide::Func src2) {
-    using namespace Halide;
+Func multiply(Func src1, Func src2)
+{
+    Var x{"x"}, y{"y"};
 
-    Var x, y;
-
-    Func dst("dst");
+    Func dst;
     dst(x, y) = src1(x, y) * src2(x, y);
 
     return dst;
 }
 
 template<typename T>
-Halide::Func mul_scalar(Halide::Func src0, Halide::Expr val) {
-    using namespace Halide;
+Func mul_scalar(Func src0, Expr val)
+{
+    Var x{"x"}, y{"y"};
 
-    Var x, y;
-
-    Func dst("dst");
-
-    Expr srcval = src0(x, y);
-    Expr dstval = min(srcval * val, cast<float>(type_of<T>().max()));
+    Expr dstval = min(src0(x, y) * val, cast<float>(type_of<T>().max()));
     dstval = max(dstval, 0);
+
+    Func dst;
     dst(x, y) = cast<T>(round(dstval));
 
     return dst;
 }
 
 template<typename T>
-Halide::Func div_scalar(Halide::Func src, Halide::Expr val) {
-    Var x, y;
-
-    Func dst("dst");
+Func div_scalar(Func src, Expr val)
+{
+    Var x{"x"}, y{"y"};
 
     Expr srcval = src(x, y);
-    Expr dstval = min(srcval / val, cast<double>(type_of<T>().max()));
-    dstval = max(dstval, 0);
+    Expr dstval = max(min(srcval / val, cast<double>(type_of<T>().max())), 0);
+
+    Func dst;
     dst(x, y) = cast<T>(round(dstval));
 
     return dst;
 }
 
 template<typename T>
-Halide::Func nand(Halide::Func src0, Halide::Func src1) {
-    using namespace Halide;
+Func nand(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
 
-    Var x, y;
-
-    Func dst("dst");
+    Func dst;
     dst(x, y) = ~(src0(x, y) & src1(x, y));
 
     return dst;
 }
 
 template<typename T>
-Halide::Func nor(Halide::Func src0, Halide::Func src1) {
-    using namespace Halide;
+Func nor(Func src0, Func src1) {
+    Var x{"x"}, y{"y"};
 
-    Var x, y;
-
-    Func dst("dst");
+    Func dst;
     dst(x, y) = ~(src0(x, y) | src1(x, y));
 
     return dst;
 }
 
-Halide::Func min(Halide::Func src0, Halide::Func src1)
+Func min(Func src0, Func src1)
 {
-    Var x, y;
+    Var x{"x"}, y{"y"};
 
-    Func dst("dst");
+    Func dst;
     dst(x, y) = min(src0(x, y), src1(x, y));
 
     return dst;
 }
 
-Halide::Func max(Halide::Func src0, Halide::Func src1)
+Func min_pos(Func src, int32_t width, int32_t height)
 {
-    Var x, y;
+    Var x{"x"};
+    RDom r{0, width, 0, height, "r"};
 
-    Func dst("dst");
+    Func res{"res"};
+    res(x) = argmin(r, src(r.x, r.y));
+    schedule(res, {1});
+
+    Var d{"d"};
+    Func dst{"dst"};
+    dst(d) = cast<uint32_t>(0);
+    dst(0) = cast<uint32_t>(res(0)[0]);
+    dst(1) = cast<uint32_t>(res(0)[1]);
+
+    return dst;
+}
+
+template<typename T>
+Func min_value(Func src, Func roi, int32_t width, int32_t height)
+{
+    Var x{"x"};
+    Func count{"count"}, dst;
+    RDom r{0, width, 0, height, "r"};
+    r.where(roi(r.x, r.y) != 0);
+
+    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+    schedule(count, {1});
+
+    dst(x) = cast<T>(select(count(x) == 0, 0, minimum(src(r.x, r.y))));
+
+    return dst;
+}
+
+Func max(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
+
+    Func dst;
     dst(x, y) = max(src0(x, y), src1(x, y));
 
     return dst;
 }
 
-Halide::Func max_pos(Func in, int32_t width, int32_t height) {
-    Func dst("dst");
-    RDom r(0, width, 0, height, "r");
-    Func res("res");
-    Var x("x");
-    res(x) = argmax(r, in(r.x, r.y));
+Func max_pos(Func src, int32_t width, int32_t height)
+{
+    Var x{"x"};
+    RDom r{0, width, 0, height, "r"};
+
+    Func res{"res"};
+    res(x) = argmax(r, src(r.x, r.y));
     schedule(res, {1});
 
-    Var d("d");
+    Var d{"d"};
+    Func dst;
     dst(d) = cast<uint32_t>(0);
     dst(0) = cast<uint32_t>(res(0)[0]);
     dst(1) = cast<uint32_t>(res(0)[1]);
+
+    return dst;
 }
 
 template<typename T>
-Halide::Func equal(Halide::Func src0, Halide::Func src1) {
-    Var x, y;
+Func max_value(Func src, Func roi, int32_t width, int32_t height)
+{
+    Var x{"x"};
+    Func count{"count"}, dst;
+    RDom r{0, width, 0, height, "r"};
+    r.where(roi(r.x, r.y) != 0);
 
-    Func dst("dst");
+    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+    schedule(count, {1});
+
+    dst(x) = cast<T>(select(count(x) == 0, 0, maximum(src(r.x, r.y))));
+
+    return dst;
+}
+
+template<typename T>
+Func equal(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
+
+    Func dst{"dst"};
     dst(x, y) = cast<T>(select(src0(x, y) == src1(x, y), type_of<T>().max(), 0));
 
     return dst;
 }
 
 template<typename T>
-Halide::Func cmpgt(Halide::Func src0, Halide::Func src1) {
-    Var x, y;
+Func cmpgt(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
 
-    Func dst("dst");
+    Func dst{"dst"};
     dst(x, y) = cast<T>(select(src0(x, y) > src1(x, y), type_of<T>().max(), 0));
 
     return dst;
 }
 
 template<typename T>
-Halide::Func cmpge(Halide::Func src0, Halide::Func src1) {
-    Var x, y;
+Func cmpge(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
 
-    Func dst("dst");
+    Func dst{"dst"};
     dst(x, y) = cast<T>(select(src0(x, y) >= src1(x, y), type_of<T>().max(), 0));;
 
     return dst;
 }
 
 template<typename T>
-Func max_value(Func in, Func roi, int32_t width, int32_t height) {
-    Func count("count"), dst("dst");
+Func integral(Func in, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"}, integral{"integral"};
+    integral(x, y) = cast<uint64_t>(in(x, y));
 
-    RDom r(0, width, 0, height, "r");
-    r.where(roi(r.x, r.y) != 0);
+    RDom r1{1, width - 1, 0, height, "r1"};
+    integral(r1.x, r1.y) += integral(r1.x - 1, r1.y);
+
+    RDom r2{0, width, 1, height - 1, "r2"};
+    integral(r2.x, r2.y) += integral(r2.x, r2.y - 1);
+    schedule(integral, {width, height});
+
+    dst(x, y) = cast<T>(integral(x, y));
+
+    return dst;
+}
+
+
+template<typename T>
+Func histogram(Func src, int32_t width, int32_t height, int32_t hist_width)
+{
+    uint32_t hist_size = static_cast<uint32_t>(std::numeric_limits<T>::max()) + 1;
+    int32_t bin_size = (hist_size + hist_width - 1) / hist_width;
 
     Var x{"x"};
-    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+    RDom r{0, width, 0, height};
 
-    dst(x) = cast<T>(select(count(x) == 0, 0, maximum(in(r.x, r.y))));
+    Func dst;
+    dst(x) = cast<uint32_t>(0);
 
-    schedule(count, {1});
+    Expr idx = cast<int32_t>(src(r.x, r.y) / bin_size);
+    dst(idx) += cast<uint32_t>(1);
+
     return dst;
 }
 
 template<typename T>
-Func integral(Func in, int32_t width, int32_t height) {
-    Var x("x"), y("y");
-    Func dst("dst"), integral("integral");
-    integral(x, y) = cast<uint64_t>(in(x, y));
+Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hist_width)
+{
+    Var x{"x"}, y{"y"};
+    RDom r{0, width, 0, height};
 
-    RDom r1(1, width - 1, 0, height, "r1");
-    integral(r1.x, r1.y) += integral(r1.x - 1, r1.y);
-
-    RDom r2(0, width, 1, height - 1, "r2");
-    integral(r2.x, r2.y) += integral(r2.x, r2.y - 1);
-    schedule(integral, {width, height});
-    dst(x, y) = cast<T>(integral(x, y));
+    Func dst;
+    dst(x, y) = cast<uint32_t>(0);
+    Expr idx0 = cast<int32_t>(src0(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
+    Expr idx1 = cast<int32_t>(src1(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
+    dst(idx0, idx1) += cast<uint32_t>(1);
 
     return dst;
 }
