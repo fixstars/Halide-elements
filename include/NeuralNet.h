@@ -398,7 +398,7 @@ Func softmax(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<
     RDom r(0, bottom_shape[0]);
 
     norm(i, n) = exp(bottom(i, n) - maximum(r, bottom(r.x, n)));
-    schedule(norm, top_shape);
+    schedule(norm, bottom_shape);
 
     f(i, n) = norm(i, n) / sum(r, norm(r.x, n));
 

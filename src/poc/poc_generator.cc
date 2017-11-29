@@ -72,6 +72,10 @@ public:
         Func func_poc("func_poc");
         func_poc(x, y) = ifft_r_n.x;
 
+        schedule(input1, {n, n});
+        schedule(input2, {n, n});
+        schedule(func_poc, {n, n});
+
         return func_poc;
     }
 };

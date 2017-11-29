@@ -4,7 +4,7 @@
 #include "Element.h"
 
 using namespace Halide;
-using  Halide::Element::schedule;
+using Halide::Element::schedule;
 
 template<typename T>
 class And : public Halide::Generator<And<T>> {
@@ -18,7 +18,7 @@ public:
     Func build() {
         Func dst{"dst"};
 
-        dst = Element::calc_and<T>(src0, src1);
+        dst = Element::calc_and(src0, src1);
 
         schedule(src0, {width, height});
         schedule(src1, {width, height});

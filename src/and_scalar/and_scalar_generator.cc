@@ -18,7 +18,7 @@ public:
     Func build() {
         Func dst{"dst"};
 
-        dst = Element::and_scalar<T>(src, value);
+        dst = Element::and_scalar(src, value);
 
         schedule(src, {width, height});
         schedule(dst, {width, height});

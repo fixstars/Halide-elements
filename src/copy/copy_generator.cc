@@ -16,10 +16,9 @@ public:
     Func build() {
         Func dst{"dst"};
 
-        dst = Element::copy<T>(src);
+        dst = Element::copy(src);
 
-        schedule(src0, {width, height});
-        schedule(src1, {width, height});
+        schedule(src, {width, height});
         schedule(dst, {width, height});
 
         return dst;

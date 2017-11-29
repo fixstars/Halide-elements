@@ -21,7 +21,7 @@ public:
     Func build() {
         Func output{"output"};
 
-        output = dilate<T>(input, width, height, window_width, window_height, structure, iteration);
+        output = Element::dilate<T>(input, width, height, window_width, window_height, structure, iteration);
 
         schedule(input, {width, height});
         schedule(structure, {window_width, window_height});

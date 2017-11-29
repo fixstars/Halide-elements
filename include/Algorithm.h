@@ -81,7 +81,6 @@ Func fft(Func in, const int32_t n, const int32_t batch_size)
     return out;
 }
 
-template<typename T>
 Func copy(Func src)
 {
     Var x, y;

@@ -8,7 +8,7 @@ using Halide::Element::schedule;
 template<typename T>
 class Equal : public Halide::Generator<Equal<T>> {
 public:
-    ImageParam src0{type_of<T>(), 2, "src0"}
+    ImageParam src0{type_of<T>(), 2, "src0"};
     ImageParam src1{type_of<T>(), 2, "src1"};
 
     GeneratorParam<int32_t> width{"width", 1024};
