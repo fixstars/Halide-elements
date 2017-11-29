@@ -77,6 +77,9 @@ ${PROG}_test: ${PROG}_test.cc ${PROG}.h ${PROG}.a
 	g++ -I . ${CXXFLAGS} $< -o $@ ${PROG}.a -ldl -lpthread
 endif
 
+test: ${PROG}_test
+	./${PROG}_test
+
 ${PROG}_gen.hls: ${PROG}_generator.cc
 	g++ -D HALIDE_FOR_FPGA -fno-rtti ${CXXFLAGS} $< ${HALIDE_TOOLS_DIR}/GenGen.cpp -o ${PROG}_gen.hls ${LIBS} -lHalide
 
@@ -109,7 +112,7 @@ ${PROG}_$(1)_test_csim: ${PROG}_test.cc ${PROG}_$(1)_csim.o ${PROG}_$(1).h
 endef
 $(foreach type,${TYPE_LIST},$(eval $(call hls_template,${type})))
 
-run_${PROG}_test_csim: $(foreach type,${TYPE_LIST},${PROG}_${type}_test_csim)
+test_csim: $(foreach type,${TYPE_LIST},${PROG}_${type}_test_csim)
 	$(foreach type,${TYPE_LIST},./${PROG}_${type}_test_csim;)
 else
 ${PROG}.hls.exec: ${PROG}.hls
@@ -122,12 +125,12 @@ ${PROG}_csim.o: ${PROG}.hls
 ${PROG}_test_csim: ${PROG}_test.cc ${PROG}_csim.o ${PROG}.h
 	g++ -I . -I ${VIVADO_HLS_ROOT}/include ${CSIM_CXXFLAGS} $< ${PROG}_csim.o -o $@ -ldl -lpthread
 
-run_${PROG}_test_csim: ${PROG}_test_csim
+test_csim: ${PROG}_test_csim
 	./${PROG}_test_csim
 endif
 
-${PROG}_run: ${PROG}_run.c ${PROG}.hls.exec
+run: ${PROG}_run.c ${PROG}.hls.exec
 	arm-linux-gnueabihf-gcc ${CFLAGS} ${TARGET_SRC} -o $@ ${TARGET_LIB}
 
 clean:
-	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_*test_csim ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec *.dSYM
+	rm -rf ${PROG}_gen ${PROG}_test ${PROG}_*test_csim ${PROG}_run ${PROG}*.h ${PROG}*.a *.o *.hls *.exec *.dSYM *.ppm *.pgm *.dat
