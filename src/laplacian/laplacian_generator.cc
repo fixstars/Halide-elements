@@ -1,19 +1,22 @@
-#include <iostream>
+#include <cstdint>
 #include "Halide.h"
 #include "Element.h"
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class Laplacian : public Halide::Generator<Laplacian<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 8};
-    GeneratorParam<int32_t> height{"height", 8};
     ImageParam src{type_of<T>(), 2, "src"};
 
+    GeneratorParam<int32_t> width{"width", 8};
+    GeneratorParam<int32_t> height{"height", 8};
+
     Func build() {
-        Func dst = laplacian<T>(src, width, height);
+        Func dst{"dst"};
+        dst = Element::laplacian<T>(src, width, height);
+
         schedule(src, {width, height});
         schedule(dst, {width, height});
 

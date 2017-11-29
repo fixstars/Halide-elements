@@ -14,7 +14,7 @@ Expr ConstU32(int32_t v)
     return Halide::Internal::make_const(UInt(32), static_cast<uint32_t>(v));
 }
 
-Expr bit_reverse(Expr i, const int n) 
+Expr bit_reverse(Expr i, const int n)
 {
     Expr ri = cast<uint32_t>(i);
     ri = (ri & ConstU32(0x55555555)) <<  1 | (ri & ConstU32(0xAAAAAAAA)) >>  1;
@@ -28,14 +28,14 @@ Expr bit_reverse(Expr i, const int n)
 
 }
 
-Halide::Func fft(Halide::Func in, const int32_t n, const int32_t batch_size) 
+Func fft(Func in, const int32_t n, const int32_t batch_size)
 {
     Var c{"c"}, i{"i"}, k{"k"};
 
-    Halide::Func weight("weight");
-    Halide::Expr theta = static_cast<float>(-2.0 * M_PI) * cast<float>(i) / static_cast<float>(n);
+    Func weight("weight");
+    Expr theta = static_cast<float>(-2.0 * M_PI) * cast<float>(i) / static_cast<float>(n);
     weight(c, i) = select(c ==0, cos(theta), sin(theta));
-    
+
     Func stage("in");
     stage(c, i, k) = in(c, i, k);
 
@@ -76,21 +76,16 @@ Halide::Func fft(Halide::Func in, const int32_t n, const int32_t batch_size)
     Func out("out");
     out(c, i, k) = stage(c, ri, k);
 
-    schedule(in, {2, n, batch_size});
     schedule(weight, {2, n/2});
-    schedule(out, {2, n, batch_size}).unroll(c);
-    
+
     return out;
 }
 
-template<typename T>
-Halide::Func copy(Halide::Func src)
+Func copy(Func src)
 {
-    using namespace Halide;
-
     Var x, y;
 
-    Func dst("dst");
+    Func dst{"dst"};
     dst(x, y) = src(x, y);
 
     return dst;

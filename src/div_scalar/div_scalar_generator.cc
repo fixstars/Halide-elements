@@ -1,22 +1,29 @@
-#include <iostream>
+#include <cstdint>
+
 #include "Halide.h"
 #include "Element.h"
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class DivScalar : public Halide::Generator<DivScalar<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
     Param<double> value{"value", 2.0};
 
-    Var x, y;
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
 
     Func build() {
-        return div_scalar<T>(src, value);
+        Func dst("dst");
+
+        dst = Element::div_scalar<T>(src, value);
+
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
+
+        return dst;
     }
 };
 

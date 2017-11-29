@@ -68,7 +68,7 @@ Func census(Func input, int32_t width, int32_t height)
 Func matchingCost(Func left, Func right, int32_t width, int32_t height)
 {
     Var x("x"), y("y"), d("d");
-    
+
     Func f;
     Func r = BoundaryConditions::constant_exterior(right, 0, 0, width, 0, height);
     f(d, x, y) = cast<uint8_t>(popcount(left(x, y) ^ select((x-d) > 0, r(x-d, y), cast<uint64_t>(0))));
@@ -80,7 +80,7 @@ template <int32_t RX, int32_t RY, bool FORWARD>
 Func scanCost(Func cost, int32_t width, int32_t height, int32_t disp)
 {
     Var x("x"), y("y"), d("d");
-    
+
     Func lcost, f;
     lcost(d, x, y) = Tuple(
         cast<uint16_t>(0),
@@ -128,7 +128,7 @@ Func scanCost(Func cost, int32_t width, int32_t height, int32_t disp)
     schedule(lcost, {disp, width, height})
         .unroll(d)
         .update().unroll(rd).allow_race_conditions();
-    
+
     f(d, x, y) = lcost(d, x, y)[0];
 
     return f;
@@ -164,14 +164,11 @@ Func semi_global_matching(Func in_l, Func in_r, int32_t disp, int32_t width, int
     Func out("out");
     out(x, y) = f4(x, y);
 
-    schedule(in_l, {width, height});
-    schedule(in_r, {width, height});
     schedule(f0_l, {width, height});
     schedule(f0_r, {width, height});
     schedule(f1, {disp, width, height}).unroll(d);
     schedule(f3, {disp, width, height}).unroll(d);
-    schedule(out, {width, height});
-    
+
     return out;
 }
 

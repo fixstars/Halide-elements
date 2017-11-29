@@ -5,19 +5,25 @@ using namespace Halide;
 using namespace Halide::Element;
 
 class SGM : public Halide::Generator<SGM> {
-    Var x{"x"}, y{"y"}, d{"d"};
+public:
+    ImageParam in_l{UInt(8), 2, "in_l"};
+    ImageParam in_r{UInt(8), 2, "in_r"};
 
     GeneratorParam<int32_t> disp{"disp", 16};
     GeneratorParam<int32_t> width{"width", 641};
     GeneratorParam<int32_t> height{"height", 555};
-    
-    ImageParam in_l{UInt(8), 2, "in_l"};
-    ImageParam in_r{UInt(8), 2, "in_r"};
 
-public:
     Func build()
     {
-        return semi_global_matching(in_l, in_r, disp, width, height);
+        Func out{"out"};
+
+        out = semi_global_matching(in_l, in_r, disp, width, height);
+
+        schedule(in_l, {width, height});
+        schedule(in_r, {width, height});
+        schedule(out, {width, height});
+
+        return out;
     }
 
 private:

@@ -1,5 +1,6 @@
-#include <iostream>
 #include <cmath>
+#include <cstdint>
+
 #include "Halide.h"
 #include <Element.h>
 #include <Algorithm.h>
@@ -9,10 +10,11 @@ using namespace Halide::Element;
 
 class POC : public Generator<POC> {
 public:
-    GeneratorParam<int32_t> n_{"n", 16};
-    GeneratorParam<int32_t> batch_size_{"batch_size", 16};
     ImageParam input1{Float(32), 2, "input1"};
     ImageParam input2{Float(32), 2, "input2"};
+
+    GeneratorParam<int32_t> n_{"n", 16};
+    GeneratorParam<int32_t> batch_size_{"batch_size", 16};
 
     Var c{"c"}, i{"i"}, k{"k"}, h{"h"};
     Var x{"x"}, y{"y"};
@@ -70,9 +72,12 @@ public:
         Func func_poc("func_poc");
         func_poc(x, y) = ifft_r_n.x;
 
+        schedule(input1, {n, n});
+        schedule(input2, {n, n});
+        schedule(func_poc, {n, n});
+
         return func_poc;
     }
 };
 
 RegisterGenerator<POC> poc{"poc"};
-

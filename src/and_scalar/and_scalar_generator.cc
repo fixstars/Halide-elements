@@ -1,25 +1,27 @@
-#include <iostream>
-#include <limits>
+#include <cstdint>
 #include "Halide.h"
 
 #include "Element.h"
 
 using namespace Halide;
+using Halide::Element::schedule;
 
 template<typename T>
 class AndScalar : public Halide::Generator<AndScalar<T>> {
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
     Param<T> value{"value", 1};
 
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+
 public:
     Func build() {
-        Func dst("dst");
-        dst = Element::and_scalar<T>(src, value);
+        Func dst{"dst"};
 
-        Element::schedule(src, {width, height});
-        Element::schedule(dst, {width, height});
+        dst = Element::and_scalar(src, value);
+
+        schedule(src, {width, height});
+        schedule(dst, {width, height});
 
         return dst;
     }

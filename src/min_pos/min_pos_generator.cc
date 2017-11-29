@@ -1,34 +1,26 @@
-#include <iostream>
-#include <typeinfo>
+#include <cstdint>
+
 #include <Halide.h>
 #include <Element.h>
 
 using namespace Halide;
-using namespace Halide::Element;
+using Halide::Element::schedule;
 
 template<typename T>
 class MinPos : public Halide::Generator<MinPos<T>> {
 public:
-    GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 768};
     ImageParam src{type_of<T>(), 2, "src"};
 
+    GeneratorParam<int32_t> width{"width", 1024};
+    GeneratorParam<int32_t> height{"height", 768};
+
     Func build() {
-        Func dst("dst");
-        RDom r(0, width, 0, height, "r");
-        Func res("res");
-        Var x("x");
-        res(x) = argmin(r, src(r.x, r.y));
-        res.compute_root();
-        
-        Var d("d");
-        dst(d) = cast<uint32_t>(0);
-        dst(0) = cast<uint32_t>(res(0)[0]);
-        dst(1) = cast<uint32_t>(res(0)[1]);
+        Func dst{"dst"};
+
+        dst = Element::min_pos(src, width, height);
 
         schedule(src, {width, height});
         schedule(dst, {2});
-        schedule(res, {1});
 
         return dst;
     }
