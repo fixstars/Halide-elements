@@ -226,5 +226,61 @@ Func erode_rect(Func src, int32_t width, int32_t height, int32_t window_width, i
     return dst;
 }
 
+template<typename T>
+Func close(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Func structure, int32_t iteration)
+{
+	Func dilate{"dilate"}, erode{"erode"};
+
+	// Run dilate
+	dilate = Element::dilate<T>(src, width, height, window_width, window_height, structure, iteration);
+
+	// Run erode
+	erode = Element::erode<T>(dilate, width, height, window_width, window_height, structure, iteration);
+
+	schedule(src, {width, height});
+	schedule(structure, {window_width, window_height});
+	schedule(dilate, {width, height});
+	schedule(erode, {width, height});
+
+	return erode;
+}
+
+template<typename T>
+Func close_rect(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+	Func dilate_rect{"dilate_rect"}, erode_rect{"erode_rect"};
+
+	// Run dilate
+	dilate_rect = Element::dilate_rect<T>(src, width, height, window_width, window_height, iteration);
+
+	// Run erode
+	erode_rect = Element::erode_rect<T>(dilate_rect, width, height, window_width, window_height, iteration);
+
+	schedule(src, {width, height});
+	schedule(dilate_rect, {width, height});
+	schedule(erode_rect, {width, height});
+
+	return erode_rect;
+}
+
+template<typename T>
+Func close_cross(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, int32_t iteration)
+{
+	Func dilate_cross{"dilate_cross"}, erode_cross{"erode_cross"};
+
+	// Run dilate
+	dilate_cross = Element::dilate_cross<T>(src, width, height, window_width, window_height, iteration);
+
+	// Run erode
+	erode_cross = Element::erode_cross<T>(dilate_cross, width, height, window_width, window_height, iteration);
+
+	schedule(src, {width, height});
+	schedule(dilate_cross, {width, height});
+	schedule(erode_cross, {width, height});
+
+	return erode_cross;
+}
+
+
 } // namespace Element
 } // namespace Halide
