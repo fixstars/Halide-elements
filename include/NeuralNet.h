@@ -8,6 +8,8 @@ namespace Element {
 //
 // Convolutional Neural Network
 //
+
+// Convolution
 Func conv(Func bottom, ImageParam weight, ImageParam bias,
           const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
           const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
@@ -79,8 +81,8 @@ Func conv_fixed32(Func bottom, ImageParam weight, ImageParam bias,
 
 template <uint32_t FB>
 Func conv_fixed32(Func bottom, ImageParam weight, ImageParam bias,
-                          const std::vector<int32_t>& weight_shape,
-                          const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
+                  const std::vector<int32_t>& weight_shape,
+                  const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
 {
     const int32_t stride = 1;
     const int32_t pad = weight_shape[1] / 2;
@@ -89,8 +91,8 @@ Func conv_fixed32(Func bottom, ImageParam weight, ImageParam bias,
 }
 
 Func bin_conv(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias,
-                      const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
-                      const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
+              const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
+              const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
@@ -119,7 +121,7 @@ Func bin_conv(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias,
 }
 
 Func bin_conv(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias, const std::vector<int32_t> &weight_shape,
-                      const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
+              const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
 {
     const int32_t stride = 1;
     const int32_t pad = weight_shape[1] / 2;
@@ -129,8 +131,8 @@ Func bin_conv(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias,
 
 template <uint32_t FB>
 Func bin_conv_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias,
-                              const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
-                              const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
+                      const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
+                      const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
@@ -163,7 +165,7 @@ Func bin_conv_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImagePar
 
 template <uint32_t FB>
 Func bin_conv_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias, const std::vector<int32_t> &weight_shape,
-                              const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
+                      const std::vector<int32_t>& bottom_shape, std::vector<int32_t> &top_shape)
 {
     const int32_t stride = 1;
     const int32_t pad = weight_shape[1] / 2;
@@ -171,8 +173,10 @@ Func bin_conv_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImagePar
     return bin_conv_fixed32<FB>(bottom, weight, alpha, bias, weight_shape, stride, pad, bottom_shape, top_shape);
 }
 
+
+// Pooling
 Func pool(Func bottom, const std::vector<int32_t>& window_shape, int32_t stride,
-                  const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+          const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
@@ -197,7 +201,7 @@ Func pool(Func bottom, const std::vector<int32_t>& window_shape, int32_t stride,
 
 template<uint32_t FB>
 Func pool_fixed32(Func bottom, const std::vector<int32_t>& window_shape, int32_t stride,
-                          const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+                  const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
@@ -220,94 +224,8 @@ Func pool_fixed32(Func bottom, const std::vector<int32_t>& window_shape, int32_t
     return f;
 }
 
-template <uint32_t FB>
-Func bin_active_fixed32(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
 
-    f(c, x, y, n) = Fixed<int32_t, FB>{bottom(c, x, y, n)} >= to_fixed<int32_t, FB>(.0f);
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func scale_fixed32(Func bottom, ImageParam weight, ImageParam bias,
-                           const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 v = Fixed32{bottom(c, x, y, n)};
-    Fixed32 w = Fixed32{weight(c)};
-    Fixed32 b = Fixed32{bias(c)};
-
-    f(c, x, y, n) = static_cast<Expr>(v * w + b);
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func bn_fixed32(Func bottom, ImageParam mean, ImageParam variance,
-                        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 b = Fixed32{bottom(c, x, y, n)};
-    Fixed32 m = Fixed32{mean(c)};
-    Fixed32 v = Fixed32{variance(c)};
-
-    f(c, x, y, n) = static_cast<Expr>((b - m) / (to_fixed<int32_t, FB>(sqrt(from_fixed<float>(v))) + to_fixed<int32_t, FB>(.001f)));
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-template <uint32_t FB>
-Func fc_fixed32(Func bottom, ImageParam weight, ImageParam bias,
-                        const std::vector<int32_t>& weight_shape,
-                        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var i("i"), n("n");
-    Func f;
-    RDom r(0, weight_shape[0]);
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 v = Fixed32{bottom(r.x, n)};
-    Fixed32 w = Fixed32{weight(r.x, i)};
-    Fixed32 b = Fixed32{bias(i)};
-
-    f(i, n) = static_cast<Expr>(mac(r, v, w) + b);
-
-    top_shape = {
-        weight_shape[1],
-        bottom_shape[1]
-    };
-
-    return f;
-}
-
-template <uint32_t FB>
-Func tofloat(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var i("i"), n("n");
-    Func f;
-    f(i, n) = from_fixed<float>(Fixed<int32_t, FB>{bottom(i, n)});
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
-
+// ReLU
 Func relu2d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var i("i"), n("n");
@@ -332,6 +250,8 @@ Func relu4d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<i
     return f;
 }
 
+
+// BinActive
 Func bin_active(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
@@ -344,14 +264,13 @@ Func bin_active(Func bottom, const std::vector<int32_t>& bottom_shape, std::vect
     return f;
 }
 
-
-Func scale(Func bottom, ImageParam weight, ImageParam bias,
-                   const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+template <uint32_t FB>
+Func bin_active_fixed32(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
     Func f;
 
-    f(c, x, y, n) = bottom(c, x, y, n) * weight(c) + bias(c);
+    f(c, x, y, n) = Fixed<int32_t, FB>{bottom(c, x, y, n)} >= to_fixed<int32_t, FB>(.0f);
 
     top_shape = bottom_shape;
 
@@ -359,8 +278,9 @@ Func scale(Func bottom, ImageParam weight, ImageParam bias,
 }
 
 
+// Batch Normalization
 Func bn(Func bottom, ImageParam mean, ImageParam variance,
-                const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
     Func f;
@@ -372,35 +292,194 @@ Func bn(Func bottom, ImageParam mean, ImageParam variance,
     return f;
 }
 
-Func fc(Func bottom, ImageParam weight, ImageParam bias, const std::vector<int32_t>& weight_shape,
+
+template <uint32_t FB>
+Func bn_fixed32(Func bottom, ImageParam mean, ImageParam variance,
                 const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
-    Var i("i"), n("n");
+    Var x("x"), y("y"), c("c"), n("n");
     Func f;
-    RDom r(0, weight_shape[0]);
 
-    f(i, n) = sum(r, bottom(r.x, n) * weight(r.x, i)) + bias(i);
+    using Fixed32 = Fixed<int32_t, FB>;
+    Fixed32 b = Fixed32{bottom(c, x, y, n)};
+    Fixed32 m = Fixed32{mean(c)};
+    Fixed32 v = Fixed32{variance(c)};
 
-    top_shape = {
-        weight_shape[1],
-        bottom_shape[1]
-    };
+    f(c, x, y, n) = static_cast<Expr>((b - m) / (to_fixed<int32_t, FB>(sqrt(from_fixed<float>(v))) + to_fixed<int32_t, FB>(.001f)));
+
+    top_shape = bottom_shape;
 
     return f;
 }
 
 
-Func softmax(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
-                     bool unrolled = false)
+// Scale
+Func scale(Func bottom, ImageParam weight, ImageParam bias,
+           const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+{
+    Var x("x"), y("y"), c("c"), n("n");
+    Func f;
+
+    f(c, x, y, n) = bottom(c, x, y, n) * weight(c) + bias(c);
+
+    top_shape = bottom_shape;
+
+    return f;
+}
+
+template <uint32_t FB>
+Func scale_fixed32(Func bottom, ImageParam weight, ImageParam bias,
+                   const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+{
+    Var x("x"), y("y"), c("c"), n("n");
+    Func f;
+
+    using Fixed32 = Fixed<int32_t, FB>;
+    Fixed32 v = Fixed32{bottom(c, x, y, n)};
+    Fixed32 w = Fixed32{weight(c)};
+    Fixed32 b = Fixed32{bias(c)};
+
+    f(c, x, y, n) = static_cast<Expr>(v * w + b);
+
+    top_shape = bottom_shape;
+
+    return f;
+}
+
+
+// Fully Connected
+Func fc(Func bottom, ImageParam weight, ImageParam bias, const std::vector<int32_t>& weight_shape,
+        const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+        bool previous_conv = false)
 {
     Var i("i"), n("n");
-    Func f, norm("norm");
+    Func f;
+
+    if (previous_conv) {
+        RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
+        f(i, n) = sum(r, bottom(r.x, r.y, r.z, n) * weight(r.x, r.y, r.z, i)) + bias(i);
+        top_shape = {weight_shape[3], bottom_shape[3]};
+    } else {
+        RDom r(0, weight_shape[0]);
+        f(i, n) = sum(r, bottom(r.x, n) * weight(r.x, i)) + bias(i);
+        top_shape = {weight_shape[1], bottom_shape[1]};
+    }
+
+    return f;
+}
+
+template <uint32_t FB>
+Func fc_fixed32(Func bottom, ImageParam weight, ImageParam bias, const std::vector<int32_t>& weight_shape,
+                const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+                bool previous_conv = false)
+{
+    Var i("i"), n("n");
+    Func f;
+
+    using Fixed32 = Fixed<int32_t, FB>;
+
+    if (previous_conv) {
+        RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
+        Fixed32 v = Fixed32{bottom(r.x, r.y, r.z, n)};
+        Fixed32 w = Fixed32{weight(r.x, r.y, r.z, i)};
+        Fixed32 b = Fixed32{bias(i)};
+
+        f(i, n) = static_cast<Expr>(mac(r, v, w) + b);
+
+        top_shape = {weight_shape[3], bottom_shape[3]};
+    } else {
+        RDom r(0, weight_shape[0]);
+        Fixed32 v = Fixed32{bottom(r.x, n)};
+        Fixed32 w = Fixed32{weight(r.x, i)};
+        Fixed32 b = Fixed32{bias(i)};
+
+        f(i, n) = static_cast<Expr>(mac(r, v, w) + b);
+
+        top_shape = {weight_shape[1], bottom_shape[1]};
+    }
+
+    return f;
+}
+
+Func bin_fc(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias, const std::vector<int32_t>& weight_shape,
+            const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+            bool previous_conv = false)
+{
+    Var i("i"), n("n");
+    Func f;
+
+    if (previous_conv) {
+        RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
+        const float elem_num = static_cast<float>(weight_shape[0] * weight_shape[1] * weight_shape[2]);
+        f(i, n) = (-elem_num + 2 * sum(r, cast<float>(!bottom(r.x, r.y, r.z, n) ^ weight(r.x, r.y, r.z, i)))) * alpha(i) + bias(i);
+        top_shape = {weight_shape[3], bottom_shape[3]};
+
+    } else {
+        RDom r(0, weight_shape[0]);
+        const float elem_num = static_cast<float>(weight_shape[0]);
+        f(i, n) = (-elem_num + 2 * sum(r, cast<float>(!bottom(r.x, n) ^ weight(r.x, i)))) * alpha(i) + bias(i);
+        top_shape = {weight_shape[1], bottom_shape[1]};
+    }
+
+    return f;
+}
+
+template <uint32_t FB>
+Func bin_fc_fixed32(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias, const std::vector<int32_t>& weight_shape,
+                    const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+                    bool previous_conv = false)
+{
+    Var i("i"), n("n");
+    Func f;
+
+    using Fixed32 = Fixed<int32_t, FB>;
+
+    if (previous_conv) {
+        RDom r(0, weight_shape[0], 0, weight_shape[1], 0, weight_shape[2]);
+        Fixed32 elem_num = to_fixed<int32_t, FB>(static_cast<float>(weight_shape[0] * weight_shape[1] * weight_shape[2]));
+        Expr v = bottom(r.x, r.y, r.z, n);
+        Expr w = weight(r.x, r.y, r.z, i);
+        Fixed32 a = Fixed32{alpha(i)};
+        Fixed32 b = Fixed32{bias(i)};
+
+        f(i, n) = static_cast<Expr>((-elem_num + (sum(r, to_fixed<int32_t, FB>(!v ^ w)) << 1)) * a + b);
+
+        top_shape = {weight_shape[3], bottom_shape[3]};
+    } else {
+        RDom r(0, weight_shape[0]);
+        Fixed32 elem_num = to_fixed<int32_t, FB>(static_cast<float>(weight_shape[0]));
+        Expr v = bottom(r.x, n);
+        Expr w = weight(r.x, i);
+        Fixed32 a = Fixed32{alpha(i)};
+        Fixed32 b = Fixed32{bias(i)};
+
+        f(i, n) = static_cast<Expr>((-elem_num + (sum(r, to_fixed<int32_t, FB>(!v ^ w)) << 1)) * a + b);
+
+        top_shape = {weight_shape[1], bottom_shape[1]};
+    }
+
+    return f;
+}
+
+
+// Softmax
+Func softmax2d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+               bool unrolled = false)
+{
+    Var i("i"), n("n");
+    Func f, mins("mins"), norm("norm"), d("d");
     RDom r(0, bottom_shape[0]);
 
-    norm(i, n) = exp(bottom(i, n) - maximum(r, bottom(r.x, n)));
+    mins(n) = minimum(r, bottom(r.x, n));
+    schedule(mins, {bottom_shape[1]});
+
+    norm(i, n) = exp(bottom(i, n) - mins(n));
     schedule(norm, bottom_shape);
 
-    f(i, n) = norm(i, n) / sum(r, norm(r.x, n));
+    d(n) = sum(r, norm(r.x, n));
+    schedule(d, {bottom_shape[1]});
+
+    f(i, n) = norm(i, n) / d(n);
 
     top_shape = bottom_shape;
 
@@ -412,6 +491,36 @@ Func softmax(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<
     return f;
 }
 
+Func softmax4d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
+               bool unrolled = false)
+{
+    Var c("c"), x("x"), y("y"), n("n");
+    Func f, mins("mins"), norm("norm"), d("d");
+    RDom r(0, bottom_shape[0]);
+
+    mins(x, y, n) = minimum(r, bottom(r.x, x, y, n));
+    schedule(mins, {bottom_shape[1], bottom_shape[2], bottom_shape[3]});
+
+    norm(c, x, y, n) = exp(bottom(c, x, y, n) - mins(x, y, n));
+    schedule(norm, bottom_shape);
+
+    d(x, y, n) = sum(r, norm(r.x, x, y, n));
+    schedule(d, {bottom_shape[1], bottom_shape[2], bottom_shape[3]});
+
+    f(c, x, y, n) = norm(c, x, y, n) / d(x, y, n);
+
+    top_shape = bottom_shape;
+
+    if (unrolled) {
+        norm.unroll(c);
+        f.unroll(c);
+    }
+
+    return f;
+}
+
+
+// Utils
 Func im2vec(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var i("i"), n("n");
@@ -429,6 +538,31 @@ Func im2vec(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<i
 
     return f;
 }
+
+template <uint32_t FB>
+Func tofloat2d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+{
+    Var i("i"), n("n");
+    Func f;
+    f(i, n) = from_fixed<float>(Fixed<int32_t, FB>{bottom(i, n)});
+
+    top_shape = bottom_shape;
+
+    return f;
+}
+
+template <uint32_t FB>
+Func tofloat4d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
+{
+    Var x("x"), y("y"), c("c"), n("n");
+    Func f;
+    f(c, x, y, n) = from_fixed<float>(Fixed<int32_t, FB>{bottom(c, x, y, n)});
+
+    top_shape = bottom_shape;
+
+    return f;
+}
+
 
 } //namespace Element
 } //namespace Halide
