@@ -6,7 +6,7 @@ using namespace Halide::Element;
 
 class AlexnetXNOR : public Halide::Generator<AlexnetXNOR> {
     Var x{"x"}, y{"y"}, c{"c"}, n{"n"}, i{"i"};
-   
+
     GeneratorParam<int32_t> batch_size{"batch_size", 1};
 
     ImageParam in{Int(32), 4, "in"};
@@ -72,9 +72,9 @@ class AlexnetXNOR : public Halide::Generator<AlexnetXNOR> {
     ImageParam scale8_bias{Int(32), 1, "scale8_variance"};
     ImageParam fc8_weight{Int(32), 4, "fc8_weight"};
     ImageParam fc8_bias{Int(32), 1, "fc8_bias"};
- 
+
 public:
-  
+
     Func build()
     {
         const std::vector<int32_t> input_shape{3, 224, 224, batch_size};
@@ -106,7 +106,7 @@ public:
         Func relu1("relu1");
         std::vector<int32_t> relu1_top_shape;
         relu1(c, x, y, n) = relu4d(scale1, scale1_top_shape, relu1_top_shape)(c, x, y, n);
-        
+
         // Pool1(3x3, 2): (96, 56, 56, n) -> (96, 28, 28, n)
         Func pool1("pool1");
         const std::vector<int32_t> pool1_window_shape{3, 3};
@@ -129,7 +129,7 @@ public:
         Func active2("active2");
         std::vector<int32_t> active2_top_shape;
         active2(c, x, y, n) = bin_active(scale2, scale2_top_shape, active2_top_shape)(c, x, y, n);
-        
+
         // Conv2(96x5x5x256): (96, 28, 28, n) -> (256, 28, 28, n)
         Func conv2("conv2");
         const int32_t conv2_num_output = 256;
@@ -159,7 +159,7 @@ public:
         Func active3("active3");
         std::vector<int32_t> active3_top_shape;
         active3(c, x, y, n) = bin_active(scale3, scale3_top_shape, active3_top_shape)(c, x, y, n);
-        
+
         // Conv3(256x3x3x384): (256, 13, 13, n) -> (384, 13, 13, n)
         Func conv3("conv3");
         const int32_t conv3_num_output = 384;
@@ -182,7 +182,7 @@ public:
         Func active4("active4");
         std::vector<int32_t> active4_top_shape;
         active4(c, x, y, n) = bin_active(scale4, scale4_top_shape, active4_top_shape)(c, x, y, n);
-        
+
         // Conv4(384x3x3x384): (384, 14, 14, n) -> (384, 14, 14, n)
         Func conv4("conv4");
         const int32_t conv4_num_output = 384;
@@ -206,7 +206,7 @@ public:
         Func active5("active5");
         std::vector<int32_t> active5_top_shape;
         active5(c, x, y, n) = bin_active(scale5, scale5_top_shape, active5_top_shape)(c, x, y, n);
-        
+
         // Conv5(384x3x3x256): (384, 13, 13, n) -> (256, 14, 14, n)
         Func conv5("conv5");
         const int32_t conv5_num_output = 256;
@@ -214,7 +214,7 @@ public:
         std::vector<int32_t> conv5_top_shape;
         conv5(c, x, y, n) = bin_conv_fixed32<FB>(active5, conv5_weight, conv5_alpha, conv5_bias, conv5_weight_shape,
                                      active5_top_shape, conv5_top_shape)(c, x, y, n);
-        
+
         // Pool5(3x3, 2): (256, 13, 13, n) -> (256, 6, 6, n)
         Func pool5("pool5");
         const std::vector<int32_t> pool5_window_shape{3, 3};
@@ -237,7 +237,7 @@ public:
         Func active6("active6");
         std::vector<int32_t> active6_top_shape;
         active6(c, x, y, n) = bin_active(scale6, scale6_top_shape, active6_top_shape)(c, x, y, n);
-        
+
         // Fc6(256x6x6x4096): (256, 6, 6, n) -> (4096, 1, 1, n)
         Func fc6("fc6");
         const int32_t fc6_num_output = 4096;
@@ -261,7 +261,7 @@ public:
         Func active7("active7");
         std::vector<int32_t> active7_top_shape;
         active7(c, x, y, n) = bin_active(scale7, scale7_top_shape, active7_top_shape)(c, x, y, n);
-        
+
         // Fc7(4096x1x1x4096): (4096, 1, 1, n) -> (4096, 1, 1, n)
         Func fc7("fc7");
         const int32_t fc7_num_output = 4096;
@@ -296,27 +296,27 @@ public:
         Func i2v("im2vec");
         std::vector<int32_t> i2v_top_shape;
         i2v(i, n) = im2vec(fc8, fc8_top_shape, i2v_top_shape)(i, n);
-        
+
         // ToFloat
         Func tof("tofloat");
         std::vector<int32_t> tof_top_shape;
-        tof(i, n) = tofloat<FB>(i2v, i2v_top_shape, tof_top_shape)(i, n);
+        tof(i, n) = tofloat2d<FB>(i2v, i2v_top_shape, tof_top_shape)(i, n);
 
         // Softmax
         Func prob("prob");
         std::vector<int32_t> prob_top_shape;
-        prob(i, n) = softmax(tof, tof_top_shape, prob_top_shape)(i, n);
+        prob(i, n) = softmax2d(tof, tof_top_shape, prob_top_shape)(i, n);
 
         // Schedule
         schedule(in, input_shape);
-        
+
         schedule(conv1_weight,   conv1_weight_shape);
         schedule(conv1_bias,    {conv1_num_output});
         schedule(bn1_mean,      {conv1_num_output});
         schedule(bn1_variance,  {conv1_num_output});
         schedule(scale1_weight, {conv1_num_output});
         schedule(scale1_bias,   {conv1_num_output});
-        
+
         schedule(bn2_mean,      {conv1_num_output});
         schedule(bn2_variance,  {conv1_num_output});
         schedule(scale2_weight, {conv1_num_output});
@@ -324,7 +324,7 @@ public:
         schedule(conv2_weight,   conv2_weight_shape);
         schedule(conv2_alpha,   {conv2_num_output});
         schedule(conv2_bias,    {conv2_num_output});
- 
+
         schedule(bn3_mean,      {conv2_num_output});
         schedule(bn3_variance,  {conv2_num_output});
         schedule(scale3_weight, {conv2_num_output});
@@ -332,7 +332,7 @@ public:
         schedule(conv3_weight,   conv3_weight_shape);
         schedule(conv3_alpha,   {conv3_num_output});
         schedule(conv3_bias,    {conv3_num_output});
-  
+
         schedule(bn4_mean,      {conv3_num_output});
         schedule(bn4_variance,  {conv3_num_output});
         schedule(scale4_weight, {conv3_num_output});
@@ -386,7 +386,7 @@ public:
         schedule(fc8, fc8_top_shape);
         schedule(i2v, i2v_top_shape);
         schedule(prob, prob_top_shape);
-       
+
         return prob;
     }
 };
