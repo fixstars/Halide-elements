@@ -29,7 +29,7 @@ if [ "${target_arg}" = "clean" ]; then
     for dir in ${dirs}; do
         cd ${dir}
         make clean &> /dev/null
-        rm -f "*.log"
+        rm -f *.log
         cd ../
     done
 else
