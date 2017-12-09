@@ -16,8 +16,7 @@
 template<typename T>
 int conv_with_structure(int width, int height, int window_width, int window_height, int iteration,
               const Halide::Runtime::Buffer<uint8_t>& structure,
-              T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
-    T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
+              T* workbuf, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
 
     int itr;
     for (itr=k; itr<k+iteration; ++itr) {
@@ -32,11 +31,11 @@ int conv_with_structure(int width, int height, int window_width, int window_heig
                             (allzero && i == -(window_width/2) && j == -(window_height/2))) {
                             int xx = x + i >= 0 ? x + i: 0;
                             xx = xx < width ? xx : width - 1;
-                            min = f(min, workbuf[itr%2][xx][yy]);
+                            min = f(min, workbuf[(itr%2)*width*height + xx*height + yy]);
                         }
                     }
                 }
-                workbuf[(itr+1)%2][x][y] = min;
+                workbuf[((itr+1)%2)*width*height + x*height + y] = min;
             }
         }
     }

@@ -15,8 +15,7 @@
 // returns index of result workbuf
 template<typename T>
 int conv_cross(int width, int height, int window_width, int window_height, int iteration,
-              T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, int k) {
-    T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
+              T* workbuf, const T&(*f)(const T&, const T&), T init, int k) {
 
     int itr;
     for (itr=k; itr<k+iteration; ++itr) {
@@ -26,14 +25,14 @@ int conv_cross(int width, int height, int window_width, int window_height, int i
                 for (int j = -(window_height/2); j < -(window_height/2) + window_height; j++) {
                     int yy = y + j >= 0 ? y + j: 0;
                     yy = yy < height ? yy : height - 1;
-                    miny = f(miny, workbuf[itr%2][x][yy]);
+                    miny = f(miny, workbuf[(itr%2)*width*height + x*height + yy]);
                 }
                 for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
                     int xx = x + i >= 0 ? x + i: 0;
                     xx = xx < width ? xx : width - 1;
-                    minx = f(minx, workbuf[itr%2][xx][y]);
+                    minx = f(minx, workbuf[(itr%2)*width*height + xx*height + y]);
                 }
-                workbuf[(itr+1)%2][x][y] = f(minx, miny);
+                workbuf[((itr+1)%2)*width*height + x*height + y] = f(minx, miny);
             }
         }
     }

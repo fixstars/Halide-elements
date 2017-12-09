@@ -15,8 +15,7 @@
 // returns index of result workbuf
 template<typename T>
 int conv_rect(int width, int height, int window_width, int window_height, int iteration,
-              T* workbuf_ptr, const T&(*f)(const T&, const T&), T init, int k) {
-    T (*workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
+              T* workbuf, const T&(*f)(const T&, const T&), T init, int k) {
 
     int itr;
     for (itr=k; itr<k+iteration; ++itr) {
@@ -29,10 +28,10 @@ int conv_rect(int width, int height, int window_width, int window_height, int it
                     for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
                         int xx = x + i >= 0 ? x + i: 0;
                         xx = xx < width ? xx : width - 1;
-                        min = f(min, workbuf[itr%2][xx][yy]);
+                        min = f(min, workbuf[(itr%2)*width*height + xx*height + yy]);
                     }
                 }
-                workbuf[(itr+1)%2][x][y] = min;
+                workbuf[((itr+1)%2)*width*height + x*height + y] = min;
             }
         }
     }
