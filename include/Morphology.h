@@ -226,5 +226,6 @@ Func erode_rect(Func src, int32_t width, int32_t height, int32_t window_width, i
     return dst;
 }
 
+
 } // namespace Element
 } // namespace Halide
