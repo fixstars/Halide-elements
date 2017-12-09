@@ -17,7 +17,7 @@
 template<typename T>
 int conv_with_structure(int width, int height, int window_width, int window_height, int iteration,
               const Halide::Runtime::Buffer<uint8_t>& structure,
-              T (*workbuf)[1024][768], const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
+              T* workbuf, const T&(*f)(const T&, const T&), T init, bool allzero, int k) {
 //    T (workbuf)[width][height] = reinterpret_cast<T (*)[width][height]>(workbuf_ptr);
 
     int itr;
@@ -33,11 +33,11 @@ int conv_with_structure(int width, int height, int window_width, int window_heig
                             (allzero && i == -(window_width/2) && j == -(window_height/2))) {
                             int xx = x + i >= 0 ? x + i: 0;
                             xx = xx < width ? xx : width - 1;
-                            min = f(min, workbuf[itr%2][xx][yy]);
+                            min = f(min, workbuf[(itr%2)*width*height + xx*height + yy]);
                         }
                     }
                 }
-                workbuf[(itr+1)%2][x][y] = min;
+                workbuf[((itr+1)%2)*width*height + x*height + y] = min;
             }
         }
     }
@@ -81,11 +81,11 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         
         // dilate
         int k = conv_with_structure(width, height, window_width, window_height, iteration, structure,
-                                workbuf, static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), allzero, k);
+                                &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), allzero, 0);
 
         // erode
         k = conv_with_structure(width, height, window_width, window_height, iteration, structure,
-                                    workbuf, static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), allzero, 0);
+                                    &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), allzero, k);
         expect = &(workbuf[k%2]);
 
         func(input, structure, output);

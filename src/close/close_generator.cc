@@ -19,15 +19,17 @@ public:
     GeneratorParam<int32_t> window_height{"window_height", 3, 3, 17};
 
     Func build() {
-        Func output{"output"};
+        Func erode{"erode"}, dilate{"dilate"};
 
-        output = Element::close<T>(input, width, height, window_width, window_height, structure, iteration);
+        dilate = Element::dilate<T>(input, width, height, window_width, window_height, structure, iteration);
+        erode = Element::erode<T>(dilate, width, height, window_width, window_height, structure, iteration);
 
         schedule(input, {width, height});
         schedule(structure, {window_width, window_height});
-        schedule(output, {width, height});
+        schedule(dilate, {width, height});
+        schedule(erode, {width, height});
 
-        return output;
+        return erode;
     }
 };
 

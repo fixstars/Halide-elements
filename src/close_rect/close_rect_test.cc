@@ -16,7 +16,7 @@
 // returns index of result workbuf
 template<typename T>
 int conv_rect(int width, int height, int window_width, int window_height, int iteration,
-              T (*workbuf)[1024][768], const T&(*f)(const T&, const T&), T init, int k) {
+              T* workbuf, const T&(*f)(const T&, const T&), T init, int k) {
 
     int itr;
     for (itr=k; itr<k+iteration; ++itr) {
@@ -29,10 +29,10 @@ int conv_rect(int width, int height, int window_width, int window_height, int it
                     for (int i = -(window_width/2); i < -(window_width/2) + window_width; i++) {
                         int xx = x + i >= 0 ? x + i: 0;
                         xx = xx < width ? xx : width - 1;
-                        min = f(min, workbuf[itr%2][xx][yy]);
+                        min = f(min, workbuf[itr%2*width*height + xx*height + yy]);
                     }
                 }
-                workbuf[(itr+1)%2][x][y] = min;
+                workbuf[((itr+1)%2)*width*height + x*height + y] = min;
             }
         }
     }
@@ -67,11 +67,11 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         
         // dilate
         int k = conv_rect(width, height, window_width, window_height, iteration,
-                                workbuf, static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), k);
+                                &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::max), std::numeric_limits<T>::min(), k);
 
         // erode
         k = conv_rect(width, height, window_width, window_height, iteration,
-                                    workbuf, static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), 0);
+                                    &workbuf[0][0][0], static_cast<const T&(*)(const T&, const T&)>(std::min), std::numeric_limits<T>::max(), 0);
         expect = &(workbuf[k%2]);
 
         func(input, output);

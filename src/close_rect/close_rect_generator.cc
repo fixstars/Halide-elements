@@ -17,16 +17,21 @@ public:
     GeneratorParam<int32_t> window_width{"window_width", 3, 3, 17};
     GeneratorParam<int32_t> window_height{"window_height", 3, 3, 17};
 
-    Func build() {
-        Func output{"output"};
+	Func build() {
+		Func dilate_rect{"dilate_rect"}, erode_rect{"erode_rect"};
 
-        output = Element::close_rect<T>(input, width, height, window_width, window_height, iteration);
+		// Run dilate
+		dilate_rect = Element::dilate_rect<T>(input, width, height, window_width, window_height, iteration);
 
-        schedule(input, {width, height});
-        schedule(output, {width, height});
+		// Run erode
+		erode_rect = Element::erode_rect<T>(dilate_rect, width, height, window_width, window_height, iteration);
 
-        return output;
-    }
+		schedule(input, {width, height});
+		schedule(dilate_rect, {width, height});
+		schedule(erode_rect, {width, height});
+
+		return erode_rect;
+	}
 };
 
 RegisterGenerator<CloseRect<uint8_t>> close_rect_u8{"close_rect_u8"};
