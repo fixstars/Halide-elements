@@ -15,4 +15,4 @@
   - 逆FFTによって位相限定相関を計算
   - 相関の最大値となる(x, y)を見つけて、2枚の画像のずれ量とする
 ---
-Project Name: poc, Category: Library, Tag: 画像処理
+Project Name: poc, Category: Library, Tag: 画像処理, プリミティブ
