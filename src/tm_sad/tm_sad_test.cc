@@ -48,7 +48,7 @@ int test(int (*func)(struct halide_buffer_t *_src0_buffer, struct halide_buffer_
                 }
 
                 double actual = output(x, y);
-                if (expect != actual) {
+                if ((expect / actual) > 1.00001) {
                     throw std::runtime_error(format("Error0: expect(%d, %d) = %f, actual(%d, %d) = %f", x, y, expect, x, y, actual).c_str());
                 }
             }
