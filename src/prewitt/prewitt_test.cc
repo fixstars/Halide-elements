@@ -50,7 +50,7 @@ int test(int (*func)(struct halide_buffer_t *_input_buffer, struct halide_buffer
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
                 T actual = output(x, y);
-                if (expect[x][y] != actual) {
+                if ((expect[x][y] - actual) > 1.0) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d", x, y, expect[x][y], x, y, actual).c_str());
                 }
             }
