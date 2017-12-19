@@ -470,9 +470,6 @@ Func prewitt(Func input, int32_t width, int32_t height)
 template <typename T>
 Func tm_ssd(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
 {
-    const int32_t res_width = img_width - tmp_width + 1;
-    const int32_t res_height = img_height - tmp_height + 1;
-
     Var x{"x"}, y{"y"};
 
     RDom r(0, tmp_width, 0, tmp_height);
@@ -482,19 +479,12 @@ Func tm_ssd(Func src0, Func src1, const int32_t img_width, const int32_t img_hei
     diff = cast<double>(src0(x + r.x, y + r.y)) - cast<double>(src1(r.x, r.y));
     out(x, y) = sum(diff * diff);
 
-    schedule(src0, {img_width, img_height});
-    schedule(src1, {tmp_width, tmp_height});
-    schedule(out, {res_width, res_height});
-
     return out;
 }
 
 template <typename T>
 Func tm_sad(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
 {
-    const int32_t res_width = img_width - tmp_width + 1;
-    const int32_t res_height = img_height - tmp_height + 1;
-
     Var x{"x"}, y{"y"};
 
     RDom r(0, tmp_width, 0, tmp_height);
@@ -504,19 +494,12 @@ Func tm_sad(Func src0, Func src1, const int32_t img_width, const int32_t img_hei
     diff = cast<double>(src0(x + r.x, y + r.y)) - cast<double>(src1(r.x, r.y));
     out(x, y) = sum(abs(diff));
 
-    schedule(src0, {img_width, img_height});
-    schedule(src1, {tmp_width, tmp_height});
-    schedule(out, {res_width, res_height});
-
     return out;
 }
 
 template <typename T>
 Func tm_ncc(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
 {
-    const int32_t res_width = img_width - tmp_width + 1;
-    const int32_t res_height = img_height - tmp_height + 1;
-
     Var x{"x"}, y{"y"};
 
     RDom r(0, tmp_width, 0, tmp_height);
@@ -528,19 +511,12 @@ Func tm_ncc(Func src0, Func src1, const int32_t img_width, const int32_t img_hei
     sum3 = sum(cast<double>(src1(r.x, r.y)) * cast<double>(src1(r.x, r.y)));
     out(x, y) = sum1 / sqrt(sum2 * sum3);
 
-    schedule(src0, {img_width, img_height});
-    schedule(src1, {tmp_width, tmp_height});
-    schedule(out, {res_width, res_height});
-
     return out;
 }
 
 template <typename T>
 Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
 {
-    const int32_t res_width = img_width - tmp_width + 1;
-    const int32_t res_height = img_height - tmp_height + 1;
-
     Var x{"x"}, y{"y"};
 
     RDom r(0, tmp_width, 0, tmp_height);
@@ -556,10 +532,6 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
     sum2 = sum(cast<double>(src0(x + r.x, y + r.y) - avr0) * cast<double>(src0(x + r.x, y + r.y) - avr0));
     sum3 = sum(cast<double>(src1(r.x, r.y) - avr1) * cast<double>(src1(r.x, r.y) - avr1));
     out(x, y) = sum1 / sqrt(sum2 * sum3);
-
-    schedule(src0, {img_width, img_height});
-    schedule(src1, {tmp_width, tmp_height});
-    schedule(out, {res_width, res_height});
 
     return out;
 }

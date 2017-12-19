@@ -21,6 +21,13 @@ public:
 
         dst = Element::tm_ncc<T>(src0, src1, img_width, img_height, tmp_width, tmp_height);
 
+        const int32_t res_width = img_width.value() - tmp_width.value() + 1;
+        const int32_t res_height = img_height.value() - tmp_height.value() + 1;
+
+        schedule(src0, {img_width, img_height});
+        schedule(src1, {tmp_width, tmp_height});
+        schedule(dst, {res_width, res_height});
+
         return dst;
     }
 };
