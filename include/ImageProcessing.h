@@ -467,5 +467,74 @@ Func prewitt(Func input, int32_t width, int32_t height)
     return output;
 }
 
+template <typename T>
+Func tm_ssd(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
+{
+    Var x{"x"}, y{"y"};
+
+    RDom r(0, tmp_width, 0, tmp_height);
+
+    Func out{"out"};
+    Expr diff{"diff"};
+    diff = cast<double>(src0(x + r.x, y + r.y)) - cast<double>(src1(r.x, r.y));
+    out(x, y) = sum(diff * diff);
+
+    return out;
+}
+
+template <typename T>
+Func tm_sad(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
+{
+    Var x{"x"}, y{"y"};
+
+    RDom r(0, tmp_width, 0, tmp_height);
+
+    Func out{"out"};
+    Expr diff{"diff"};
+    diff = cast<double>(src0(x + r.x, y + r.y)) - cast<double>(src1(r.x, r.y));
+    out(x, y) = sum(abs(diff));
+
+    return out;
+}
+
+template <typename T>
+Func tm_ncc(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
+{
+    Var x{"x"}, y{"y"};
+
+    RDom r(0, tmp_width, 0, tmp_height);
+
+    Func out{"out"};
+    Expr sum1{"sum1"}, sum2{"sum2"}, sum3{"sum3"};
+    sum1 = sum(cast<double>(src0(x + r.x, y + r.y)) * cast<double>(src1(r.x, r.y)));
+    sum2 = sum(cast<double>(src0(x + r.x, y + r.y)) * cast<double>(src0(x + r.x, y + r.y)));
+    sum3 = sum(cast<double>(src1(r.x, r.y)) * cast<double>(src1(r.x, r.y)));
+    out(x, y) = sum1 / sqrt(sum2 * sum3);
+
+    return out;
+}
+
+template <typename T>
+Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_height, const int32_t tmp_width, const int32_t tmp_height)
+{
+    Var x{"x"}, y{"y"};
+
+    RDom r(0, tmp_width, 0, tmp_height);
+
+    Func out{"out"};
+    Expr tmp_size = cast<double>(tmp_width) * cast<double>(tmp_height);
+    Expr avr0{"avr0"}, avr1{"avr1"};
+    avr0 = sum(cast<double>(src0(x + r.x, y + r.y))) / tmp_size;
+    avr1 = sum(cast<double>(src1(r.x, r.y))) / tmp_size;
+
+    Expr sum1{"sum1"}, sum2{"sum2"}, sum3{"sum3"};
+    sum1 = sum(cast<double>(src0(x + r.x, y + r.y) - avr0) * cast<double>(src1(r.x, r.y) - avr1));
+    sum2 = sum(cast<double>(src0(x + r.x, y + r.y) - avr0) * cast<double>(src0(x + r.x, y + r.y) - avr0));
+    sum3 = sum(cast<double>(src1(r.x, r.y) - avr1) * cast<double>(src1(r.x, r.y) - avr1));
+    out(x, y) = sum1 / sqrt(sum2 * sum3);
+
+    return out;
+}
+
 } // Element
 } // Halide
