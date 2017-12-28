@@ -173,7 +173,7 @@ public:
         // Pool3(8x8, 1): (10, 8, 8, n) -> (10, 1, 1, n)
         Func pool3("pool3");
         std::vector<int32_t> pool3_top_shape;
-        pool3(c, n) = global_avgpool_fixed32<FB>(conv3_3, conv3_3_top_shape, pool3_top_shape)(c, n);
+        pool3(c, n) = global_avgpool_fixed32<FB>(relu3_3, relu3_3_top_shape, pool3_top_shape)(c, n);
 
         // tofloat:
         Func tof("tof");
