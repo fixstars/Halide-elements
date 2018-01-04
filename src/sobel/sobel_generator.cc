@@ -13,7 +13,14 @@ public:
     ImageParam input{type_of<T>(), 2, "input"};
 
     Func build() {
-        return sobel<T>(input, width, height);
+        Func output{"output"};
+
+        output = Element::sobel<T>(input, width, height);
+
+        schedule(input, {width, height});
+        schedule(output, {width, height});
+
+        return output
     }
 
 };

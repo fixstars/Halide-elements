@@ -504,10 +504,8 @@ Func sobel(Func input, int32_t width, int32_t height)
     Func output("output");
     output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
 
-    schedule(input_f, {width, height});
     schedule(diff_x, {width, height});
     schedule(diff_y, {width, height});
-    schedule(output, {width, height});
 
     return output;
 }
