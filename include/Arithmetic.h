@@ -3,9 +3,38 @@
 
 #include "Halide.h"
 #include "Util.h"
+#include<cstdio>
 
 namespace Halide {
 namespace Element {
+
+template<typename T>
+Func sq_sum(ImageParam src)
+{
+    Var x{"x"}, y{"y"};
+
+    Func dst("sq_sum");
+
+    RDom r(0, src.width(), 0, src.height());
+
+    dst(x, y) = sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y)));
+
+    return dst;
+}
+
+template<typename T>
+Func sum(ImageParam src)
+{
+    Var x{"x"}, y{"y"};
+
+    Func dst("sum");
+
+    RDom r(0, src.width(), 0, src.height());
+
+    dst(x, y) = sum(cast<double>(src(r.x, r.y)));
+
+    return dst;
+}
 
 template<typename T>
 Func add(Func src0, Func src1)
