@@ -98,8 +98,10 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
 
+    schedule(in, {width, height});
     schedule(tx, {width, height});
     schedule(ty, {width, height});
+    schedule(affine, {width, height});
 
     return affine;
 }
@@ -122,10 +124,12 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
     dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
 
+    schedule(in, {width, height});
     kernel.compute_root();
     kernel.bound(x, -(window_width / 2), window_width);
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
+    schedule(dst, {width, height});
 
     return dst;
 }
@@ -141,13 +145,21 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Expr dx = r.x - kh;
     Expr dy = r.y - kh;
 
+    Func k;
+    k(x, y) = kernel(x, y);
+
     constexpr uint32_t frac_bits = 10;
     using Fixed16 = Fixed<int16_t, frac_bits>;
     Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
-    Fixed16 kv{kernel(r.x, r.y)};
+    Fixed16 kv{k(r.x, r.y)};
 
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
+
+    schedule(in, {width, height});
+    schedule(kernel, {5, 5});
+    schedule(k, {5, 5});
+    schedule(out, {width, height}).unroll(x, unroll_factor);
 
     return out;
 }
@@ -327,7 +339,7 @@ Func color_interpolation_hsv2rgb(Func in)
 
 Func merge3(Func in0, Func in1, Func in2, int32_t width, int32_t height) {
     Var x{"x"}, y{"y"}, c{"c"};
-    Func merge3;
+    Func merge3{"merge3"};
 
     merge3(c, x, y) = select(c == 0, in0(x, y),
                              c == 1, in1(x, y),
@@ -339,7 +351,7 @@ Func merge3(Func in0, Func in1, Func in2, int32_t width, int32_t height) {
 
 Func merge4(Func in0, Func in1, Func in2, Func in3, int32_t width, int32_t height) {
     Var x{"x"}, y{"y"}, c{"c"};
-    Func merge4;
+    Func merge4{"merge4"};
 
     merge4(c, x, y) = select(c == 0, in0(x, y),
                              c == 1, in1(x, y),
@@ -399,22 +411,23 @@ Func median(Func in, int32_t width, int32_t height, int32_t window_width, int32_
     int32_t window_size = window_width * window_height;
 
     Func clamped = BoundaryConditions::repeat_edge(in, {{0, width}, {0, height}});
-    Var x{"x"}, y{"y"}, i{"i"};
     RDom r(-offset_x, window_width, -offset_y, window_height);
 
-    Func window{"window"};
+    Func window("window");
+
+    Var x{"x"}, y{"y"}, i{"i"};
     window(i, x, y) = undef(in.value().type());
     window((r.x + offset_x) + (r.y + offset_y) * window_width, x, y) =
         clamped(x + r.x, y + r.y);
     window.unroll(i);
-    window.update(0).unroll(r.x).unroll(r.y);
+    window.update(0).unroll(r.x);
+    window.update(0).unroll(r.y);
 
     Func sorted = bitonic_sort(window, window_size, width, height);
-    Func median;
+    Func median("median");
     median(x, y) = sorted(window_size / 2, x, y);
 
     schedule(window, {window_size, width, height});
-
     return median;
 }
 
@@ -423,18 +436,20 @@ Func laplacian(Func in, int32_t width, int32_t height) {
     Var x{"x"}, y{"y"};
 
     Func clamped = BoundaryConditions::repeat_edge(in, {{0, width}, {0, height}});
-    Func kernel{"kernel"};
+    Func kernel("kernel");
     kernel(x, y) = cast<double>(-1);
     kernel(0, 0) = cast<double>(8);
 
-    RDom r{-1, 3, -1, 3};
-    Func dst{"dst"};
+    RDom r(-1, 3, -1, 3);
+    Func dst("dst");
     Expr dstval = sum(cast<double>(clamped(x + r.x, y + r.y)) * kernel(r.x, r.y));
     dstval = select(dstval < 0, -dstval, dstval);
     dstval = select(dstval > type_of<T>().max(), cast<double>(type_of<T>().max()), dstval);
     dst(x, y) = cast<T>(dstval);
 
-    schedule(kernel, {-1, -1}, {3, 3});
+    kernel.compute_root();
+    kernel.bound(x, -1, 3);
+    kernel.bound(y, -1, 3);
 
     return dst;
 }
@@ -442,13 +457,13 @@ Func laplacian(Func in, int32_t width, int32_t height) {
 template<typename T>
 Func prewitt(Func input, int32_t width, int32_t height)
 {
-    Var x{"x"}, y{"y"};
+    Var x, y;
     Func input_f("input_f");
     input_f(x, y) = cast<float>(input(x, y));
 
     Func clamped = BoundaryConditions::repeat_edge(input_f, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
-    Func diff_x{"diff_x"}, diff_y{"diff_y"};
+    Func diff_x("diff_x"), diff_y("diff_y");
     diff_x(x, y) = -clamped(x-1, y-1) + clamped(x+1, y-1) +
                    -clamped(x-1, y  ) + clamped(x+1, y  ) +
                    -clamped(x-1, y+1) + clamped(x+1, y+1);
@@ -457,10 +472,38 @@ Func prewitt(Func input, int32_t width, int32_t height)
                    -clamped(x  , y-1) + clamped(x  , y+1) +
                    -clamped(x+1, y-1) + clamped(x+1, y+1);
 
-    Func output{"output"};
+    Func output("output");
     output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
 
     schedule(input_f, {width, height});
+    schedule(diff_x, {width, height});
+    schedule(diff_y, {width, height});
+    schedule(output, {width, height});
+
+    return output;
+}
+
+template<typename T>
+Func sobel(Func input, int32_t width, int32_t height)
+{
+    Var x, y;
+    Func input_f("input_f");
+    input_f(x, y) = cast<float>(input(x, y));
+
+    Func clamped = BoundaryConditions::repeat_edge(input_f, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
+
+    Func diff_x("diff_x"), diff_y("diff_y");
+    diff_x(x, y) = -clamped(x-1, y-1) + clamped(x+1, y-1) +
+                   -2 * clamped(x-1, y  ) + 2 * clamped(x+1, y  ) +
+                   -clamped(x-1, y+1) + clamped(x+1, y+1);
+
+    diff_y(x, y) = -clamped(x-1, y-1) + clamped(x-1, y+1) +
+                   -2 * clamped(x  , y-1) + 2 * clamped(x  , y+1) +
+                   -clamped(x+1, y-1) + clamped(x+1, y+1);
+
+    Func output("output");
+    output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
+
     schedule(diff_x, {width, height});
     schedule(diff_y, {width, height});
 
