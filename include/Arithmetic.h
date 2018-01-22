@@ -66,6 +66,36 @@ Func add_scalar(Func src, Expr val)
     return dst;
 }
 
+template<typename T>
+Func average_value(Func src, Func roi, int32_t width, int32_t height)
+{
+
+    Var x{"x"};
+    Func count{"count"}, dst{"dst"}; //umCheck{"sumcheck"};
+    RDom r{0, width, 0, height, "r"};
+    r.where(roi(r.x, r.y) != 0);
+
+
+
+
+
+    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+
+    schedule(count, {1});
+    count.trace_stores();
+
+
+
+
+
+
+    dst(x) = cast<T>(select(count(x)==0, 0, sum(cast<double>(src(r.x, r.y)))/count(x)));
+
+
+
+    return dst;
+}
+
 Func calc_and(Func src0, Func src1)
 {
     Var x{"x"}, y{"y"};
