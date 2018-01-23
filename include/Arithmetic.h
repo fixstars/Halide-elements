@@ -352,6 +352,15 @@ Func average_value(Func src, Func roi, int32_t width, int32_t height)
     return dst;
 }
 
+template<typename T>
+Func filter_or(Func src0, Func src1) {
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = src0(x, y) | src1(x, y);
+
+    return dst;
+}
+
 }
 }
 
