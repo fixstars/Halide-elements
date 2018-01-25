@@ -338,6 +338,15 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
     return dst;
 }
 
+Func set_scalar(Expr val)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = val;
+
+    return dst;
+}
+
 }
 }
 
