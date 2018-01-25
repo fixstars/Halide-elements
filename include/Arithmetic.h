@@ -338,6 +338,16 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
     return dst;
 }
 
+template<typename T>
+Func sub(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = cast<T>(select(src0(x, y)>src1(x,y), src0(x, y)-src1(x,y),
+                                                     src1(x, y)-src0(x,y)));
+    return dst;
+}
+
 }
 }
 
