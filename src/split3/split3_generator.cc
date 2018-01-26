@@ -16,8 +16,8 @@ public:
     Func build() {
         Func dst;
         dst = Element::split3(src, width, height);
-        
-        schedule(src, {width, height, 3});
+
+        schedule(src, {3, width, height});
         schedule(dst, {width, height});
         return dst;
     }

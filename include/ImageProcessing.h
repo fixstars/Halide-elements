@@ -582,7 +582,7 @@ Func split3(Func src, int32_t widthe, int32_t height)
 {
     Var x{"x"}, y{"y"};
     Func dst{"dst"};
-    dst(x, y) = Tuple(src(x, y, 0), src(x, y, 1), src(x, y, 2));
+    dst(x, y) = Tuple(src(0, x, y), src(1, x, y), src(2, x, y));
 
     return dst;
 }

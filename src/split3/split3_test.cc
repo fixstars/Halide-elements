@@ -15,16 +15,16 @@
 #include "test_common.h"
 
 template<typename T>
-int test(int (*func)(struct halide_buffer_t *_src_buffer1,
-                     struct halide_buffer_t *_src_buffer2,
-                     struct halide_buffer_t *_src_buffer3,
-                     struct halide_buffer_t *_dst_buffer))
+int test(int (*func)(struct halide_buffer_t *_src_buffer,
+                     struct halide_buffer_t *_dst_buffer0,
+                     struct halide_buffer_t *_dst_buffer1,
+                     struct halide_buffer_t *_dst_buffer2))
 {
     try {
         constexpr unsigned int N = 3;
         const int width = 1024;
         const int height = 768;
-        const std::vector<int32_t> in_extents{width, height, N};
+        const std::vector<int32_t> in_extents{N, width, height};
         const std::vector<int32_t> out_extents{width, height};
         auto input = mk_null_buffer<T>(in_extents);
         Halide::Runtime::Buffer<T> output[N];
@@ -37,7 +37,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer1,
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 for (int c = 0; c < N; c++) {
-                    expect[c][y * width+ x] = input(x, y, c);
+                    expect[c][y * width+ x] = input(c, x, y);
                 }
             }
         }
@@ -54,7 +54,6 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer1,
                 }
             }
         }
-
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
