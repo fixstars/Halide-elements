@@ -578,6 +578,13 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
 
     return out;
 }
+Func split3(Func src, int32_t widthe, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = Tuple(src(x, y, 0), src(x, y, 1), src(x, y, 2));
 
+    return dst;
+}
 } // Element
 } // Halide
