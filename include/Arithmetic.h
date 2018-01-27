@@ -338,6 +338,16 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
     return dst;
 }
 
+template<typename T>
+Func sub_scalar(Func src, Expr val)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = cast<T>(clamp(round(cast<double>(src(x, y)) - val), 0, cast<double>(type_of<T>().max())));
+
+    return dst;
+}
+
 }
 }
 
