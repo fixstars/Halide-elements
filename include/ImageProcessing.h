@@ -579,5 +579,28 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
     return out;
 }
 
+template <typename T>
+Func scale_NN(Func src, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    Expr srcx = cast<int>(cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width));
+    Expr srcy = cast<int>(cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height));
+
+    dst(x, y) = src(select(srcx < in_width, srcx, in_width-1),
+                    select(srcy < in_height, srcy, in_height-1));
+    return dst;
+}
+
+// template <typename T>
+// Func scale(Func src, Expr interpolation)
+// {
+//     Func dst{"dst"};
+//     if (interpolation == 0){
+//         dst = scale_NN(src);
+//     }
+//     return dst;
+// }
+
 } // Element
 } // Halide

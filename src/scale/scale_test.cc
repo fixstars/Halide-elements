@@ -1,0 +1,166 @@
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <exception>
+#include <climits>
+
+#include "HalideRuntime.h"
+#include "HalideBuffer.h"
+
+#include "scale_u8.h"
+#include "scale_u16.h"
+#include "scale_i16.h"
+
+#include "test_common.h"
+
+#define BORDER_INTERPOLATE(x, l) (x < 0 ? 0 : (x >= l ? l - 1 : x))
+
+// float weight(float input){
+//     float alpha = -1;
+//     float x = (input < 0)? -input : input;
+//     float x2 = x * x;
+//     float x3 = x * x * x;
+//
+//     if(x <= 1){
+//         return (alpha + 2) * x3 - (a + 3) * x2 + 1;
+//     }else if(x < 2){
+//         return alpha * x3 - 5 * alpha * x2 + 8 * alpha * x - 4 * alpha;
+//     }else{
+//         return 0x0;
+//     }
+// }
+//
+// template<typename T>
+// T* ref_bicubic(T* dst, const T* src, const int32_t src_width, const int32_t src_height,
+//               const uint32_t dst_width, const uint32_t dst_height)
+// {
+//     double min_value = static_cast<double>(std::numeric_limits<T>::min());
+//     double max_value = static_cast<double>(std::numeric_limits<T>::max());
+//     for(int dh = 0; dh < dst_height; dh++){
+//         for(int dw = 0; dw < dst_width; dw++){
+//             double value = 0;
+//             float totalWeight = 0;
+//             float x = (static_cast<float>(dw)+ 0.5f)*
+//                       (static_cast<float>(src_width) / static_cast<float>(dst_width))
+//                       -0.5f;
+//             float y = (static_cast<float>(dh)+ 0.5f)*
+//                       (static_cast<float>(src_height) / static_cast<float>(dst_height))
+//                       -0.5f;
+//             float dx = x - floor(x);
+//             float dy = y - floor(y);
+//
+//             for(int i = -1; i < 3; i++){
+//                 for(int j = -1; j < 3; j++){
+//                     float wx = weight(j - dx);
+//                     float wy = weight(i - dy);
+//                     float w = wx * wy;
+//
+//                     int sw = BORDER_INTERPOLATE((int)(x + j), src_width);
+//                     int sh = BORDER_INTERPOLATE((int)(y + i), src_height);
+//
+//                     T s = src(sh, sw);
+//                     value += w*s;
+//                     totalWeight += w;
+//                 }
+//                 if(fabs(totalWeight)>0){
+//                     value /= fabs(totalWeight);
+//                 }else{
+//                     value= 0;
+//                 }
+//                 value += 0.5;
+//                 value = (value < min_value) ? min_value : value;
+//                 value = (value > max_value) ? max_value : value;
+//
+//                 dst(dh, dw) = static_cast<T>(vaue)
+//             }
+//         }
+//     }
+//     return dst;
+// }
+template<typename T>
+Halide::Runtime::Buffer<T>& ref_nearest(Halide::Runtime::Buffer<T>& dst, const Halide::Runtime::Buffer<T>& src,
+                const int src_width, const int src_height,
+                const int dst_width, const int dst_height)
+{
+    float scale_w = static_cast<float>(src_width) / static_cast<float>(dst_width);
+    float scale_h = static_cast<float>(src_height) / static_cast<float>(dst_height);
+
+    for (int i = 0; i < dst_height; ++i) {
+        for (int j = 0; j < dst_width; ++j) {
+            float src_x = (static_cast<float>(j) + 0.5f) * scale_w;
+            float src_y = (static_cast<float>(i) + 0.5f) * scale_h;
+
+            int src_i = static_cast<int>(src_y);
+            int src_j = static_cast<int>(src_x);
+            src_j = src_j < src_width ? src_j : src_width - 1;
+            src_i = src_i < src_height ? src_i : src_height - 1;
+            dst(j, i) = src(src_j, src_i);
+        }
+    }
+    return dst;
+}
+
+template <typename T>
+int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
+{
+    try {
+        const int32_t in_width = 1024;
+        const int32_t in_height = 768;
+        const std::vector<int32_t> in_extents{in_width, in_height};
+        // const uint8_t idx = mk_rand_int_scalar<uint8_t>()%2; //0 or 2
+        // const uint8_t interpolation[2] = {0, 2}; //to switch, not implemented yet
+
+        const int32_t out_width = 500;
+        const int32_t out_height = 500;
+        const std::vector<int32_t> out_extents{out_width, out_height};
+        auto input = mk_rand_buffer<T>(in_extents);
+        auto output = mk_null_buffer<T>(out_extents);
+
+        //func(input, interpolation[idx], output);
+
+        func(input, output); //onl NN yet
+        auto expect = mk_null_buffer<T>(out_extents);
+
+        printf("meow1\n");
+        expect = ref_nearest(expect, input, in_width, in_height, out_width, out_height);
+        printf("meow2\n");
+
+        for (int y=0; y<out_height; ++y) {
+            for (int x=0; x<out_width; ++x) {
+                T actual = output(x, y);
+                if (x == 0 && y == 0){//to check the actual values in two outputs at (0, 0)
+                   printf("expect(%d, %d) = %d, actual(%d, %d) = %d\n",
+                                                   x, y, expect(x, y), x, y, actual);
+                }
+                ////////////////////////////////////////
+                // +-1? required to check here//////////
+                ////////////////////////////////////////
+                if (abs(expect(x,y) - actual) > 0) {
+                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
+                                                    x, y, expect(x, y), x, y, actual).c_str());
+                }
+            }
+        }
+
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+
+    printf("Success!\n");
+    return 0;
+}
+
+
+int main()
+{
+#ifdef TYPE_u8
+    test<uint8_t>(scale_u8);
+#endif
+#ifdef TYPE_u16
+    test<uint16_t>(scale_u16);
+#endif
+#ifdef TYPE_i16
+    test<int16_t>(scale_i16);
+#endif
+}
