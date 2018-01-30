@@ -46,7 +46,10 @@ int main(int argc, char **argv) {
                         int cx = BORDER_INTERPOLATE(x + rx, width);
                         int cy = BORDER_INTERPOLATE(y + ry, height);
                         // Simulate add & mult of Fixed<base_bits, frac_bits>
-                        s += ((kernel(rx + 1, ry + 1) * (input(cx, cy) << frac_bits)) >> frac_bits) & ((1 << base_bits) - 1);
+                        s += ((kernel(rx + 1, ry + 1) * (input(cx, cy) << frac_bits)) >> frac_bits);
+                        // Bitmask for simulating overflow
+                        s = s & ((1 << base_bits) - 1);
+                        // Sign extension
                         s = s << (base_bits - frac_bits) >> (base_bits - frac_bits);
                     }
                 }
