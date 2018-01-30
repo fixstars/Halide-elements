@@ -32,7 +32,7 @@ Type upper_type(const Type& type) {
 template<uint32_t NB, uint32_t FB, bool is_signed = true>
 inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
 {
-    const Type& type = base_type(NB, is_signed);
+    Type type = base_type(NB, is_signed);
     throw_assert(x.defined(), "conversion of undefined Expr");
     if (x.type().is_float()) {
         return FixedN<NB, FB, is_signed>{cast(type, x * Halide::Internal::make_const(type, 1<<FB))};
@@ -73,16 +73,16 @@ FixedN<NB, FB, is_signed> operator-(const FixedN<NB, FB, is_signed>& x, const Fi
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> operator*(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, (cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> operator/(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, (cast(upper_t, x.v) << FB) / cast(upper_t, y.v))};
 }
 
@@ -170,32 +170,32 @@ FixedN<NB, FB, is_signed> select(Expr c0, const FixedN<NB, FB, is_signed>& v0, E
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> mac(RDom r, const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, sum(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> mac_unroll(RDom r, const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, sum_unroll(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> sum(RDom r, const FixedN<NB, FB, is_signed>& x)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, sum(r, cast(upper_t, x.v)))};
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> sum_unroll(RDom r, const FixedN<NB, FB, is_signed>& x)
 {
-    const Type& base_t = base_type(NB, is_signed);
-    const Type& upper_t = upper_type(base_t);
+    Type base_t = base_type(NB, is_signed);
+    Type upper_t = upper_type(base_t);
     return FixedN<NB, FB, is_signed>{cast(base_t, sum_unroll(r, cast(upper_t, x.v)))};
 }
 
