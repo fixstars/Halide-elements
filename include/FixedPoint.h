@@ -35,14 +35,14 @@ inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
     const Type& type = base_type(NB, is_signed);
     throw_assert(x.defined(), "conversion of undefined Expr");
     if (x.type().is_float()) {
-        return FixedN<NB, FB>{cast(type, x * Halide::Internal::make_const(type, 1<<FB))};
+        return FixedN<NB, FB, is_signed>{cast(type, x * Halide::Internal::make_const(type, 1<<FB))};
     } else {
-        return FixedN<NB, FB>{cast(type, x) << FB};
+        return FixedN<NB, FB, is_signed>{cast(type, x) << FB};
     }
 }
 
-template<typename T, uint32_t NB, uint32_t FB>
-inline Expr from_fixed(const FixedN<NB, FB>& x)
+template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
+inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
 {
     throw_assert(x.v.defined(), "conversion of undefined Expr");
     if (type_of<T>().is_float()) {
@@ -52,151 +52,151 @@ inline Expr from_fixed(const FixedN<NB, FB>& x)
     }
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator-(const FixedN<NB, FB>& x)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator-(const FixedN<NB, FB, is_signed>& x)
 {
-    return FixedN<NB, FB>{-x.v};
+    return FixedN<NB, FB, is_signed>{-x.v};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator+(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator+(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    return FixedN<NB, FB>{x.v + y.v};
+    return FixedN<NB, FB, is_signed>{x.v + y.v};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator-(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator-(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    return FixedN<NB, FB>{x.v - y.v};
+    return FixedN<NB, FB, is_signed>{x.v - y.v};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator*(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator*(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, (cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
+    return FixedN<NB, FB, is_signed>{cast(base_t, (cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator/(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator/(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, (cast(upper_t, x.v) << FB) / cast(upper_t, y.v))};
+    return FixedN<NB, FB, is_signed>{cast(base_t, (cast(upper_t, x.v) << FB) / cast(upper_t, y.v))};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> operator<<(const FixedN<NB, FB>& x, int32_t y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator<<(const FixedN<NB, FB, is_signed>& x, int32_t y)
 {
-    return FixedN<NB, FB>{x.v << y};
+    return FixedN<NB, FB, is_signed>{x.v << y};
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator==(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator==(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v == y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator!=(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator!=(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v != y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator<(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator<(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v < y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator<=(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator<=(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v <= y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator>(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator>(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v > y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-Expr operator>=(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+Expr operator>=(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
     return x.v >= y.v;
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> floor(const FixedN<NB, FB>& x)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> floor(const FixedN<NB, FB, is_signed>& x)
 {
     constexpr uint64_t mask = ~((0x1 << FB) - 1);
-    FixedN<NB, FB> zero = to_fixed<NB, FB>(.0f);
-    FixedN<NB, FB> one = to_fixed<NB, FB>(1.0f);
-    return FixedN<NB, FB>{select(x >= zero, x.v, (x - one).v + 1) & make_const(base_type(NB, FB), mask)};
+    FixedN<NB, FB, is_signed> zero = to_fixed<NB, FB, is_signed>(.0f);
+    FixedN<NB, FB, is_signed> one = to_fixed<NB, FB, is_signed>(1.0f);
+    return FixedN<NB, FB, is_signed>{select(x >= zero, x.v, (x - one).v + 1) & make_const(base_type(NB, is_signed), mask)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> min(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> min(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    return FixedN<NB, FB>{min(x.v, y.v)};
+    return FixedN<NB, FB, is_signed>{min(x.v, y.v)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> max(const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> max(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    return FixedN<NB, FB>{max(x.v, y.v)};
+    return FixedN<NB, FB, is_signed>{max(x.v, y.v)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> clamp(const FixedN<NB, FB>& x, const FixedN<NB, FB>& min_val, const FixedN<NB, FB>& max_val)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> clamp(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& min_val, const FixedN<NB, FB, is_signed>& max_val)
 {
-    return FixedN<NB, FB>{clamp(x.v, min_val.v, max_val.v)};
+    return FixedN<NB, FB, is_signed>{clamp(x.v, min_val.v, max_val.v)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> select(Expr condition, const FixedN<NB, FB>& true_value, const FixedN<NB, FB>& false_value)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> select(Expr condition, const FixedN<NB, FB, is_signed>& true_value, const FixedN<NB, FB, is_signed>& false_value)
 {
-    return FixedN<NB, FB>{select(condition, true_value.v, false_value.v)};
+    return FixedN<NB, FB, is_signed>{select(condition, true_value.v, false_value.v)};
 }
 
-template<uint32_t NB, uint32_t FB, typename... Args>
-FixedN<NB, FB> select(Expr c0, const FixedN<NB, FB>& v0, Expr c1, const FixedN<NB, FB>& v1, Args&&... args)
+template<uint32_t NB, uint32_t FB, bool is_signed, typename... Args>
+FixedN<NB, FB, is_signed> select(Expr c0, const FixedN<NB, FB, is_signed>& v0, Expr c1, const FixedN<NB, FB, is_signed>& v1, Args&&... args)
 {
-    return FixedN<NB, FB>{select(c0, static_cast<Expr>(v0), static_cast<Expr>(select(c1, v1, std::forward<Args>(args)...)))};
+    return FixedN<NB, FB, is_signed>{select(c0, static_cast<Expr>(v0), static_cast<Expr>(select(c1, v1, std::forward<Args>(args)...)))};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> mac(RDom r, const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> mac(RDom r, const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, sum(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
+    return FixedN<NB, FB, is_signed>{cast(base_t, sum(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> mac_unroll(RDom r, const FixedN<NB, FB>& x, const FixedN<NB, FB>& y)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> mac_unroll(RDom r, const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, sum_unroll(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
+    return FixedN<NB, FB, is_signed>{cast(base_t, sum_unroll(r, cast(upper_t, x.v) * cast(upper_t, y.v)) >> FB)};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> sum(RDom r, const FixedN<NB, FB>& x)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> sum(RDom r, const FixedN<NB, FB, is_signed>& x)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, sum(r, cast(upper_t, x.v)))};
+    return FixedN<NB, FB, is_signed>{cast(base_t, sum(r, cast(upper_t, x.v)))};
 }
 
-template<uint32_t NB, uint32_t FB>
-FixedN<NB, FB> sum_unroll(RDom r, const FixedN<NB, FB>& x)
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> sum_unroll(RDom r, const FixedN<NB, FB, is_signed>& x)
 {
-    const Type& base_t = base_type(NB, FB);
+    const Type& base_t = base_type(NB, is_signed);
     const Type& upper_t = upper_type(base_t);
-    return FixedN<NB, FB>{cast(base_t, sum_unroll(r, cast(upper_t, x.v)))};
+    return FixedN<NB, FB, is_signed>{cast(base_t, sum_unroll(r, cast(upper_t, x.v)))};
 }
 
 template<typename T, uint32_t FB>
