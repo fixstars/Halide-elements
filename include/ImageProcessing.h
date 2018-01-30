@@ -579,5 +579,14 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
     return out;
 }
 
+Func set_scalar(Expr val)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = val;
+
+    return dst;
+}
+
 } // Element
 } // Halide
