@@ -20,7 +20,7 @@ public:
     Func build() {
         Func out{"out"};
 
-        out = Element::convolution(in, width, height, kernel, kernel_size.get(), unroll_factor);
+        out = Element::convolution<16, 10>(in, width, height, kernel, kernel_size.get(), unroll_factor);
 
         schedule(in, {width, height});
         schedule(kernel, {5, 5});
