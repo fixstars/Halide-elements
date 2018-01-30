@@ -587,6 +587,7 @@ Func set_scalar(Expr val)
 
     return dst;
 }
+
 template<typename T>
 Func sad(Func input0, Func input1, int32_t width, int32_t height)
 {
