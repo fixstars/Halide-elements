@@ -129,6 +129,13 @@ Fixed<BASE_T, FB> floor(const Fixed<BASE_T, FB>& x)
 }
 
 template<typename BASE_T, uint32_t FB>
+Fixed<BASE_T, FB> abs(const Fixed<BASE_T, FB>& x)
+{
+    Fixed<BASE_T, FB> zero = to_fixed<BASE_T, FB>(.0f);
+    return select(x >= zero, x, -x);
+}
+
+template<typename BASE_T, uint32_t FB>
 Fixed<BASE_T, FB> min(const Fixed<BASE_T, FB>& x, const Fixed<BASE_T, FB>& y)
 {
     return Fixed<BASE_T, FB>{min(x.v, y.v)};
