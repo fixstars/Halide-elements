@@ -80,41 +80,16 @@ double accuracy(const Buffer<float>& probs, const Buffer<int>& labels)
 
 int main(int argc, char **argv) {
     try {
-        Buffer<int32_t> in = load_data<int32_t>("data/test_data_b2.bin");
-        Buffer<int32_t> c1w = load_data<int32_t>("data/conv1_weight.bin");
-        Buffer<int32_t> c1b = load_data<int32_t>("data/conv1_bias.bin");
-        Buffer<int32_t> bn1m = load_data<int32_t>("data/bn1_mean.bin");
-        Buffer<int32_t> bn1v = load_data<int32_t>("data/bn1_variance.bin");
-        Buffer<int32_t> bn2m = load_data<int32_t>("data/bn2_mean.bin");
-        Buffer<int32_t> bn2v = load_data<int32_t>("data/bn2_variance.bin");
-        Buffer<int32_t> s2w = load_data<int32_t>("data/bn2_weight.bin");
-        Buffer<int32_t> s2b = load_data<int32_t>("data/bn2_bias.bin");
-        Buffer<int32_t> c2w = load_data<bool>("data/conv2_weight.bin");
-        Buffer<int32_t> c2a = load_data<int32_t>("data/conv2_alpha.bin");
-        Buffer<int32_t> c2b = load_data<int32_t>("data/conv2_bias.bin");
-        Buffer<int32_t> bn3m = load_data<int32_t>("data/bn3_mean.bin");
-        Buffer<int32_t> bn3v = load_data<int32_t>("data/bn3_variance.bin");
-        Buffer<int32_t> s3w = load_data<int32_t>("data/bn3_weight.bin");
-        Buffer<int32_t> s3b = load_data<int32_t>("data/bn3_bias.bin");
-        Buffer<int32_t> f3w = load_data<bool>("data/ip3_weight.bin");
-        Buffer<int32_t> f3a = load_data<int32_t>("data/ip3_alpha.bin");
-        Buffer<int32_t> f3b = load_data<int32_t>("data/ip3_bias.bin");
-        Buffer<int32_t> f4w = load_data<int32_t>("data/ip4_weight.bin");
-        Buffer<int32_t> f4b = load_data<int32_t>("data/ip4_bias.bin");
+        Buffer<int32_t> in = load_data<int32_t>("data/test_data_b1.bin");
 
         const int classes = 10;
         const int batch_size = in.extent(3);
 
         Buffer<float> out(classes, batch_size);
 
-        mnist(in,
-              c1w, c1b, bn1m, bn1v,
-              bn2m, bn2v, s2w, s2b, c2w, c2a, c2b,
-              bn3m, bn3v, s3w, s3b, f3w, f3a, f3b,
-              f4w, f4b,
-              out);
+        mnist(in, out);
 
-        Buffer<int> labels = load_data<int>("data/test_label_b2.bin");
+        Buffer<int> labels = load_data<int>("data/test_label_b1.bin");
 
         double acc = accuracy(out, labels);
         std::cout << "Accurary: " << acc << std::endl;;
