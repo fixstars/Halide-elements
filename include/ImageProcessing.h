@@ -588,5 +588,19 @@ Func set_scalar(Expr val)
     return dst;
 }
 
+template<typename T>
+Func sad(Func input0, Func input1, int32_t width, int32_t height)
+{
+	Var x{"x"}, y{"y"};
+	Expr srcval0 = cast<int64_t>(input0(x,y));
+	Expr srcval1 = cast<int64_t>(input1(x,y));
+	Expr diffval = srcval0 - srcval1;
+
+	Func output{"output"};
+	output(x,y) = select(diffval<0, cast<T>(-diffval), cast<T>(diffval));
+
+	return output;
+}
+
 } // Element
 } // Halide
