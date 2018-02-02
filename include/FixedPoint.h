@@ -137,6 +137,13 @@ FixedN<NB, FB, is_signed> floor(const FixedN<NB, FB, is_signed>& x)
     return FixedN<NB, FB, is_signed>{select(x >= zero, x.v, (x - one).v + 1) & make_const(base_type(NB, is_signed), mask)};
 }
 
+template<uint32_t NB, uint32_t FB>
+FixedN<NB, FB> abs(const FixedN<NB, FB>& x)
+{
+    FixedN<NB, FB> zero = to_fixed<NB, FB>(.0f);
+    return select(x >= zero, x, -x);
+}
+
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> min(const FixedN<NB, FB, is_signed>& x, const FixedN<NB, FB, is_signed>& y)
 {
