@@ -24,9 +24,7 @@ struct FixedN {
 Type base_type(uint32_t nb, bool is_signed) {
 #if !defined(HALIDE_FOR_FPGA)
     int new_nb;
-    for (new_nb = 8; new_nb <= 64; new_nb *= 2) {
-        if (nb <= new_nb) {break;}
-    }
+    for (new_nb = 8; new_nb < nb; new_nb *= 2);
     nb = new_nb;
 #endif
     return is_signed ? Int(nb) : UInt(nb);

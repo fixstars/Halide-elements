@@ -19,12 +19,12 @@ int main(int argc, char **argv) {
         const int width = 512;
         const int height = 512;
         Buffer<uint8_t> input = mk_const_buffer<uint8_t>({width, height}, 1);
-                
-        using fixed16_t = int16_t;
-        constexpr uint32_t frac_bits = 4;
-        constexpr uint32_t base_bits = 14;
-        const fixed16_t kv = static_cast<fixed16_t>(round(1.0 / 9.0 * (1 << frac_bits)));
-        fixed16_t kernel_data[5][5] = {
+
+        using fixed20_t = int32_t;
+        constexpr uint32_t frac_bits = 10;
+        constexpr uint32_t base_bits = 20;
+        const fixed20_t kv = static_cast<fixed20_t>(round(1.0 / 9.0 * (1 << frac_bits)));
+        fixed20_t kernel_data[5][5] = {
             { kv, kv, kv, 0, 0},
             { kv, kv, kv, 0, 0},
             { kv, kv, kv, 0, 0},
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
             { 0,  0,  0,  0, 0}
         };
 
-        Buffer<fixed16_t> kernel(reinterpret_cast<fixed16_t*>(kernel_data), 5, 5);
+        Buffer<fixed20_t> kernel(reinterpret_cast<fixed20_t*>(kernel_data), 5, 5);
 
         Buffer<uint8_t> output(width, height);
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                fixed16_t s = 0;
+                fixed20_t s = 0;
                 for (int ry=-1; ry<=1; ry++) {
                     for (int rx=-1; rx<=1; rx++) {
                         int cx = BORDER_INTERPOLATE(x + rx, width);
