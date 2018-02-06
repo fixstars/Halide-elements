@@ -8,7 +8,22 @@
 namespace Halide {
 namespace Element {
 
-template<typename T>
+template <typename T>
+struct TypeClass {
+  typedef uint64_t sum_type;
+};
+
+template <>
+struct TypeClass<float> {
+  typedef double sum_type;
+};
+
+template <>
+struct TypeClass<double> {
+  typedef double sum_type;
+};
+
+template<typename T, typename D>
 Func sq_sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
@@ -17,12 +32,12 @@ Func sq_sum(ImageParam src, int32_t width, int32_t height)
 
     RDom r(0, width, 0, height);
 
-    dst(x, y) = sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y)));
+    dst(x, y) = cast<D>(sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y))));
 
     return dst;
 }
 
-template<typename T>
+template<typename T, typename D>
 Func sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
@@ -31,7 +46,7 @@ Func sum(ImageParam src, int32_t width, int32_t height)
 
     RDom r(0, width, 0, height);
 
-    dst(x, y) = sum(cast<double>(src(r.x, r.y)));
+    dst(x, y) = cast<D>(sum(cast<typename TypeClass<T>::sum_type>(src(r.x, r.y))));
 
     return dst;
 }
