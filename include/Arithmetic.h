@@ -9,13 +9,13 @@ namespace Halide {
 namespace Element {
 
 template<typename T>
-Func sq_sum(ImageParam src)
+Func sq_sum(ImageParam src, int width, int height)
 {
     Var x{"x"}, y{"y"};
 
     Func dst("sq_sum");
 
-    RDom r(0, src.width(), 0, src.height());
+    RDom r(0, width, 0, height);
 
     dst(x, y) = sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y)));
 
@@ -23,13 +23,13 @@ Func sq_sum(ImageParam src)
 }
 
 template<typename T>
-Func sum(ImageParam src)
+Func sum(ImageParam src, int width, int height)
 {
     Var x{"x"}, y{"y"};
 
     Func dst("sum");
 
-    RDom r(0, src.width(), 0, src.height());
+    RDom r(0, width, 0, height);
 
     dst(x, y) = sum(cast<double>(src(r.x, r.y)));
 

@@ -17,7 +17,7 @@ public:
     Func build() {
         Func dst{"dst"};
 
-        dst =  Element::sum<T>(src);
+        dst =  Element::sum<T>(src, width, height);
 
         schedule(src, {width, height});
         schedule(dst, {1, 1});
