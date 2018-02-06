@@ -19,20 +19,7 @@
 
 #include "test_common.h"
 
-template <typename T>
-struct TypeClass {
-  typedef uint64_t sum_type;
-};
-
-template <>
-struct TypeClass<float> {
-  typedef double sum_type;
-};
-
-template <>
-struct TypeClass<double> {
-  typedef double sum_type;
-};
+using Halide::Element::SumType;
 
 template<typename D, typename T>
 int test(int (*func)(struct halide_buffer_t *_src_buffer0,  struct halide_buffer_t *_dst_buffer))
@@ -49,7 +36,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer0,  struct halide_buffer
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<D>({1, 1});
         D actual_total;
-        typename TypeClass<T>::sum_type sum(0);
+        typename SumType<T>::type sum(0);
         D expect_total = 0.0;
 	
         func(input, output);
@@ -57,7 +44,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer0,  struct halide_buffer
 
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                sum += static_cast<typename TypeClass<T>::sum_type>(input(x, y));
+                sum += static_cast<typename SumType<T>::type>(input(x, y));
             }
         }
         expect_total = static_cast<D>(sum);
