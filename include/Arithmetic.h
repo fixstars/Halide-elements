@@ -9,7 +9,7 @@ namespace Halide {
 namespace Element {
 
 template<typename T>
-Func sq_sum(ImageParam src, int width, int height)
+Func sq_sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
 
@@ -23,7 +23,7 @@ Func sq_sum(ImageParam src, int width, int height)
 }
 
 template<typename T>
-Func sum(ImageParam src, int width, int height)
+Func sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
 
