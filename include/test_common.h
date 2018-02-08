@@ -28,6 +28,7 @@ std::string format(const char *fmt, const Rest&... rest)
 
 static std::random_device rd;
 static std::mt19937 mt(rd());
+//static std::mt19937 mt(13);
 
 template<typename T>
 T mk_rand_int_scalar()
