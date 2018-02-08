@@ -592,6 +592,71 @@ Func scale_NN(Func src, int32_t in_width, int32_t in_height, int32_t out_width, 
     return dst;
 }
 
+
+template <typename T>
+Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    //Func reptest{"reptest"};
+
+    Expr srcx = print_when((x==6&&y==0), ((cast<float>(x)+0.5f) * cast<float>(in_width))/cast<float>(out_width));
+    //Expr testPrint = reinterpret<int>(srcx);
+    //reptest(x, y) = print_when((x==6&&y==0), testPrint);
+    //reptest.realize(out_width, out_height);
+    srcx = srcx - 0.5f;
+
+    Expr srcy = (cast<float>(y)+0.5f)* cast<float>(in_height)/cast<float>(out_height);
+    srcy = srcy - 0.5f;
+
+    Expr diffx = srcx - cast<float>(floor(srcx));
+    Expr diffy = srcy - cast<float>(floor(srcy));
+
+    RDom r{-1, 4, -1, 4, "r"};
+    Func weight, value, totalWeight;
+    Expr alpha = -1.0f;
+
+    Expr iX =
+    select(r.x > diffx, cast<float>( r.x - diffx), cast<float>(diffx - r.x) );
+    Expr iY = select(r.y > diffy, cast<float>(r.y - diffy), cast<float>(diffy - r.y));
+    Expr iX2 = iX * iX;
+    Expr iX3 = iX * iX * iX;
+    Expr iY2 = iY * iY;
+    Expr iY3 = iY * iY * iY;
+    iX = select(iX <= 1.0f, (alpha+2)*iX3-(alpha+3)*iX2+1,
+                    iX < 2.0f, alpha*iX3-5.0f*alpha*iX2+8.0f*alpha*iX-4.0f*alpha,
+                    0.0f);
+    iY = select(iY <= 1, (alpha+2)*iY3-(alpha+3)*iY2+1,
+                    iY < 2.0f, alpha*iY3-5.0f*alpha*iY2+8.0f*alpha*iY-4.0f*alpha,
+                    0.0f);
+
+
+     // Func clamped = BoundaryConditions::repeat_edge(src);
+
+     Expr sw = cast<int>(srcx + r.x);
+    Expr sh = cast<int>(srcy + r.y);
+    sw = select(sw < 0, 0, select(sw >= in_width, in_width -1, sw));
+    sh = select(sh < 0, 0, select(sh >= in_height, in_height -1, sh));
+
+    Expr tmp = cast<float>(iX*iY);
+    value(x,y) = sum(cast<double>(tmp*  src(sw, sh)));
+    // value(x,y) = sum(cast<double>(tmp*clamped(cast<int>(srcx)+r.x, cast<int>(srcy)+r.y)));
+    totalWeight(x, y) = sum(tmp);
+    totalWeight(x, y) = select(totalWeight(x,y) < 0, -totalWeight(x, y), totalWeight(x,y));
+
+    //value(x, y) = select(totalWeight(x,y)==0.0f, 0.5, value(x,y)/cast<double>(totalweight(x,y)) + )
+    value(x,y) = select(totalWeight(x,y) ==cast<double>(0.0f), cast<double>(0.5f),
+                                     value(x,y)/cast<double>(totalWeight(x, y)) +cast<double>(0.5f));
+    dst(x, y) = cast<T>(clamp(value(x,y),
+                              cast<double>(type_of<T>().min()),
+                              cast<double>(type_of<T>().max())));
+
+    schedule(value, {out_width, out_height});
+    schedule(totalWeight, {out_width, out_height});
+    schedule(dst, {out_width, out_height});
+    return dst;
+}
+
 // template <typename T>
 // Func scale(Func src, Expr interpolation)
 // {

@@ -15,15 +15,18 @@ class Scale : public Halide::Generator<Scale<T>> {
     GeneratorParam<int32_t> in_width{"in_width", 1024};
     GeneratorParam<int32_t> in_height{"in_height", 768};
 
-    GeneratorParam<int32_t> out_width{"out_width", 500};
-    GeneratorParam<int32_t> out_height{"out_height", 500};
+    GeneratorParam<int32_t> out_width{"out_width", 7};
+    GeneratorParam<int32_t> out_height{"out_height", 7};
 
 public:
     Func build() {
         Func dst{"dst"};
-        dst = Element::scale_NN<T>(src, in_width, in_height,
+        dst = Element::scale_bicubic<T>(src, in_width, in_height,
                                     out_width, out_height
                                     );
+        // dst = Element::scale_NN<T>(src, in_width, in_height,
+        //                             out_width, out_height
+        //                             );
 
         schedule(src, {in_width, in_height});
         schedule(dst, {out_width, out_height});
