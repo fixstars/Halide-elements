@@ -52,7 +52,6 @@ Func add(Func src0, Func src1)
     return dst;
 }
 
-
 template<typename T>
 Func add_scalar(Func src, Expr val)
 {
@@ -334,16 +333,6 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
     Expr idx0 = cast<int32_t>(src0(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
     Expr idx1 = cast<int32_t>(src1(r.x, r.y) * cast<uint64_t>(hist_width) / (cast<uint64_t>(type_of<T>().max()) + 1));
     dst(idx0, idx1) += cast<uint32_t>(1);
-
-    return dst;
-}
-
-template<typename T>
-Func sub_scalar(Func src, Expr val)
-{
-    Var x{"x"}, y{"y"};
-    Func dst;
-    dst(x, y) = cast<T>(clamp(round(cast<double>(src(x, y)) - val), 0, cast<double>(type_of<T>().max())));
 
     return dst;
 }
