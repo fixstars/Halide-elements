@@ -16,10 +16,10 @@ public:
     Func build() {
         Func dst{"dst"};
         Var x, y;
-        FixedN<32, 30, true> e =
+        FixedN<30, 28, true> e =
             select((x + y) % 2 == 0,
-                   Element::sin(to_fixed<int32_t, 28>(src(x, y))),
-                   Element::cos(to_fixed<int32_t, 28>(src(x, y))));
+                   Element::sin(to_fixed<30, 25>(src(x, y))),
+                   Element::cos(to_fixed<30, 25>(src(x, y))));
         dst(x, y) = from_fixed<float>(e);
 
         schedule(src, {width, height});

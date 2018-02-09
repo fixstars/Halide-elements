@@ -33,10 +33,12 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer1, struct halide_buffer_
             for (int x=0; x<width; ++x) {
                 float expect = (x + y) % 2 == 0 ? sin(input(x, y)) : cos(input(x, y));
                 float actual = output(x, y);
-                double diff = abs(expect - actual);
+                double diff = fabs(expect - actual);
                 diff_max = std::max(diff, diff_max);
-                if (abs(expect - actual) > 0.000001) {
-                    throw std::runtime_error(format("Error: expect: sin(%f) = %f, actual: sin(%f) = %f", input(x, y), expect, input(x, y), actual).c_str());
+                if (diff > 0.0000001) {
+                    throw std::runtime_error(format("Error: expect: %s(%.10lf) = %.10lf, actual: %s(%.10lf) = %.10lf, diff = %.10lf",
+                                                    (x + y) % 2 == 0 ? "sin" : "cos", input(x, y), expect,
+                                                    (x + y) % 2 == 0 ? "sin" : "cos", input(x, y), actual, diff).c_str());
                 }
             }
 
