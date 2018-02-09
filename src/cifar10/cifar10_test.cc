@@ -53,7 +53,7 @@ double accuracy(const Buffer<float>& probs, const Buffer<int64_t>& labels)
 
     int label_num = probs.extent(0);
     int data_num = probs.extent(1);
-    assert(labels.extent(0) == data_num);
+    assert(labels.extent(0) >= data_num);
 
     int correct_num = 0;
 
@@ -80,81 +80,14 @@ double accuracy(const Buffer<float>& probs, const Buffer<int64_t>& labels)
 
 int main(int argc, char **argv) {
     try {
-        Buffer<int32_t> in = load_data<int32_t>("data/test_data.bin");
-        Buffer<int32_t> c11w = load_data<int32_t>("data/conv1_1_weight.bin");
-        Buffer<int32_t> c11b = load_data<int32_t>("data/conv1_1_bias.bin");
-        Buffer<int32_t> bn11m = load_data<int32_t>("data/bn1_1_mean.bin");
-        Buffer<int32_t> bn11v = load_data<int32_t>("data/bn1_1_variance.bin");
-        Buffer<int32_t> bn12m = load_data<int32_t>("data/bn1_2_mean.bin");
-        Buffer<int32_t> bn12v = load_data<int32_t>("data/bn1_2_variance.bin");
-        Buffer<int32_t> bn12w = load_data<int32_t>("data/bn1_2_weight.bin");
-        Buffer<int32_t> bn12b = load_data<int32_t>("data/bn1_2_bias.bin");
-        Buffer<int32_t> c12w = load_data<bool>("data/conv1_2_weight.bin");
-        Buffer<int32_t> c12a = load_data<int32_t>("data/conv1_2_alpha.bin");
-        Buffer<int32_t> c12b = load_data<int32_t>("data/conv1_2_bias.bin");
-        Buffer<int32_t> bn13m = load_data<int32_t>("data/bn1_3_mean.bin");
-        Buffer<int32_t> bn13v = load_data<int32_t>("data/bn1_3_variance.bin");
-        Buffer<int32_t> bn13w = load_data<int32_t>("data/bn1_3_weight.bin");
-        Buffer<int32_t> bn13b = load_data<int32_t>("data/bn1_3_bias.bin");
-        Buffer<int32_t> c13w = load_data<bool>("data/conv1_3_weight.bin");
-        Buffer<int32_t> c13a = load_data<int32_t>("data/conv1_3_alpha.bin");
-        Buffer<int32_t> c13b = load_data<int32_t>("data/conv1_3_bias.bin");
-        Buffer<int32_t> bn21m = load_data<int32_t>("data/bn2_1_mean.bin");
-        Buffer<int32_t> bn21v = load_data<int32_t>("data/bn2_1_variance.bin");
-        Buffer<int32_t> bn21w = load_data<int32_t>("data/bn2_1_weight.bin");
-        Buffer<int32_t> bn21b = load_data<int32_t>("data/bn2_1_bias.bin");
-        Buffer<int32_t> c21w = load_data<bool>("data/conv2_1_weight.bin");
-        Buffer<int32_t> c21a = load_data<int32_t>("data/conv2_1_alpha.bin");
-        Buffer<int32_t> c21b = load_data<int32_t>("data/conv2_1_bias.bin");
-        Buffer<int32_t> bn22m = load_data<int32_t>("data/bn2_2_mean.bin");
-        Buffer<int32_t> bn22v = load_data<int32_t>("data/bn2_2_variance.bin");
-        Buffer<int32_t> bn22w = load_data<int32_t>("data/bn2_2_weight.bin");
-        Buffer<int32_t> bn22b = load_data<int32_t>("data/bn2_2_bias.bin");
-        Buffer<int32_t> c22w = load_data<bool>("data/conv2_2_weight.bin");
-        Buffer<int32_t> c22a = load_data<int32_t>("data/conv2_2_alpha.bin");
-        Buffer<int32_t> c22b = load_data<int32_t>("data/conv2_2_bias.bin");
-        Buffer<int32_t> bn23m = load_data<int32_t>("data/bn2_3_mean.bin");
-        Buffer<int32_t> bn23v = load_data<int32_t>("data/bn2_3_variance.bin");
-        Buffer<int32_t> bn23w = load_data<int32_t>("data/bn2_3_weight.bin");
-        Buffer<int32_t> bn23b = load_data<int32_t>("data/bn2_3_bias.bin");
-        Buffer<int32_t> c23w = load_data<bool>("data/conv2_3_weight.bin");
-        Buffer<int32_t> c23a = load_data<int32_t>("data/conv2_3_alpha.bin");
-        Buffer<int32_t> c23b = load_data<int32_t>("data/conv2_3_bias.bin");
-        Buffer<int32_t> bn31m = load_data<int32_t>("data/bn3_1_mean.bin");
-        Buffer<int32_t> bn31v = load_data<int32_t>("data/bn3_1_variance.bin");
-        Buffer<int32_t> bn31w = load_data<int32_t>("data/bn3_1_weight.bin");
-        Buffer<int32_t> bn31b = load_data<int32_t>("data/bn3_1_bias.bin");
-        Buffer<int32_t> c31w = load_data<bool>("data/conv3_1_weight.bin");
-        Buffer<int32_t> c31a = load_data<int32_t>("data/conv3_1_alpha.bin");
-        Buffer<int32_t> c31b = load_data<int32_t>("data/conv3_1_bias.bin");
-        Buffer<int32_t> bn32m = load_data<int32_t>("data/bn3_2_mean.bin");
-        Buffer<int32_t> bn32v = load_data<int32_t>("data/bn3_2_variance.bin");
-        Buffer<int32_t> bn32w = load_data<int32_t>("data/bn3_2_weight.bin");
-        Buffer<int32_t> bn32b = load_data<int32_t>("data/bn3_2_bias.bin");
-        Buffer<int32_t> c32w = load_data<bool>("data/conv3_2_weight.bin");
-        Buffer<int32_t> c32a = load_data<int32_t>("data/conv3_2_alpha.bin");
-        Buffer<int32_t> c32b = load_data<int32_t>("data/conv3_2_bias.bin");
-        Buffer<int32_t> bn33m = load_data<int32_t>("data/bn3_3_mean.bin");
-        Buffer<int32_t> bn33v = load_data<int32_t>("data/bn3_3_variance.bin");
-        Buffer<int32_t> c33w = load_data<int32_t>("data/conv3_3_weight.bin");
-        Buffer<int32_t> c33b = load_data<int32_t>("data/conv3_3_bias.bin");
+        Buffer<int32_t> in = load_data<int32_t>("data/test_data1.bin");
 
         const int classes = 10;
         const int batch_size = in.extent(3);
 
         Buffer<float> out(classes, batch_size);
 
-        cifar10(in,
-                c11w, c11b, bn11m, bn11v,
-                bn12m, bn12v, bn12w, bn12b, c12w, c12a, c12b,
-                bn13m, bn13v, bn13w, bn13b, c13w, c13a, c13b,
-                bn21m, bn21v, bn21w, bn21b, c21w, c21a, c21b,
-                bn22m, bn22v, bn22w, bn22b, c22w, c22a, c22b,
-                bn23m, bn23v, bn23w, bn23b, c23w, c23a, c23b,
-                bn31m, bn31v, bn31w, bn31b, c31w, c31a, c31b,
-                bn32m, bn32v, bn32w, bn32b, c32w, c32a, c32b,
-                bn33m, bn33v, c33w, c33b,
-                out);
+        cifar10(in, out);
 
         Buffer<int64_t> labels = load_data<int64_t>("data/test_label.bin");
 
