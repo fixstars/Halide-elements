@@ -630,26 +630,19 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
                     iY < 2.0f, alpha*iY3-5.0f*alpha*iY2+8.0f*alpha*iY-4.0f*alpha,
                     0.0f);
 
+    Expr tmp = cast<float>(iX * iY);
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, in_width, 0, in_height);
+    value(x, y) = sum(cast<double>(tmp*clamped(cast<int>(srcx + r.x), cast<int>(srcy + r.y))));
 
-     // Func clamped = BoundaryConditions::repeat_edge(src);
-
-     Expr sw = cast<int>(srcx + r.x);
-    Expr sh = cast<int>(srcy + r.y);
-    sw = select(sw < 0, 0, select(sw >= in_width, in_width -1, sw));
-    sh = select(sh < 0, 0, select(sh >= in_height, in_height -1, sh));
-
-    Expr tmp = cast<float>(iX*iY);
-    value(x,y) = sum(cast<double>(tmp*  src(sw, sh)));
-    // value(x,y) = sum(cast<double>(tmp*clamped(cast<int>(srcx)+r.x, cast<int>(srcy)+r.y)));
     totalWeight(x, y) = sum(tmp);
     totalWeight(x, y) = select(totalWeight(x,y) < 0, -totalWeight(x, y), totalWeight(x,y));
 
-    //value(x, y) = select(totalWeight(x,y)==0.0f, 0.5, value(x,y)/cast<double>(totalweight(x,y)) + )
     value(x,y) = select(totalWeight(x,y) ==cast<double>(0.0f), cast<double>(0.5f),
                                      value(x,y)/cast<double>(totalWeight(x, y)) +cast<double>(0.5f));
     dst(x, y) = cast<T>(clamp(value(x,y),
                               cast<double>(type_of<T>().min()),
                               cast<double>(type_of<T>().max())));
+
 
     schedule(value, {out_width, out_height});
     schedule(totalWeight, {out_width, out_height});

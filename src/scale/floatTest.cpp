@@ -13,14 +13,18 @@
 int main(int argc, char **argv) {
 
     Halide::Func gradient;
+    Halide::Func dupFunc;
 
     Halide::Var x, y;
 
-    Halide::Expr e =  (Halide::cast<float>(x)+Halide::cast<float>(y))/Halide::cast<float>(0.312913f);
+    Halide::Expr e =  x + 1.5f;
     Halide::Func test;
-    Halide::Expr reint = Halide::reinterpret<int>(e);
-    test(x, y) = print_when(x ==3&&y==2,reint);
-    gradient(x, y) = e;
+
+
+    dupFunc(x, y) = e;
+    gradient(x, y) = dupFunc(x, y)/Halide::cast<float>(0.312913f);
+    Halide::Expr reint = Halide::reinterpret<int>(gradient(x, y));
+    test(x, y) = print_when(x ==1,reint, "y==", y);
     //  test result
         // (x + y) * a  ->  (x + y) * a
         // (x + y) / a -> (x + y) * (1/a)
@@ -78,7 +82,7 @@ int main(int argc, char **argv) {
 
     for (int j = 0; j < output.height(); j++) {
         for (int i = 0; i < output.width(); i++) {
-            float result = (static_cast<float>(i)+static_cast<float>(j))/static_cast<float>(0.312913f);
+            float result = (static_cast<float>(i +1.5f))/static_cast<float>(0.312913f);
             // We can access a pixel of an Buffer object using similar
             // syntax to defining and using functions.
             if (output(i, j) != result) {
