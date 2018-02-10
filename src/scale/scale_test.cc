@@ -70,12 +70,12 @@ Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst, const H
 
                     value += w*s;
                     totalWeight += w;
-                    if( dw ==6 && dh ==0 && i == 1 && j == 1){
-                        printf("(bfr0.5f=%d,  srcx = %f, diffx=%f, sw = %d, sh = %d,src(sw, sh) = %lu, j-dx = %f, wx=%f, wy=%f temp=%f\n",
-                        reinterpret_cast<int&>(copy),
-                        x, dx, sw, sh, src(sw, sh),j-dx,
-                        wx, wy, w);
-                    }
+                    // if( dw ==6 && dh ==0 && i == 1 && j == 1){
+                    //     printf("(bfr0.5f=%d,  srcx = %f, diffx=%f, sw = %d, sh = %d,src(sw, sh) = %lu, j-dx = %f, wx=%f, wy=%f temp=%f\n",
+                    //     reinterpret_cast<int&>(copy),
+                    //     x, dx, sw, sh, src(sw, sh),j-dx,
+                    //     wx, wy, w);
+                    // }
                 }
 
             }
@@ -104,6 +104,7 @@ Halide::Runtime::Buffer<T>& ref_nearest(Halide::Runtime::Buffer<T>& dst, const H
         for (int j = 0; j < dst_width; ++j) {
             float src_x = (static_cast<float>(j) + 0.5f) * scale_w;
             float src_y = (static_cast<float>(i) + 0.5f) * scale_h;
+            float copy = src_x;
 
             int src_i = static_cast<int>(src_y);
             int src_j = static_cast<int>(src_x);
@@ -122,8 +123,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         const int32_t in_width = 1024;
         const int32_t in_height = 768;
         const std::vector<int32_t> in_extents{in_width, in_height};
-        // const uint8_t idx = mk_rand_int_scalar<uint8_t>()%2; //0 or 2
-        // const uint8_t interpolation[2] = {0, 2}; //to switch, not implemented yet
+        const int32_t interpolation = 0; //0 or 2
 
         const int32_t out_width = 7;
         const int32_t out_height = 7;
@@ -131,34 +131,24 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         auto input = mk_rand_buffer<T>(in_extents);
         auto output = mk_null_buffer<T>(out_extents);
 
-        //func(input, interpolation[idx], output);
-
         func(input, output); //onl NN yet
         auto expect = mk_null_buffer<T>(out_extents);
 
 
-        //expect = ref_nearest(expect, input, in_width, in_height, out_width, out_height);
-        expect = ref_bicubic(expect, input, in_width, in_height, out_width, out_height);
+        if(interpolation == 0){
+            expect = ref_nearest(expect, input, in_width, in_height, out_width, out_height);
+        }else{
+            expect = ref_bicubic(expect, input, in_width, in_height, out_width, out_height);
+        }
+
+        //
 
 
         for (int y=0; y<out_height; ++y) {
             for (int x=0; x<out_width; ++x) {
                 T actual = output(x, y);
-                // // if(
-                // //     (x==66 && y ==4)||
-                // //     (x==64 && y ==0)||
-                // //     (x==68 && y ==30)||
-                // //     (x==2 && y==65) ||
-                // //     (x==65 && y==11)||
-                // //     (x==69 && y ==1)
-                // // ){
-                //     printf("Error: expect(%d, %d) = %d, actual(%d, %d) = %d\n",
-                //                                  x, y, expect(x, y), x, y, actual);
-                //                              // }
-                ////////////////////////////////////////
-                // +-1? required to check here//////////
-                ////////////////////////////////////////
-                if (abs(expect(x,y) - actual) > 1) {
+
+                if (abs(expect(x,y) - actual) > 0) {
 
                         printf(" Error: expect(%d, %d) = %d, actual(%d, %d) = %d\n",
                                                      x, y, expect(x, y), x, y, actual);

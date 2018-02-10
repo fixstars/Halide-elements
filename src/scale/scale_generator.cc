@@ -10,7 +10,7 @@ using Halide::Element::schedule;
 template<typename T>
 class Scale : public Halide::Generator<Scale<T>> {
     ImageParam src{type_of<T>(), 2, "src"};
-    //Param<uint8_t> interpolation{"interpolation", 1};
+    GeneratorParam<int32_t> interpolation{"interpolation", 0};
 
     GeneratorParam<int32_t> in_width{"in_width", 1024};
     GeneratorParam<int32_t> in_height{"in_height", 768};
@@ -21,12 +21,7 @@ class Scale : public Halide::Generator<Scale<T>> {
 public:
     Func build() {
         Func dst{"dst"};
-        dst = Element::scale_bicubic<T>(src, in_width, in_height,
-                                    out_width, out_height
-                                    );
-        // dst = Element::scale_NN<T>(src, in_width, in_height,
-        //                             out_width, out_height
-        //                             );
+        dst = Element::scale<T>(src, interpolation, in_width, in_height,out_width, out_height);
 
         schedule(src, {in_width, in_height});
         schedule(dst, {out_width, out_height});

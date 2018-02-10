@@ -598,15 +598,15 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
 {
     Var x{"x"}, y{"y"};
     Func dst{"dst"};
-    //Func reptest{"reptest"};
 
-    Expr srcx = print_when((x==6&&y==0), ((cast<float>(x)+0.5f) * cast<float>(in_width))/cast<float>(out_width));
+    Expr srcx = print_when((x==6&&y==0), cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width));
+    //Func reptest{"reptest"};
     //Expr testPrint = reinterpret<int>(srcx);
     //reptest(x, y) = print_when((x==6&&y==0), testPrint);
     //reptest.realize(out_width, out_height);
     srcx = srcx - 0.5f;
 
-    Expr srcy = (cast<float>(y)+0.5f)* cast<float>(in_height)/cast<float>(out_height);
+    Expr srcy = cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height);
     srcy = srcy - 0.5f;
 
     Expr diffx = srcx - cast<float>(floor(srcx));
@@ -650,15 +650,19 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
     return dst;
 }
 
-// template <typename T>
-// Func scale(Func src, Expr interpolation)
-// {
-//     Func dst{"dst"};
-//     if (interpolation == 0){
-//         dst = scale_NN(src);
-//     }
-//     return dst;
-// }
+template <typename T>
+Func scale(Func src, int32_t interpolation, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
+{
+    Func dst{"dst"};
+    if (interpolation == 2){
+        dst = scale_bicubic<T>(src, in_width, in_height, out_width, out_height);
+    }else if(interpolation == 0){
+        dst = scale_NN<T>(src, in_width, in_height, out_width, out_height);
+    }
+    schedule(dst, {out_width, out_height});
+    return dst;
+
+}
 
 } // Element
 } // Halide
