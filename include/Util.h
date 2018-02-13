@@ -53,6 +53,20 @@ struct Upper<double> {
     using type = double;
 };
 
+template <typename T>
+struct SumType {
+    using type = uint64_t;
+};
+
+template <>
+struct SumType<float> {
+    using type = double;
+};
+
+template <>
+struct SumType<double> {
+    using type = double;
+};
 
 } //namespace Element
 } //namespace Halide
