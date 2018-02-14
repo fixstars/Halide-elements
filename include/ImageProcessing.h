@@ -592,21 +592,41 @@ Func scale_NN(Func src, int32_t in_width, int32_t in_height, int32_t out_width, 
     return dst;
 }
 
-
 template <typename T>
 Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
 {
     Var x{"x"}, y{"y"};
     Func dst{"dst"};
 
-    Expr srcx = print_when((x==6&&y==0), cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width));
-    //Func reptest{"reptest"};
-    //Expr testPrint = reinterpret<int>(srcx);
-    //reptest(x, y) = print_when((x==6&&y==0), testPrint);
-    //reptest.realize(out_width, out_height);
-    srcx = srcx - 0.5f;
-
+    ////////////////////////////////////////////////////////////////////////////
+    Expr srcx = cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width);
     Expr srcy = cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height);
+
+    // At this point, Simplify changes the float arithmetic order
+    // They seems expand the equation even though the variables are float
+    // (if the flaot numbers are both constant, they do not expand. Check the following test result)
+    //
+    // This might make the error and the largest difference between actual and expected is 9 where 1024x768->500x500
+    //
+    //  test result
+        // (x + y) * a  ->  (x + y) * a
+        // (x + y) / a -> (x + y) * (1/a)
+        // (x * a) + (y * a) -> (x + y) * a
+        // (x + y) * b / c -> (x * b / c) + (x * b / c)
+        // (x + a) * b -> (x * b) + (a * b)
+        // (x + a) / b -> (x / b) + (a / b)
+        // (a + b) / c -> (a + b) * c
+    //
+    // Guessing that srcx and srcy are passing:
+    // ( X + a ) * b / c -> ( X + a ) * b * 1/c
+    //                   -> ( X + a) * (b * 1/c)
+    //                   -> (X * (b * 1/c)) + (a * (b * 1/c))
+    //
+    // Check Simplify.cpp
+        // void visit(const Mul *op)
+        // void visit(const Div *op)
+    ////////////////////////////////////////////////////////////////////////////
+    srcx = srcx - 0.5f;
     srcy = srcy - 0.5f;
 
     Expr diffx = srcx - cast<float>(floor(srcx));
@@ -616,8 +636,7 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
     Func weight, value, totalWeight;
     Expr alpha = -1.0f;
 
-    Expr iX =
-    select(r.x > diffx, cast<float>( r.x - diffx), cast<float>(diffx - r.x) );
+    Expr iX = select(r.x > diffx, cast<float>( r.x - diffx), cast<float>(diffx - r.x) );
     Expr iY = select(r.y > diffy, cast<float>(r.y - diffy), cast<float>(diffy - r.y));
     Expr iX2 = iX * iX;
     Expr iX3 = iX * iX * iX;
@@ -638,30 +657,15 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
     totalWeight(x, y) = select(totalWeight(x,y) < 0, -totalWeight(x, y), totalWeight(x,y));
 
     value(x,y) = select(totalWeight(x,y) ==cast<double>(0.0f), cast<double>(0.5f),
-                                     value(x,y)/cast<double>(totalWeight(x, y)) +cast<double>(0.5f));
+                        value(x,y)/cast<double>(totalWeight(x, y)) +cast<double>(0.5f));
     dst(x, y) = cast<T>(clamp(value(x,y),
                               cast<double>(type_of<T>().min()),
                               cast<double>(type_of<T>().max())));
-
 
     schedule(value, {out_width, out_height});
     schedule(totalWeight, {out_width, out_height});
     schedule(dst, {out_width, out_height});
     return dst;
-}
-
-template <typename T>
-Func scale(Func src, int32_t interpolation, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
-{
-    Func dst{"dst"};
-    if (interpolation == 2){
-        dst = scale_bicubic<T>(src, in_width, in_height, out_width, out_height);
-    }else if(interpolation == 0){
-        dst = scale_NN<T>(src, in_width, in_height, out_width, out_height);
-    }
-    schedule(dst, {out_width, out_height});
-    return dst;
-
 }
 
 } // Element

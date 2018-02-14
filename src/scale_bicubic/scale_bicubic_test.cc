@@ -7,9 +7,9 @@
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
 
-#include "scale_u8.h"
-#include "scale_u16.h"
-#include "scale_i16.h"
+#include "scale_bicubic_u8.h"
+#include "scale_bicubic_u16.h"
+#include "scale_bicubic_i16.h"
 
 #include "test_common.h"
 
@@ -31,7 +31,8 @@ float weight(float input){
 }
 
 template<typename T>
-Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst, const Halide::Runtime::Buffer<T>& src,
+Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst,
+                                        const Halide::Runtime::Buffer<T>& src,
                                         const int32_t src_width, const int32_t src_height,
                                         const uint32_t dst_width, const uint32_t dst_height)
 {
@@ -44,16 +45,12 @@ Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst, const H
 
             float x = ((static_cast<float>(dw)+ 0.5f)
                         *static_cast<float>(src_width)) / static_cast<float>(dst_width);
-                        float copy =((static_cast<float>(dw)+ 0.5f)
-                                    *static_cast<float>(src_width));
-                     x -= 0.5f;
+            x -= 0.5f;
             float y = (static_cast<float>(dh)+ 0.5f)
                         *static_cast<float>(src_height) / static_cast<float>(dst_height);
-                      y -= 0.5f;
+            y -= 0.5f;
             float dx = x - static_cast<float>(floor(x));
             float dy = y - static_cast<float>(floor(y));
-
-
 
             for(int i = -1; i < 3; i++){
                 for(int j = -1; j < 3; j++){
@@ -62,20 +59,12 @@ Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst, const H
                     float wy = weight(i - dy);
                     float w = wx * wy;
 
-
                     int sw = BORDER_INTERPOLATE((int)(x + j), src_width);
                     int sh = BORDER_INTERPOLATE((int)(y + i), src_height);
                     T s = src(sw, sh);
 
-
                     value += w*s;
                     totalWeight += w;
-                    // if( dw ==6 && dh ==0 && i == 1 && j == 1){
-                    //     printf("(bfr0.5f=%d,  srcx = %f, diffx=%f, sw = %d, sh = %d,src(sw, sh) = %lu, j-dx = %f, wx=%f, wy=%f temp=%f\n",
-                    //     reinterpret_cast<int&>(copy),
-                    //     x, dx, sw, sh, src(sw, sh),j-dx,
-                    //     wx, wy, w);
-                    // }
                 }
 
             }
@@ -92,29 +81,6 @@ Halide::Runtime::Buffer<T>& ref_bicubic(Halide::Runtime::Buffer<T>& dst, const H
     }
     return dst;
 }
-template<typename T>
-Halide::Runtime::Buffer<T>& ref_nearest(Halide::Runtime::Buffer<T>& dst, const Halide::Runtime::Buffer<T>& src,
-                const int src_width, const int src_height,
-                const int dst_width, const int dst_height)
-{
-    float scale_w = static_cast<float>(src_width) / static_cast<float>(dst_width);
-    float scale_h = static_cast<float>(src_height) / static_cast<float>(dst_height);
-
-    for (int i = 0; i < dst_height; ++i) {
-        for (int j = 0; j < dst_width; ++j) {
-            float src_x = (static_cast<float>(j) + 0.5f) * scale_w;
-            float src_y = (static_cast<float>(i) + 0.5f) * scale_h;
-            float copy = src_x;
-
-            int src_i = static_cast<int>(src_y);
-            int src_j = static_cast<int>(src_x);
-            src_j = src_j < src_width ? src_j : src_width - 1;
-            src_i = src_i < src_height ? src_i : src_height - 1;
-            dst(j, i) = src(src_j, src_i);
-        }
-    }
-    return dst;
-}
 
 template <typename T>
 int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t *_dst_buffer))
@@ -123,43 +89,29 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
         const int32_t in_width = 1024;
         const int32_t in_height = 768;
         const std::vector<int32_t> in_extents{in_width, in_height};
-        const int32_t interpolation = 0; //0 or 2
 
-        const int32_t out_width = 7;
-        const int32_t out_height = 7;
+        const int32_t out_width = 500;
+        const int32_t out_height = 500;
         const std::vector<int32_t> out_extents{out_width, out_height};
         auto input = mk_rand_buffer<T>(in_extents);
         auto output = mk_null_buffer<T>(out_extents);
 
-        func(input, output); //onl NN yet
+        func(input, output);
         auto expect = mk_null_buffer<T>(out_extents);
-
-
-        if(interpolation == 0){
-            expect = ref_nearest(expect, input, in_width, in_height, out_width, out_height);
-        }else{
-            expect = ref_bicubic(expect, input, in_width, in_height, out_width, out_height);
-        }
-
-        //
-
+        expect = ref_bicubic(expect, input, in_width, in_height, out_width, out_height);
 
         for (int y=0; y<out_height; ++y) {
             for (int x=0; x<out_width; ++x) {
                 T actual = output(x, y);
 
-                if (abs(expect(x,y) - actual) > 0) {
-
-                        printf(" Error: expect(%d, %d) = %d, actual(%d, %d) = %d\n",
-                                                     x, y, expect(x, y), x, y, actual);
-
-
-                    // throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
-                    //                                 x, y, expect(x, y), x, y, actual).c_str());
+                if (abs(expect(x,y) - actual) > 9) {
+                    // Temporarily the largest error sets 8 where 1024x768->500x500
+                    // Check the comment in the function scale_bicubic in ImageProcessing.h
+                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
+                                                    x, y, expect(x, y), x, y, actual).c_str());
                 }
             }
         }
-
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
@@ -173,12 +125,12 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer, struct halide_buffer_t
 int main()
 {
 #ifdef TYPE_u8
-    test<uint8_t>(scale_u8);
+    test<uint8_t>(scale_bicubic_u8);
 #endif
 #ifdef TYPE_u16
-    test<uint16_t>(scale_u16);
+    test<uint16_t>(scale_bicubic_u16);
 #endif
 #ifdef TYPE_i16
-    test<int16_t>(scale_i16);
+    test<int16_t>(scale_bicubic_i16);
 #endif
 }
