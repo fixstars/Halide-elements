@@ -343,8 +343,7 @@ Func sub(Func src0, Func src1)
 {
     Var x{"x"}, y{"y"};
     Func dst;
-    dst(x, y) = cast<T>(select(src0(x, y)>src1(x,y), src0(x, y)-src1(x,y),
-                                                     src1(x, y)-src0(x,y)));
+    dst(x, y) = cast<T>(select(src0(x, y)>src1(x,y), src0(x, y)-src1(x,y), 0));
     return dst;
 }
 

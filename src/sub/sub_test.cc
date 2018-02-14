@@ -34,7 +34,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer0, struct halide_buffer_
                 if (src0 > src1){
                     expect = src0 - src1;
                 }else{
-                    expect = src1- src0;
+                    expect = 0;
                 }
 
                 if (expect != actual) {
