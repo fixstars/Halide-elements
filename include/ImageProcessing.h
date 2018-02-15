@@ -602,5 +602,27 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 	return output;
 }
 
+template<typename T>
+Func warp_affine_NN(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    Expr orgx = cast<float>(x) + 0.5f;
+    Expr orgy = cast<float>(y) + 0.5f;
+    Expr srcx = cast<float>(transform(2)) + cast<float>(transform(1)) * orgy;
+    Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
+    srcx = srcx + cast<float>(transform(0)) * orgx;
+    srcy = srcy + cast<float>(transform(3)) * orgx;
+
+    Expr i = cast<int>(floor(srcy));
+    Expr j = cast<int>(floor(srcx));
+
+    Func type0 = BoundaryConditions::constant_exterior(src, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    dst(x, y) = select(border_type==1, type1(j, i), type0(j, i));
+
+    return dst;
+}
+
 } // Element
 } // Halide
