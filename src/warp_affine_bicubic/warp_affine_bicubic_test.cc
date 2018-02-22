@@ -71,16 +71,14 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
         }
     }
 
-    if(zero==true){
-        printf("At the beginning, d(x, y) is:\n");
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                printf("d(%d, %d) = %f\n", j, i, d[i][j]);
-            }
-        }
-
-        printf("just in case: %d", data(1023, 767));
-    }
+    // if(zero==true){
+    //     printf("At the beginning, d(x, y) is:\n");
+    //     for (int i = 0; i < 4; i++) {
+    //         for (int j = 0; j < 4; j++) {
+    //             printf("d(%d, %d) = %f\n", j, i, d[i][j]);
+    //         }
+    //     }d
+    // }
 
 
     float dx = (std::min)((std::max)(0.0f, x - xf - 1.0f), 1.0f);
@@ -93,6 +91,8 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
     for (int i = 0; i < 4; i++) {
         col[i] = (d[i][0] * w[0] + d[i][1] * w[1])
                     + (d[i][2] * w[2] + d[i][3] * w[3]);
+                    if(zero==true){
+                    printf("%f\n", col[i]);}
     }
 
     getCubicKernel(dy, w);

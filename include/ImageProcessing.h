@@ -675,29 +675,21 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
     srcx = srcx + cast<float>(transform(0)) * orgx;
     srcy = srcy + cast<float>(transform(3)) * orgx;
-    // srcx = print_when(x==0&&y==0, srcx,  "srcx");
-    // srcy = print_when(x==0&&y==0, srcy,  "srcy");
 
     Expr i = srcy - 0.5f;
     Expr j = srcx - 0.5f;
-    // i = print_when(x==0&&y==0, i,  "i");
-    // j = print_when(x==0&&y==0, j,  "j");
     Expr xf = cast<int>(j-1.0f);
     Expr yf = cast<int>(i-1.0f);
     xf = xf - (xf > j-1.0f);
     yf = yf - (yf > i-1.0f);
-    //  xf = print_when(x==0&&y==0, xf, "xf after");
-    // yf = print_when(x==0&&y==0, yf, "yf after");
 
 
     Func type0 = BoundaryConditions::constant_exterior(src, border_value, 0, width, 0, height);
     Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
 
     RDom r{0, 4, 0, 4, "r"};
-    Expr d =
-        cast<float>(select(border_type==0, type1(xf+r.x, yf+r.y), type0(xf+r.x, yf+r.y)));
-
- d = print_when(x==0&&y==0, d, "where", r.x, r.y);
+    Expr d = cast<float>(select(border_type==1, type1(xf+r.x, yf+r.y), type0(xf+r.x, yf+r.y)));
+    d = print_when(x==0&&y==0, d, "where", r.x, r.y);
 
     Expr dx = min(max(0.0f, j-cast<float>(xf)-1.0f), 1.0f);
     Expr dy = min(max(0.0f, i-cast<float>(yf)-1.0f), 1.0f);
