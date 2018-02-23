@@ -44,12 +44,10 @@ Halide::Runtime::Buffer<T>& NN_ref(Halide::Runtime::Buffer<T>& dst,
                                 const T border_value, const int32_t border_type,
                                 const Halide::Runtime::Buffer<T>& transform)
 {
-    //asked this mask///////////////////////////////////////////////////////////
     /* avoid overflow from X-1 to X+2 */
     float imin = static_cast<float>((std::numeric_limits<int>::min)() + 1);
-    float imax = static_cast<float>((std::numeric_limits<int>::max)() &
-                                    static_cast<int>(0xffffff80));
-    ////////////////////////////////////////////////////////////////////////////
+    float imax = static_cast<float>((std::numeric_limits<int>::max)() - 2);
+
     for(int i = 0; i < height; ++i){
         float org_y = static_cast<float>(i) + 0.5f;
         float src_x0 = static_cast<float>(transform(2)) +
@@ -60,7 +58,7 @@ Halide::Runtime::Buffer<T>& NN_ref(Halide::Runtime::Buffer<T>& dst,
             float org_x = static_cast<float>(j) + 0.5f;
             float src_x = src_x0 + static_cast<float>(transform(0)) * org_x;
             float src_y = src_y0 + static_cast<float>(transform(3)) * org_x;
-            //avoid overfloaw
+
             src_x = std::max(imin, std::min(imax, src_x));
             src_y = std::max(imin, std::min(imax, src_y));
 
@@ -84,7 +82,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
         const std::vector<int32_t> extents{width, height};
         const std::vector<int32_t> tableSize{6};
         const T border_value = mk_rand_scalar<T>();
-        const int32_t border_type = 1; // 0 or 1
+        const int32_t border_type = 0; // 0 or 1
         auto transform = mk_rand_buffer<T>(tableSize);
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);

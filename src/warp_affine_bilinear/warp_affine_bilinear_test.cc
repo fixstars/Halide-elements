@@ -74,12 +74,9 @@ Halide::Runtime::Buffer<T>& BL_ref(Halide::Runtime::Buffer<T>& dst,
                                 const T border_value, const int32_t border_type,
                                 const Halide::Runtime::Buffer<T>& transform)
 {
-    //asked this mask///////////////////////////////////////////////////////////
     /* avoid overflow from X-1 to X+2 */
     float imin = static_cast<float>((std::numeric_limits<int>::min)() + 1);
-    float imax = static_cast<float>((std::numeric_limits<int>::max)() &
-                                    static_cast<int>(0xffffff80));
-    ////////////////////////////////////////////////////////////////////////////
+    float imax = static_cast<float>((std::numeric_limits<int>::max)() - 2);
     for(int i = 0; i < height; ++i){
         float org_y = static_cast<float>(i) + 0.5f;
         float src_x0 = static_cast<float>(transform(2)) +
@@ -90,7 +87,7 @@ Halide::Runtime::Buffer<T>& BL_ref(Halide::Runtime::Buffer<T>& dst,
             float org_x = static_cast<float>(j) + 0.5f;
             float src_x = src_x0 + static_cast<float>(transform(0)) * org_x;
             float src_y = src_y0 + static_cast<float>(transform(3)) * org_x;
-            //avoid overfloaw
+
             src_x = std::max(imin, std::min(imax, src_x));
             src_y = std::max(imin, std::min(imax, src_y));
 
@@ -100,7 +97,6 @@ Halide::Runtime::Buffer<T>& BL_ref(Halide::Runtime::Buffer<T>& dst,
 
     return dst;
 }
-
 
 template<typename T>
 int test(int (*func)(struct halide_buffer_t *_src_buffer,
