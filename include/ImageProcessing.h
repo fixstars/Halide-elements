@@ -669,12 +669,21 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     Var x{"x"};
     Var y{"y"};
     Func dst{"dst"};
+
+    // Expr imin = cast<float>(type_of<int>().min() + 1);
+    // Expr imax = cast<float>(type_of<int>().max() & cast<int>(0xffffff80));
+
     Expr orgx = cast<float>(x) + 0.5f;
     Expr orgy = cast<float>(y) + 0.5f;
     Expr srcx = cast<float>(transform(2)) + cast<float>(transform(1)) * orgy;
     Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
     srcx = srcx + cast<float>(transform(0)) * orgx;
     srcy = srcy + cast<float>(transform(3)) * orgx;
+
+   // srcx = print_when(x==0&&y==0, srcx, "srcx");
+   // srcy = print_when(x==0&&y==0, srcy, "srcy");
+    // srcx = max(imin, min(srcx, imax));
+    // srcy = max(imin, min(srcy, imax));
 
     Expr i = srcy - 0.5f;
     Expr j = srcx - 0.5f;
@@ -688,8 +697,7 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
 
     RDom r{0, 4, 0, 4, "r"};
-    Expr d = cast<float>(select(border_type==1, type1(xf+r.x, yf+r.y), type0(xf+r.x, yf+r.y)));
-    d = print_when(x==0&&y==0, d, "where", r.x, r.y);
+    Expr d = cast<float>(select(border_type==1,type1(xf+r.x, yf+r.y) ,type0(xf+r.x, yf+r.y)));
 
     Expr dx = min(max(0.0f, j-cast<float>(xf)-1.0f), 1.0f);
     Expr dy = min(max(0.0f, i-cast<float>(yf)-1.0f), 1.0f);
@@ -700,13 +708,12 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     Expr w2 = ((a+2.0f)*(1.0f-dx)-(a+3.0f))*(1.0f-dx)*(1.0f-dx)+1.0f;
     Expr w3 = 1.0f - w2 - w1 -w0;
 
+    //d = print_when(x==0&&y==0, d,  "r.x, r.y = ", r.x, r.y);
 
-    d = select(r.y == 0, d*w0,
-               r.y == 1, d*w1,
-               r.y == 2, d*w2,
-               r.y == 3, d*w3, d);
-
-
+    d = select(r.x == 0, d*w0,
+               r.x == 1, d*w1,
+               r.x == 2, d*w2,
+               r.x == 3, d*w3, d);
 
     w0 = ((a*(dy+1.0f)-5.0f*a)*(dy+1.0f)+8.0f*a)*(dy+1.0f)-4.0f*a;
     w1 = ((a+2.0f)*dy-(a+3.0f))*dy*dy+1.0f;
@@ -714,12 +721,11 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     w3 = 1.0f - w2 - w1 -w0;
 
     RDom test{0, 4, 0, 4};
-    test.where(test.x==0);
 
-    Expr c0 = sum(select(r.x ==0, d, 0))*w0;
-    Expr c1 = sum(select(r.x ==1, d, 0))*w1;
-    Expr c2 = sum(select(r.x ==2, d, 0))*w2;
-    Expr c3 = sum(select(r.x ==3, d, 0))*w3;
+    Expr c0 = sum(select(r.y ==0, d, 0))*w0;
+    Expr c1 = sum(select(r.y ==1, d, 0))*w1;
+    Expr c2 = sum(select(r.y ==2, d, 0))*w2;
+    Expr c3 = sum(select(r.y ==3, d, 0))*w3;
 
     Expr value = c0 + c1 + c2 + c3;
     value = select(value > cast<float>(type_of<T>().max()), cast<float>(type_of<T>().max()),

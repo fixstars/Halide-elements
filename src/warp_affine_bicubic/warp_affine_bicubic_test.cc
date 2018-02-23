@@ -47,6 +47,9 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
     //     printf("xfand yf after= %d, %d\n", xf, yf);
     // }
 
+    // if(zero==true){
+    //     printf("xfhj and yfi are %d, %d\n", xf, yf);
+    // }
     float d[4][4];
     if (xf >= 0 && yf >= 0 && xf < width - 3 && yf < height - 3) {
         for (int i = 0; i < 4; i++) {
@@ -62,6 +65,9 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
                 } else if (border_type == 1) {
                     int xfj = BORDER_INTERPOLATE(xf + j, width);
                     int yfi = BORDER_INTERPOLATE(yf + i, height);
+                    // if(zero==true){
+                    //     printf("xfhj and yfi are %d, %d", xfj, yfi);
+                    // }
                     d[i][j] = data(xfj, yfi);
                 } else {
                     assert(border_type == 0);
@@ -77,7 +83,7 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
     //         for (int j = 0; j < 4; j++) {
     //             printf("d(%d, %d) = %f\n", j, i, d[i][j]);
     //         }
-    //     }d
+    //     }
     // }
 
 
@@ -86,13 +92,16 @@ T interpolateBC(const Halide::Runtime::Buffer<T>& data, const int width, const i
 
     float w[4];
     getCubicKernel(dx, w);
+    // if(zero==true){
+    //     printf("w3: %f, w0: %f, w1: %f, w2: %f\n", w[3], w[0], w[1], w[2]);
+    // }
 
     float col[4];
     for (int i = 0; i < 4; i++) {
         col[i] = (d[i][0] * w[0] + d[i][1] * w[1])
                     + (d[i][2] * w[2] + d[i][3] * w[3]);
-                    if(zero==true){
-                    printf("%f\n", col[i]);}
+                    // if(zero==true){
+                    // printf("col[%d] is %f\n", i, col[i]);}
     }
 
     getCubicKernel(dy, w);
@@ -141,7 +150,7 @@ Halide::Runtime::Buffer<T>& BC_ref(Halide::Runtime::Buffer<T>& dst,
             src_x = std::max(imin, std::min(imax, src_x));
             src_y = std::max(imin, std::min(imax, src_y));
             // if(moi==true){
-                // printf("After:::src_x, srcy at (0,0) = %f, %f\n",src_x, src_y);
+            //     printf("After:::src_x, srcy at (0,0) = %f, %f\n",src_x, src_y);
             // }
 
             dst(j, i) = interpolateBC(src, width, height, src_x, src_y, border_value, border_type, moi);
@@ -188,6 +197,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
         return 1;
     }
 
+    printf("%d vs %d vs %d", (std::numeric_limits<int>::max)(),
+                        static_cast<int>(0xffffff80),
+                        ((std::numeric_limits<int>::max)() & static_cast<int>(0xffffff80)));
     printf("Success!\n");
     return 0;
 }
