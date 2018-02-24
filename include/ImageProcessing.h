@@ -602,9 +602,6 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 	return output;
 }
 
-// template <typename T>
-// Func threshold(Func, int32_t = 0, int32_t, int32_t =0);
-
 template <typename T>
 Func threshold_min(Func src, Expr threshold)
 {
