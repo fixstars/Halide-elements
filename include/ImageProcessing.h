@@ -586,9 +586,9 @@ Func scale_NN(Func src, int32_t in_width, int32_t in_height, int32_t out_width, 
     Func dst{"dst"};
     Expr srcx = cast<int>(cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width));
     Expr srcy = cast<int>(cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height));
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, in_width, 0, in_height);
 
-    dst(x, y) = src(select(srcx < in_width, srcx, in_width-1),
-                    select(srcy < in_height, srcy, in_height-1));
+    dst(x, y) = clamped(srcx, srcy);
     return dst;
 }
 
