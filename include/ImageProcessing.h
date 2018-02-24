@@ -602,5 +602,44 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 	return output;
 }
 
+
+
+template<typename T>
+Func bilateral(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space){
+    Expr wRadius = wSize/2;
+    RDom w{0, wSize, 0, wSize, "w"};
+    Expr diff_x = cast<double>(w.x-wRadius);
+    Expr diff_y = cast<double>(w.y-wRadius);
+    Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
+    Expr kernel_d = select( r > wRadius, 0,
+                            exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
+    //skip all about kernel_r
+
+
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    Expr bri{"bri"};
+    Func dst{"dst"};
+    Var x{"x"}, y{"y"};
+    ///
+    dst(x, y) = src(x, y);
+    ///
+    bri = clamped(x+w.x-wRadius, y+w.y-wRadius);
+    Expr weight_d = kernel_d;
+    Expr f0_f = cast<double>(src(x, y)) - cast<double>(bri);
+    Expr weight_r = exp(-0.5f * f0_f * f0_f / (color * color));
+    ////////////////////////////////////////////////////////////////////////////
+    //IS THERE ANY DIFFERENCE BETWEEN TWO CASES: KERNEL_R == NULL OR NOT?
+    ////////////////////////////////////////////////////////////////////////////
+    Expr sum_nume = sum(weight_d * weight_r * bri);
+    Expr sum_deno = sum(weight_d * weight_r);
+
+    Expr num = sum_nume / sum_deno;
+    dst(x, y) = select( num-floor(num)-0.5f > (std::numeric_limits<float>::epsilon)()  || (cast<T>(num))%2==1,
+                       cast<T>(dst(x, y) + 0.5f),
+                       cast<T>(dst(x, y)));
+    return dst;
+
+}
+
 } // Element
 } // Halide
