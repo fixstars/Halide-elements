@@ -46,7 +46,7 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////
+    /////type diff/////////////////////////////////////////////////////////////////////////////////
     double* kernel_r = NULL;
     if(width*height > (std::numeric_limits<T>::max)()){
         kernel_r = kernel_d + window_size * window_size;
