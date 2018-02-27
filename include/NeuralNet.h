@@ -928,7 +928,6 @@ Func tofloat4d(Func bottom, const std::vector<int32_t>& bottom_shape, std::vecto
     return f;
 }
 
-
 Func binconv_module(Func bottom, std::vector<int32_t>& bottom_shape, const std::string& suffix,
                     ImageParam bn_mean, ImageParam bn_variance, ImageParam bn_weight, ImageParam bn_bias,
                     ImageParam conv_weight, ImageParam conv_alpha, ImageParam conv_bias, const std::vector<int32_t> conv_weight_shape,
@@ -950,7 +949,7 @@ Func binconv_module(Func bottom, std::vector<int32_t>& bottom_shape, const std::
     Func active_f("active" + suffix);
     std::vector<int32_t> active_top_shape;
     active_f(c, x, y, n) = bin_active(scale_f, scale_top_shape, active_top_shape)(c, x, y, n);
-    schedule(active_f, active_top_shape);
+    schedule_burst(active_f, active_top_shape, active_top_shape[0]);
 
     // Conv
     Func conv_f("conv" + suffix);
@@ -966,35 +965,39 @@ Func binconv_module(Func bottom, std::vector<int32_t>& bottom_shape, const std::
     return relu_f;
 }
 
-template <uint32_t FB>
+template <typename T, uint32_t FB>
 Func binconv_module_fixed32(Func bottom, std::vector<int32_t>& bottom_shape, const std::string& suffix,
-                            ImageParam bn_mean, ImageParam bn_variance, ImageParam bn_weight, ImageParam bn_bias,
-                            ImageParam conv_weight, ImageParam conv_alpha, ImageParam conv_bias, const std::vector<int32_t> conv_weight_shape,
-                            std::vector<int32_t>& top_shape)
+                            T bn_mean, T bn_variance, T bn_weight, T bn_bias,
+                            T conv_weight, T conv_alpha, T conv_bias, const std::vector<int32_t> conv_weight_shape,
+                            std::vector<int32_t>& top_shape, bool unroll = false)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
     // Bn
     Func bn_f("bn" + suffix);
     std::vector<int32_t> bn_top_shape;
-    bn_f(c, x, y, n) = bn_fixed32<FB>(bottom, bn_mean, bn_variance, bottom_shape, bn_top_shape)(c, x, y, n);
+    bn_f(c, x, y, n) = bn_fixed32<T, FB>(bottom, bn_mean, bn_variance, bottom_shape, bn_top_shape)(c, x, y, n);
 
     // Scale
     Func scale_f("scale" + suffix);
     std::vector<int32_t> scale_top_shape;
-    scale_f(c, x, y, n) = scale_fixed32<FB>(bn_f, bn_weight, bn_bias, bn_top_shape, scale_top_shape)(c, x, y, n);
+    scale_f(c, x, y, n) = scale_fixed32<T, FB>(bn_f, bn_weight, bn_bias, bn_top_shape, scale_top_shape)(c, x, y, n);
 
     // BinActive
     Func active_f("active" + suffix);
     std::vector<int32_t> active_top_shape;
     active_f(c, x, y, n) = bin_active_fixed32<FB>(scale_f, scale_top_shape, active_top_shape)(c, x, y, n);
     schedule(active_f, active_top_shape);
+    if (unroll) {
+        active_f.hls_burst(active_top_shape[0]);
+    }
 
     // Conv
     Func conv_f("conv" + suffix);
     std::vector<int32_t> conv_top_shape;
     conv_f(c, x, y, n) =
-        bin_conv_fixed32<FB>(active_f, conv_weight, conv_alpha, conv_bias, conv_weight_shape, active_top_shape, conv_top_shape)(c, x, y, n);
+        bin_conv_fixed32<T, FB>(active_f, conv_weight, conv_alpha, conv_bias, conv_weight_shape, active_top_shape, conv_top_shape, unroll)(c, x, y, n);
+    schedule(conv_f, conv_top_shape);
 
     // ReLU:
     Func relu_f("relu" + suffix);
