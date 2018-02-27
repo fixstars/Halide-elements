@@ -43,36 +43,44 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
                                               static_cast<double>(j-wRadius),
                                               sigma_space);
             }
+
+            // printf("(%d, %d) = %f\n", j, i, kernel_d(j,i));
         }
     }
 
     /////type diff/////////////////////////////////////////////////////////////////////////////////
-    double* kernel_r = NULL;
-    if(width*height > (std::numeric_limits<T>::max)()){
-        kernel_r = kernel_d + window_size * window_size;
-        const int kernel_size = (std::numeric_limits<T>::max)();
-        for(int i = 0; i<=kernel_size; i++){
-            kernel_r[i] = get_weight_r(i, 0, sigma_color);
-        }
-    }
+    // double* kernel_r = NULL;
+    // if(width*height > (std::numeric_limits<T>::max)()){
+    //     kernel_r = &kernel_d(window_size, window_size);
+    //     const int kernel_size = (std::numeric_limits<T>::max)();
+    //     for(int i = 0; i<=kernel_size; i++){
+    //         kernel_r[i] = get_weight_r(i, 0, sigma_color);
+    //     }
+    // }
     /////////////////////////////////////////////////////////////////////////////////////////////
 
     for(int i = 0; i<height; i++){
         for(int j = 0; j<width; j++){
             double sum_nume = 0;
             double sum_deno = 0;
-            T original = src(i, j);
+            T original = src(j, i);
             for(int k =0; k< window_size; k++){
                 int index_y = BORDER_INTERPOLATE(i + k - wRadius, height);
                 for(int l =0; l<window_size; l++){
                     int index_x = BORDER_INTERPOLATE(j + l - wRadius, width);
 
                     T bri = src(index_x, index_y);
+
                     double weight_d = kernel_d(l, k);
-                    double weight_r = kernel_r == NULL ? get_weight_r(static_cast<double>(original),
+                    double weight_r = /*kernel_r == NULL ?*/ get_weight_r(static_cast<double>(original),
                                                                       static_cast<double>(bri),
                                                                       sigma_color)
-                                                       : kernel_r[original > bri ? (original - bri) : (bri - original)];
+                                                       /*: kernel_r[original > bri ? (original - bri) : (bri - original)]*/;
+                   // if(j==772 && i==0){
+                   //     printf("weight_r(%d, %d) = %f\tweight_d=%f\n",
+                   //      index_x, index_y, weight_r,weight_d);
+                   //  }
+
                     sum_nume += weight_d * weight_r * bri;
                     sum_deno += weight_d * weight_r;
                 }
@@ -81,10 +89,19 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
             if((num-floor(num)- 0.5) > (std::numeric_limits<float>::epsilon)() || (static_cast<T>(num))%2==1){
                 num += 0.5;
             }
-            dst( j, i) = static_cast<T>(num);
+            dst(j, i) = static_cast<T>(num);
+
+            // if(j==772 && i==0){
+            //     printf("at dst = %d, num=%f sum_nume = %f, sum_deno = %f\n", dst(j,i), j, i, num,sum_nume, sum_deno);
+            // }
         }
     }
-
+// T temp = 0;
+// for(int i = 0; i<height; i++){
+//     for (int j = 0; j<width; j++){
+//         dst(j, i) = temp;
+//     }
+// }
     return dst;
 }
 
@@ -95,12 +112,13 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
                      int32_t _window_size, double _color, double _space,
                      struct halide_buffer_t *_dst_buffer))
 {
+
     try {
         const int width = 1024;
         const int height = 768;
         const std::vector<int32_t> extents{width, height};
-        const int32_t window_size = mk_rand_scalar<int32_t>();
-        const double sigma_color = mk_rand_scalar<double>();
+        const int32_t window_size = 5;
+        const double sigma_color = 1.2;//mk_rand_scalar<double>();
         const double sigma_space = mk_rand_scalar<double>();
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
@@ -109,9 +127,9 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
 
         auto expect = mk_null_buffer<T>(extents);
         expect = bilateral_ref(expect, input, width, height, window_size, sigma_color, sigma_space);
-        //for each x and y
-        for (int j=0; j<height; ++j) {
-            for (int i=0; i<width; ++i) {
+        // for each x and y
+        for (int j=0; j<width; ++j) {
+            for (int i=0; i<height; ++i) {
                 if (expect(j, i) != output(j, i)) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
                                                 i, j, expect(j, i), i, j, output(j, i)));
