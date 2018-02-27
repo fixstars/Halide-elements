@@ -136,15 +136,16 @@ public:
         Buffer<> c33wq(load_bin<uint8_t>("./data/conv3_3_weight_q.bin", &c33w_shape));
         Buffer<> c33b(load_bin<int32_t>("./data/conv3_3_bias.bin", &c33b_shape));
 
-        schedule_burst(c11wq, c11w_shape[0]*c11w_shape[1]*c11w_shape[2]);
-        schedule_burst(c12w, c12w_shape[0]*c12w_shape[1]*c12w_shape[2]);
-        schedule_burst(c13w, c13w_shape[0]*c13w_shape[1]*c13w_shape[2]);
-        schedule_burst(c21w, c21w_shape[0]*c21w_shape[1]*c21w_shape[2]);
-        schedule_burst(c22w, c22w_shape[0]*c22w_shape[1]*c22w_shape[2]);
-        schedule_burst(c23w, c23w_shape[0]*c23w_shape[1]*c23w_shape[2]);
-        schedule_burst(c31w, c31w_shape[0]*c31w_shape[1]*c31w_shape[2]);
-        schedule_burst(c32w, c32w_shape[0]*c32w_shape[1]*c32w_shape[2]);
-        schedule_burst(c33wq, c33w_shape[0]*c33w_shape[1]*c33w_shape[2]);
+        // TODO: Tune up FPS
+        // schedule_burst(c11wq, c11w_shape[0]*c11w_shape[1]*c11w_shape[2]);
+        // schedule_burst(c12w, c12w_shape[0]*c12w_shape[1]*c12w_shape[2]);
+        // schedule_burst(c13w, c13w_shape[0]*c13w_shape[1]*c13w_shape[2]);
+        // schedule_burst(c21w, c21w_shape[0]*c21w_shape[1]*c21w_shape[2]);
+        // schedule_burst(c22w, c22w_shape[0]*c22w_shape[1]*c22w_shape[2]);
+        // schedule_burst(c23w, c23w_shape[0]*c23w_shape[1]*c23w_shape[2]);
+        // schedule_burst(c31w, c31w_shape[0]*c31w_shape[1]*c31w_shape[2]);
+        // schedule_burst(c32w, c32w_shape[0]*c32w_shape[1]*c32w_shape[2]);
+        // schedule_burst(c33wq, c33w_shape[0]*c33w_shape[1]*c33w_shape[2]);
 
         constexpr uint32_t FB = 20;
         Var x{"x"}, y{"y"}, c{"c"}, n{"n"};
