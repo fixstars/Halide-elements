@@ -609,42 +609,64 @@ Func bilateral(Func src, int32_t width, int32_t height, Expr wSize, Expr color, 
     Func dst{"dst"};
     Var x{"x"}, y{"y"};
 
-    Expr wRadius = cast<int>(wSize/2);
-    RDom w{0, wSize, 0, wSize, "w"};
-    Expr diff_x = cast<double>(w.x-wRadius);
-    Expr diff_y = cast<double>(w.y-wRadius);
-    Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
-    Expr kernel_d = select( r > wRadius, 0,
-                            exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
+    if(type_of<T>()==UInt(8)){
+        Func kernel_r{"kernel_r"};
+        Var i{"i"};
+        kernel_r(i) = exp(cast<double>(-0.5f) * cast<double>(i) * cast<double>(i)/ (color * color));
+        schedule(kernel_r, {256});
 
+        Expr wRadius = cast<int>(wSize/2);
+        RDom w{0, wSize, 0, wSize, "w"};
+        Expr diff_x = cast<double>(w.x-wRadius);
+        Expr diff_y = cast<double>(w.y-wRadius);
+        Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
+        Expr kernel_d = select( r > wRadius, 0,
+                                exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
 
-    Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
-    Expr bri = clamped(x+w.x-wRadius, y+w.y-wRadius);
-    Expr f0_f = cast<double>(src(x, y)) - cast<double>(bri);
-    Expr weight_r = exp(cast<double>(-0.5f) * f0_f * f0_f / (color * color));
-    ////////////////////////////////////////////////////////////////////////////
+        Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+        Expr bri = clamped(x+w.x-wRadius, y+w.y-wRadius);
+        Expr weight_r = select(src(x, y) > bri, kernel_r(src(x, y)-bri), kernel_r(bri-src(x, y)));
+        // weight_r= print_when(x==0&&y==0, weight_r);
 
-    //ask about the second loop
-    //weight_r = print_when(x==772&&y==0, weight_r, w.x, w.y);
-    ////////////////////////////////////////////////////////////////////////////
+        Func num;
+        num(x, y) = sum(kernel_d * weight_r * bri)/sum(kernel_d * weight_r);
 
-    ////////////////////////////////////////////////////////////////////////////
-    //IS THERE ANY DIFFERENCE BETWEEN TWO CASES: KERNEL_R == NULL OR NOT?
-    ////////////////////////////////////////////////////////////////////////////
+        dst(x, y) = select(
+            cast<float>(num(x, y)-floor(num(x, y))-0.5f) > (std::numeric_limits<float>::epsilon)()
+            || (cast<T>(num(x, y)))%2==1,
+            cast<T>(num(x, y) + 0.5f),
+            cast<T>(num(x, y)));
 
-    Func num;
-    num(x, y) = sum(kernel_d * weight_r * bri)/sum(kernel_d * weight_r);
+        schedule(num, {width, height});
+        schedule(dst, {width, height});
+        return dst;
+    }else{
+        Expr wRadius = cast<int>(wSize/2);
+        RDom w{0, wSize, 0, wSize, "w"};
+        Expr diff_x = cast<double>(w.x-wRadius);
+        Expr diff_y = cast<double>(w.y-wRadius);
+        Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
+        Expr kernel_d = select( r > wRadius, 0,
+                                exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
 
-    dst(x, y) = select(
-        cast<float>(num(x, y)-floor(num(x, y))-0.5f) > (std::numeric_limits<float>::epsilon)()
-        || (cast<T>(num(x, y)))%2==1,
-        cast<T>(num(x, y) + 0.5f),
-        cast<T>(num(x, y)));
+        Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+        Expr bri = clamped(x+w.x-wRadius, y+w.y-wRadius);
+        Expr f0_f = cast<double>(src(x, y)) - cast<double>(bri);
+        Expr weight_r = exp(cast<double>(-0.5f) * f0_f * f0_f / (color * color));
 
-    schedule(num, {width, height});
-    schedule(dst, {width, height});
-    return dst;
+        Func num;
+        num(x, y) = sum(kernel_d * weight_r * bri)/sum(kernel_d * weight_r);
 
+        dst(x, y) = select(
+            cast<float>(num(x, y)-floor(num(x, y))-0.5f) > (std::numeric_limits<float>::epsilon)()
+            || (cast<T>(num(x, y)))%2==1,
+            cast<T>(num(x, y) + 0.5f),
+            cast<T>(num(x, y)));
+
+        schedule(num, {width, height});
+        schedule(dst, {width, height});
+        return dst;
+    }
 }
 
 } // Element

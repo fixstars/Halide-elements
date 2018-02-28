@@ -28,7 +28,12 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
                                 const double sigma_color, const double sigma_space)
 {
     const int wRadius = window_size/2;
-    auto kernel_d = mk_null_buffer<double>({window_size, window_size});
+
+    int buffsize = window_size*window_size;
+    if(width*height > (std::numeric_limits<T>::max)()){
+        buffsize += (std::numeric_limits<T>::max)();
+    }
+    double* kernel_d = new double[buffsize];
 
     for(int i =0; i<window_size; i++){
         for(int j=0; j<window_size; j++){
@@ -37,27 +42,24 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
                 (double)(j-wRadius) * (j-wRadius)
             );
             if(r > wRadius){
-                kernel_d(j, i) = 0;
+                kernel_d[i * window_size + j] = 0;
             }else{
-                kernel_d(j, i) = get_weight_d(static_cast<double>(i-wRadius),
-                                              static_cast<double>(j-wRadius),
-                                              sigma_space);
+                kernel_d[i * window_size + j] = get_weight_d(
+                                                    static_cast<double>(i-wRadius),
+                                                    static_cast<double>(j-wRadius),
+                                                    sigma_space);
             }
-
-            // printf("(%d, %d) = %f\n", j, i, kernel_d(j,i));
         }
     }
 
-    /////type diff/////////////////////////////////////////////////////////////////////////////////
-    // double* kernel_r = NULL;
-    // if(width*height > (std::numeric_limits<T>::max)()){
-    //     kernel_r = &kernel_d(window_size, window_size);
-    //     const int kernel_size = (std::numeric_limits<T>::max)();
-    //     for(int i = 0; i<=kernel_size; i++){
-    //         kernel_r[i] = get_weight_r(i, 0, sigma_color);
-    //     }
-    // }
-    /////////////////////////////////////////////////////////////////////////////////////////////
+    double* kernel_r = NULL;
+    if(width*height > (std::numeric_limits<T>::max)()){
+        kernel_r = kernel_d + window_size * window_size;
+        const int kernel_size = (std::numeric_limits<T>::max)();
+        for(int i = 0; i<=kernel_size; i++){
+            kernel_r[i] = get_weight_r(i, 0, sigma_color);
+        }
+    }
 
     for(int i = 0; i<height; i++){
         for(int j = 0; j<width; j++){
@@ -71,15 +73,11 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
 
                     T bri = src(index_x, index_y);
 
-                    double weight_d = kernel_d(l, k);
-                    double weight_r = /*kernel_r == NULL ?*/ get_weight_r(static_cast<double>(original),
+                    double weight_d = kernel_d[k * window_size + l];
+                    double weight_r = kernel_r == NULL ? get_weight_r(static_cast<double>(original),
                                                                       static_cast<double>(bri),
                                                                       sigma_color)
-                                                       /*: kernel_r[original > bri ? (original - bri) : (bri - original)]*/;
-                   // if(j==772 && i==0){
-                   //     printf("weight_r(%d, %d) = %f\tweight_d=%f\n",
-                   //      index_x, index_y, weight_r,weight_d);
-                   //  }
+                                                       : kernel_r[original > bri ? (original - bri) : (bri - original)];
 
                     sum_nume += weight_d * weight_r * bri;
                     sum_deno += weight_d * weight_r;
@@ -90,18 +88,8 @@ Halide::Runtime::Buffer<T>& bilateral_ref(Halide::Runtime::Buffer<T>& dst,
                 num += 0.5;
             }
             dst(j, i) = static_cast<T>(num);
-
-            // if(j==772 && i==0){
-            //     printf("at dst = %d, num=%f sum_nume = %f, sum_deno = %f\n", dst(j,i), j, i, num,sum_nume, sum_deno);
-            // }
         }
     }
-// T temp = 0;
-// for(int i = 0; i<height; i++){
-//     for (int j = 0; j<width; j++){
-//         dst(j, i) = temp;
-//     }
-// }
     return dst;
 }
 
@@ -130,7 +118,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
         // for each x and y
         for (int j=0; j<width; ++j) {
             for (int i=0; i<height; ++i) {
-                if (expect(j, i) != output(j, i)) {
+                if (abs(expect(j, i) - output(j, i)) > 0) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
                                                 i, j, expect(j, i), i, j, output(j, i)));
                 }
