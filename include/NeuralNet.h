@@ -580,25 +580,6 @@ Func bin_active_fixed32(Func bottom, const std::vector<int32_t>& bottom_shape, s
     return f;
 }
 
-template <typename T, uint32_t FB>
-Func scale_fixed32(Func bottom, T weight, T bias,
-                   const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
-{
-    Var x("x"), y("y"), c("c"), n("n");
-    Func f;
-
-    using Fixed32 = Fixed<int32_t, FB>;
-    Fixed32 v = Fixed32{bottom(c, x, y, n)};
-    Fixed32 w = Fixed32{weight(c)};
-    Fixed32 b = Fixed32{bias(c)};
-
-    f(c, x, y, n) = static_cast<Expr>(v * w + b);
-
-    top_shape = bottom_shape;
-
-    return f;
-}
-
 // Batch Normalization
 Func bn(Func bottom, ImageParam mean, ImageParam variance,
         const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
@@ -705,8 +686,8 @@ Func scale(Func bottom, ImageParam weight, ImageParam bias,
     return f;
 }
 
-template <uint32_t FB>
-Func scale_fixed32(Func bottom, ImageParam weight, ImageParam bias,
+template <typename T, uint32_t FB>
+Func scale_fixed32(Func bottom, T weight, T bias,
                    const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
@@ -893,7 +874,10 @@ Func fc_qq_fixed32(Func bottom, T weight, T bias, const std::vector<int32_t>& we
 
     return f;
 }
-Func bin_fc(Func bottom, ImageParam weight, ImageParam alpha, ImageParam bias, const std::vector<int32_t>& weight_shape,
+
+
+template <typename T>
+Func bin_fc(Func bottom, T weight, T alpha, T bias, const std::vector<int32_t>& weight_shape,
             const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape,
             bool previous_conv = false)
 {
@@ -1047,9 +1031,10 @@ Func tofloat(Func bottom, const std::vector<int32_t>& bottom_shape, std::vector<
     return f;
 }
 
+template <typename T>
 Func binconv_module(Func bottom, std::vector<int32_t>& bottom_shape, const std::string& suffix,
-                    ImageParam bn_mean, ImageParam bn_variance, ImageParam bn_weight, ImageParam bn_bias,
-                    ImageParam conv_weight, ImageParam conv_alpha, ImageParam conv_bias, const std::vector<int32_t> conv_weight_shape,
+                    T bn_mean, T bn_variance, T bn_weight, T bn_bias,
+                    T conv_weight, T conv_alpha, T conv_bias, const std::vector<int32_t> conv_weight_shape,
                     std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
@@ -1068,7 +1053,7 @@ Func binconv_module(Func bottom, std::vector<int32_t>& bottom_shape, const std::
     Func active_f("active" + suffix);
     std::vector<int32_t> active_top_shape;
     active_f(c, x, y, n) = bin_active(scale_f, scale_top_shape, active_top_shape)(c, x, y, n);
-    schedule_burst(active_f, active_top_shape, active_top_shape[0]);
+    schedule(active_f, active_top_shape);
 
     // Conv
     Func conv_f("conv" + suffix);
