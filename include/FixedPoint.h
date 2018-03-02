@@ -8,6 +8,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 //
 // Fixed point
 //
@@ -194,5 +196,6 @@ Fixed<BASE_T, FB> sum_unroll(RDom r, const Fixed<BASE_T, FB>& x)
 }
 
 
+}
 } //namespace Element
 } //namespace Halide

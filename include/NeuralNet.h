@@ -5,19 +5,22 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 //
 // Convolutional Neural Network
 //
 
 // Convolution
-Func conv(Func bottom, ImageParam weight, ImageParam bias,
+template <typename T>
+Func conv(Func bottom, T weight, T bias,
           const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
           const std::vector<int32_t>& bottom_shape, std::vector<int32_t>& top_shape)
 {
     Var x("x"), y("y"), c("c"), n("n");
 
     // Originally outbounds should be padded by
-    Func in = BoundaryConditions::constant_exterior(bottom, Expr(0),
+    Func in = BoundaryConditions::constant_exterior(bottom, Expr(0.0f),
                                                     0, bottom_shape[0],
                                                     0, bottom_shape[1],
                                                     0, bottom_shape[2]);
@@ -1002,11 +1005,11 @@ Func binconv_module_fixed32(Func bottom, std::vector<int32_t>& bottom_shape, con
     // ReLU:
     Func relu_f("relu" + suffix);
     std::vector<int32_t> relu_top_shape;
-    relu_f(c, x, y, n) = relu4d(conv_f, conv_top_shape, top_shape)(c, x, y, n);
+    relu_f(c, x, y, n) = relu(conv_f, conv_top_shape, top_shape)(c, x, y, n);
 
     return relu_f;
 }
 
-
+}
 } //namespace Element
 } //namespace Halide
