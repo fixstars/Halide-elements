@@ -18,16 +18,11 @@ public:
     GeneratorParam<int32_t> height{"height", 768};
 
     Func build() {
-        Func test{"test"};
-        test = Element::bilateral<T>(src, width, height, window_size, sigma_color, sigma_space);
+        Func dst{"dst"};
+        dst = Element::bilateral<T>(src, width, height, window_size, sigma_color, sigma_space);
         schedule(src, {width, height});
-        schedule(test, {width, height});
-
-        ////////////////////////////////////////////////////////////////////////
-        // To detect where "dst" causes the error, temporary dst name here is test_common
-        // IT NEEDS TO BE CHANGED BEFORE MERGE REQUEST
-        ////////////////////////////////////////////////////////////////////////
-        return test;
+        schedule(dst, {width, height});
+        return dst;
     }
 };
 
