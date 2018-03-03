@@ -52,7 +52,6 @@ Func add(Func src0, Func src1)
     return dst;
 }
 
-
 template<typename T>
 Func add_scalar(Func src, Expr val)
 {
