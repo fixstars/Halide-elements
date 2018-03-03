@@ -122,7 +122,7 @@ public:
         // ReLU1
         Func relu1("relu1");
         std::vector<int32_t> relu1_top_shape;
-        relu1(c, x, y, n) = relu4d(bn1, bn1_top_shape, relu1_top_shape)(c, x, y, n);
+        relu1(c, x, y, n) = relu(bn1, bn1_top_shape, relu1_top_shape)(c, x, y, n);
         schedule(relu1, relu1_top_shape);
 
         // Pool1(2x2, 2): (20, 24, 24, n) -> (20, 12, 12, n)
@@ -155,7 +155,7 @@ public:
         // ReLU2
         Func relu2("relu2");
         std::vector<int32_t> relu2_top_shape;
-        relu2(c, x, y, n) = relu4d(conv2, conv2_top_shape, relu2_top_shape)(c, x, y, n);
+        relu2(c, x, y, n) = relu(conv2, conv2_top_shape, relu2_top_shape)(c, x, y, n);
         schedule(relu2, relu2_top_shape);
 
         // Pool2(2x2, 2): (50, 8, 8, n) -> (50, 4, 4, n)
@@ -189,7 +189,7 @@ public:
         // ReLU3:
         Func relu3("relu3");
         std::vector<int32_t> relu3_top_shape;
-        relu3(i, n) = relu2d(fc3, fc3_top_shape, relu3_top_shape)(i, n);
+        relu3(i, n) = relu(fc3, fc3_top_shape, relu3_top_shape)(i, n);
 
         // Lq4
         Func lq4("lq4");
@@ -205,13 +205,13 @@ public:
         // tofloat:
         Func tof("tof");
         std::vector<int32_t> tof_top_shape;
-        tof(i, n) = tofloat2d<FB>(fc4, fc4_top_shape, tof_top_shape)(i, n);
+        tof(i, n) = tofloat<FB>(fc4, fc4_top_shape, tof_top_shape)(i, n);
         schedule(tof, tof_top_shape);
 
         // Softmax
         Func prob("prob");
         std::vector<int32_t> prob_top_shape;
-        prob(i, n) = softmax2d(tof, tof_top_shape, prob_top_shape)(i, n);
+        prob(i, n) = softmax(tof, tof_top_shape, prob_top_shape)(i, n);
         schedule(prob, prob_top_shape);
 
         return prob;

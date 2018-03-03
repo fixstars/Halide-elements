@@ -174,7 +174,7 @@ public:
         // ReLU1_1:
         Func relu1_1("relu1_1");
         std::vector<int32_t> relu1_1_top_shape;
-        relu1_1(c, x, y, n) = relu4d(bn1_1, bn1_1_top_shape, relu1_1_top_shape)(c, x, y, n);
+        relu1_1(c, x, y, n) = relu(bn1_1, bn1_1_top_shape, relu1_1_top_shape)(c, x, y, n);
 
         // Module1_2(192x1x1x160): (192, 32, 32, n) -> (160, 32, 32, n)
         std::vector<int32_t> conv1_2_top_shape;
@@ -244,7 +244,7 @@ public:
         // ReLU3_3:
         Func relu3_3("relu3_3");
         std::vector<int32_t> relu3_3_top_shape;
-        relu3_3(c, x, y, n) = relu4d(conv3_3, conv3_3_top_shape, relu3_3_top_shape)(c, x, y, n);
+        relu3_3(c, x, y, n) = relu(conv3_3, conv3_3_top_shape, relu3_3_top_shape)(c, x, y, n);
         schedule(relu3_3, relu3_3_top_shape);
 
         // Pool3(8x8, 1): (10, 8, 8, n) -> (10, 1, 1, n)
@@ -255,7 +255,7 @@ public:
         // tofloat:
         Func tof("tof");
         std::vector<int32_t> tof_top_shape;
-        tof(c, n) = tofloat2d<FB>(pool3, pool3_top_shape, tof_top_shape)(c, n);
+        tof(c, n) = tofloat<FB>(pool3, pool3_top_shape, tof_top_shape)(c, n);
         schedule(tof, tof_top_shape);
 
         return tof;
