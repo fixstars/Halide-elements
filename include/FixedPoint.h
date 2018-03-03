@@ -8,6 +8,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 //
 // Fixed point
 //
@@ -19,6 +21,37 @@ struct Fixed {
 
     explicit operator Expr() const {
         return v;
+    }
+
+    static inline Fixed<BASE_T, FB> to_fixed(Expr x)
+    {
+         throw_assert(x.defined(), "conversion of undefined Expr");
+         if (x.type().is_float()) {
+             return Fixed<BASE_T, FB>{cast<BASE_T>(x * make_const(type_of<BASE_T>(), 1<<FB))};
+         } else {
+             return Fixed<BASE_T, FB>{cast<BASE_T>(x) << FB};
+         }
+    }
+
+    template<typename T> static inline Expr from_fixed(const Fixed<BASE_T, FB>&  x)
+    {
+        throw_assert(x.v.defined(), "conversion of undefined Expr");
+        if (type_of<T>().is_float()) {
+            return cast<T>(x.v) / cast<T>(1 << FB);
+        } else {
+            return cast<T>(x.v >> FB);
+        }
+    }
+
+    static inline Expr fixed_expr(Expr x)
+    {
+        Fixed<BASE_T, FB> fixed = to_fixed(x);
+        return static_cast<Expr>(fixed);
+    }
+
+    template<typename T> static inline Expr from_fixed_expr(Expr x)
+    {
+        return from_fixed<T>(Fixed<BASE_T, FB>{x});
     }
 };
 
@@ -43,7 +76,32 @@ inline Expr from_fixed(const Fixed<BASE_T, FB>& x)
         return cast<T>(x.v >> FB);
     }
 }
+ 
+template<typename BASE_T, uint32_t FB>
+inline Expr fixed_expr(Expr x)
+{
+    Fixed<BASE_T, FB> fixed = to_fixed<BASE_T, FB>(x);
+    return static_cast<Expr>(fixed);
+}
 
+template<typename T, typename BASE_T, uint32_t FB>
+inline Expr from_fixed_expr(Expr x)
+{
+    return from_fixed<T>(Fixed<BASE_T, FB>{x});
+} 
+
+template<typename BASE_T, uint32_t FB>
+inline BASE_T to_fixed_base(float x)
+{
+    return static_cast<BASE_T>(x * (1<<FB));
+}
+
+template<typename T, typename BASE_T, uint32_t FB>
+inline T from_fixed(BASE_T x)
+{
+    return cast<T>(x) / cast<T>(1 << FB);
+}
+ 
 template<typename BASE_T, uint32_t FB>
 Fixed<BASE_T, FB> operator-(const Fixed<BASE_T, FB>& x)
 {
@@ -194,5 +252,6 @@ Fixed<BASE_T, FB> sum_unroll(RDom r, const Fixed<BASE_T, FB>& x)
 }
 
 
+}
 } //namespace Element
 } //namespace Halide

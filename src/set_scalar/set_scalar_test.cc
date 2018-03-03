@@ -27,7 +27,6 @@ int test(int (*func)(T _value, struct halide_buffer_t *_dst_buffer)) {
         //for each x and y
         for (int y=0; y<height; ++y) {
             for (int x=0; x<width; ++x) {
-                output(x, y)= value;
                 if (value != output(x, y)) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
                                                     x, y, value, x, y, output(x, y)).c_str());
