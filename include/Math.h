@@ -8,6 +8,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 inline Expr log2(const Expr &x) {
     user_assert(x.defined()) << "log of undefined Expr\n";
 #if defined(HALIDE_FOR_FPGA)
@@ -39,6 +41,7 @@ inline Expr logr2(const Expr &x) {
 #endif
 }
 
+}
 }
 }
 
