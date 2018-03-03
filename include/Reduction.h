@@ -74,7 +74,6 @@ private:
         call_args.push_back(v);
     }
 };
-}
 
 Expr sum_unroll(RDom r, Expr e, const std::string& name = "sum_unroll") {
     FindFreeVars v(r);
@@ -225,6 +224,6 @@ Tuple argmin_unroll(RDom r, Expr e, const std::string &name = "argmin_unroll") {
     return f(v.call_args);
 }
 
-
+}
 } //namespace Halide
 } //namespace Element

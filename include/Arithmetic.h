@@ -8,30 +8,32 @@
 namespace Halide {
 namespace Element {
 
-template<typename T>
-Func sq_sum(ImageParam src)
+namespace {
+
+template<typename T, typename D>
+Func sq_sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
 
     Func dst("sq_sum");
 
-    RDom r(0, src.width(), 0, src.height());
+    RDom r(0, width, 0, height);
 
-    dst(x, y) = sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y)));
+    dst(x, y) = cast<D>(sum(cast<double>(src(r.x, r.y)) * cast<double>(src(r.x, r.y))));
 
     return dst;
 }
 
-template<typename T>
-Func sum(ImageParam src)
+template<typename T, typename D>
+Func sum(ImageParam src, int32_t width, int32_t height)
 {
     Var x{"x"}, y{"y"};
 
     Func dst("sum");
 
-    RDom r(0, src.width(), 0, src.height());
+    RDom r(0, width, 0, height);
 
-    dst(x, y) = sum(cast<double>(src(r.x, r.y)));
+    dst(x, y) = cast<D>(sum(cast<typename SumType<T>::type>(src(r.x, r.y))));
 
     return dst;
 }
@@ -337,7 +339,38 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
     return dst;
 }
 
+template<typename T>
+Func average_value(Func src, Func roi, int32_t width, int32_t height)
+{
+    Var x{"x"};
+    Func count{"count"}, dst{"dst"};
+    RDom r{0, width, 0, height, "r"};
+    r.where(roi(r.x, r.y) != 0);
+
+    count(x) = sum(select(roi(r.x, r.y) == 0, 0, 1));
+    schedule(count, {1});
+
+    dst(x) = cast<T>(select(count(x)==0, 0, sum(cast<double>(src(r.x, r.y)))/count(x)));
+    return dst;
 }
+
+Func filter_or(Func src0, Func src1) {
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = src0(x, y) | src1(x, y);
+    return dst;
 }
+
+Func filter_xor(Func src0, Func src1) {
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = src0(x, y) ^ src1(x, y);
+    return dst;
+}
+
+} // anonymous
+
+} // element
+} // Halide
 
 #endif
