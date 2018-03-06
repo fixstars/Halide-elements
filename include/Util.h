@@ -8,6 +8,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 void throw_assert(bool condition, const char *msg)
 {
     if (!condition) {
@@ -68,5 +70,6 @@ struct SumType<double> {
     using type = double;
 };
 
-} //namespace Element
-} //namespace Halide
+} // anonymous
+} // Element
+} // Halide

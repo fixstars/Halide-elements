@@ -6,6 +6,7 @@
 
 namespace Halide {
 namespace Element {
+namespace {
 
 
 Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
@@ -663,5 +664,6 @@ Func threshold_tozero_inv(Func src, Expr threshold)
     return dst;
 }
 
+} // anonymous
 } // Element
 } // Halide

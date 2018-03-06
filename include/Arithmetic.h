@@ -8,6 +8,8 @@
 namespace Halide {
 namespace Element {
 
+namespace{
+
 template<typename T, typename D>
 Func sq_sum(ImageParam src, int32_t width, int32_t height)
 {
@@ -347,7 +349,8 @@ Func filter_xor(Func src0, Func src1) {
     return dst;
 }
 
-}
-}
+} // anonymous
+} // Element
+} // Halide
 
 #endif

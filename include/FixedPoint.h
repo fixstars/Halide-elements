@@ -7,6 +7,7 @@
 
 namespace Halide {
 namespace Element {
+namespace {
 
 //
 // Fixed point
@@ -193,6 +194,6 @@ Fixed<BASE_T, FB> sum_unroll(RDom r, const Fixed<BASE_T, FB>& x)
     return Fixed<BASE_T, FB>{cast<BASE_T>(sum_unroll(r, cast<UPPER_T>(x.v)))};
 }
 
-
-} //namespace Element
-} //namespace Halide
+} // anonymous
+} // Element
+} // Halide

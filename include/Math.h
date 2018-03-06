@@ -8,7 +8,7 @@
 namespace Halide {
 namespace Element {
 
-// namespace {
+namespace {
 
 inline Expr log2(const Expr &x) {
     user_assert(x.defined()) << "log of undefined Expr\n";
@@ -41,8 +41,8 @@ inline Expr logr2(const Expr &x) {
 #endif
 }
 
-// }
-}
-}
+} // anonymous
+} // Element
+} // Halide
 
 #endif
