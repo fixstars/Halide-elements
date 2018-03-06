@@ -34,7 +34,7 @@ else ifeq (${BUILD_BY_MAKE}, ${HALIDE_LIB})
 	HALIDE_LIB_DIR=${HALIDE_LIB_MAKE}
 endif
 
-CXXFLAGS:=-O0 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
+CXXFLAGS:=-O2 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
 CSIM_CXXFLAGS:=-O2 -g -std=c++11 -I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools -L${HALIDE_LIB_DIR} -I../../include
 LIBS:=-ldl -lpthread -lz
 
