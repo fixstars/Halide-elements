@@ -83,7 +83,7 @@ Expr sum_unroll(RDom r, Expr e, const std::string& name = "sum_unroll") {
 
     Func f(name);
     f(v.free_vars) += e;
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -103,7 +103,7 @@ Expr product_unroll(RDom r, Expr e, const std::string &name = "produce_unroll") 
 
     Func f(name);
     f(v.free_vars) *= e;
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -124,7 +124,7 @@ Expr maximum_unroll(RDom r, Expr e, const std::string &name = "maximum_unroll") 
     Func f(name);
     f(v.free_vars) = e.type().min();
     f(v.free_vars) = max(f(v.free_vars), e);
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -145,7 +145,7 @@ Expr minimum_unroll(RDom r, Expr e, const std::string &name = "minimum_unroll") 
     Func f(name);
     f(v.free_vars) = e.type().max();
     f(v.free_vars) = min(f(v.free_vars), e);
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -179,7 +179,7 @@ Tuple argmax_unroll(RDom r, Expr e, const std::string &name = "argmax_unroll") {
     Expr better = e > f(v.free_vars)[value_index];
     Tuple update = tuple_select(better, update_tup, f(v.free_vars));
     f(v.free_vars) = update;
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -212,7 +212,7 @@ Tuple argmin_unroll(RDom r, Expr e, const std::string &name = "argmin_unroll") {
     f(v.free_vars) = initial_tup;
     Expr better = e < f(v.free_vars)[value_index];
     f(v.free_vars) = tuple_select(better, update_tup, f(v.free_vars));
-#if defined(HALIDE_FOR_FPGA) 
+#if defined(HALIDE_FOR_FPGA)
     for (auto var : v.free_vars) {
         f.unroll(var)
          .update().unroll(var);
@@ -224,6 +224,6 @@ Tuple argmin_unroll(RDom r, Expr e, const std::string &name = "argmin_unroll") {
     return f(v.call_args);
 }
 
-}
+} //namespace anonymous
 } //namespace Halide
 } //namespace Element

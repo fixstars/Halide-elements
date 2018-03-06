@@ -42,7 +42,7 @@ static int mempool_init(pool_t *pool)
 
     uint32_t size = 0;
     {
-        int fd = 0; 
+        int fd = 0;
         if ((fd  = open("/sys/class/udmabuf/udmabuf0/size", O_RDONLY)) == -1) {
             printf("cannot get size\n");
             return 1;
@@ -84,7 +84,7 @@ static int mempool_alloc(pool_t *pool, dma_buffer_t *buf)
 {
     // Align to 4KiB
     size_t size = (buf->size + 4096 - 1) / 4096 * 4096;
-    
+
     if (pool->offset + size > pool->size) {
         printf("Memory pool is insufficient\n");
         return 1;
@@ -92,7 +92,7 @@ static int mempool_alloc(pool_t *pool, dma_buffer_t *buf)
 
     buf->ptr = pool->ptr + pool->offset;
     buf->addr = pool->phys_addr + pool->offset;
-    
+
     pool->offset += size;
 
     return 0;
@@ -155,12 +155,12 @@ int save_pgm(const char *fname, const uint8_t *buffer, int32_t width, int32_t he
     fprintf(fd, "P5\n");
     fprintf(fd, "%d %d\n", width, height);
     fprintf(fd, "255\n");
-    
+
     uint8_t *buf = (uint8_t*)malloc(width*height*sizeof(uint8_t));
     memcpy(buf, buffer, width*height*sizeof(uint8_t));
     fwrite(buf, sizeof(uint8_t), width*height, fd);
     free(buf);
-    
+
     fclose(fd);
     return 0;
 }
@@ -181,7 +181,7 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
     fprintf(fd, "P6\n");
     fprintf(fd, "%d %d\n", width, height);
     fprintf(fd, "255\n");
-    
+
     uint8_t *buf = (uint8_t*)malloc(3*width*height);
     for (int32_t y=0; y<height; ++y) {
         for (int32_t x=0; x<width; ++x) {
@@ -192,10 +192,10 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
     }
     fwrite(buf, sizeof(uint8_t), 3*width*height, fd);
     free(buf);
-    
+
     fclose(fd);
     return 0;
 }
 
-}
+} //anonymous namespace
 #endif

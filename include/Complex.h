@@ -4,7 +4,6 @@
 
 namespace Halide {
 namespace Element {
-
 namespace {
 
 //
@@ -46,6 +45,6 @@ ComplexExpr norm(const ComplexExpr& a)
     return {a.x / len, a.y / len};
 }
 
-}
+} // anonymous
 } // Element
 } // Halide

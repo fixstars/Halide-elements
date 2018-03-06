@@ -2,6 +2,8 @@
 #define HALIDE_ELEMENT_MATH_H
 
 #include "Halide.h"
+#define user_assert(c) _halide_internal_assertion(c, Internal::ErrorReport::User)
+
 
 namespace Halide {
 namespace Element {
@@ -39,8 +41,8 @@ inline Expr logr2(const Expr &x) {
 #endif
 }
 
-}
-}
-}
+} // anonymous
+} // Element
+} // Halide
 
 #endif
