@@ -16,7 +16,7 @@ public:
 
     Func build() {
         Func dst{"dst"};
-        dst = Element::filter_or<T>(src0, src1);
+        dst = Element::filter_or(src0, src1);
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(dst, {width, height});
