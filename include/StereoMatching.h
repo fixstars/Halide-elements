@@ -8,6 +8,32 @@ namespace Element {
 
 namespace {
 
+Func split_lhs(Func input, int32_t width, int32_t height)
+{
+    Var x, y;
+    Func f("lhs");
+    f(x, y) = input(x, y);
+
+    return f;
+}
+
+Func split_rhs(Func input, int32_t width, int32_t height)
+{
+    Var x, y;
+    Func f("rhs");
+    f(x, y) = input(x+width/2, y);
+
+    return f;
+}
+
+Func enlarge(Func input)
+{
+    Var x, y;
+    Func f("enlarge");
+    f(x, y) = input(x/2, y);
+    return f;
+}
+   
 Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
 {
     Var d, x, y;
@@ -16,7 +42,52 @@ Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
     return f;
 }
 
+Func disparity_own_argmin_ex(Func cost, int32_t width, int32_t height, int32_t disp)
+{
+    Var x("x"), y("y"), d("d");
+    RDom r(0, disp);
+    Func f("disparity"), g("arg_min");
 
+    // f(x, y) = cast<uint8_t>(argmin(r, cost(r, x, y))[0]);
+
+    g(d, x, y) = Tuple(cast<uint16_t>(d), cost(d, x, y));
+    Expr pc = r-1;
+    g(r, x, y) = Tuple(
+        select(pc < 0, g(r, x, y)[0], select(g(r, x, y)[1] < g(pc, x, y)[1], g(r, x, y)[0], g(pc, x, y)[0])),
+        select(pc < 0, g(r, x, y)[1], min(g(pc, x, y)[1], g(r, x, y)[1]))
+        );
+
+    g.compute_root()
+     .bound(d, 0, disp)
+     .bound(x, 0, width)
+     .bound(y, 0, height)
+     .unroll(d).update().unroll(r).allow_race_conditions();
+
+    f(x, y) = g(disp-1, x, y)[0];
+
+    return f;
+}
+
+Func disparity_(Func cost, int32_t disp)
+{
+    Var x("x"), y("y");
+    RDom r(0, disp);
+
+    Expr e = cost(r, x, y);
+
+    Func g("argmin");
+    g(x, y) = Tuple(0, e.type().max());
+    g(x, y) = tuple_select(e < g(x, y)[1], Tuple(r, e), g(x, y));
+
+    g.unroll(x).unroll(y)
+     .update().unroll(x).unroll(y).unroll(r[0]);
+
+    Func f("disparity");
+    f(x, y) = g(x, y)[0];
+
+    return f;
+}
+ 
 Func disparity(Func cost, int32_t disp)
 {
     Var x("x"), y("y");
@@ -37,6 +108,35 @@ Func disparity(Func cost, int32_t disp)
     return f;
 }
 
+Func census(Func input, int32_t width, int32_t height, int32_t hori, int32_t vert)
+{
+  Var x("x"), y("y");
+  const int32_t radh = hori/2, radv = vert/2;
+
+  Func f("census");
+  RDom rh(-radh, hori);
+  RDom rv(-radv, vert);
+  Expr rX = radh - rh;
+  Expr rY = radv - rv;
+  Expr vrX = select(rX > radh, rX - 1, rX);
+  Expr vrY = select(rY > radh, rY - 1, rY);
+  Expr shift = cast<uint64_t>(vrY * (hori-1) + vrX);
+  Expr inside = x >= radh && x < width-radh && y >= radh && y < height-radh;
+
+  Func in = BoundaryConditions::constant_exterior(input, 0, 0, width, 0, height);
+
+  f(x, y) = select(inside,
+                   sum_unroll(rh,
+                              sum_unroll(rv, select(rh == 0 || rv == 0,
+                                                    cast<uint64_t>(0),
+                                                    select(in(x, y) > in(x+rh, y+rv),
+                                                           cast<uint64_t>(1) << shift,
+                                                           cast<uint64_t>(0))))),
+                              cast<uint64_t>(0));
+
+  return f;
+}
+ 
 Func census(Func input, int32_t width, int32_t height)
 {
     Var x("x"), y("y"), d("d");
