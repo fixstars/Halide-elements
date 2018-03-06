@@ -161,7 +161,7 @@ Func conv_qr_fixed32(Func bottom, T weight, T bias,
 
     return conv_qr_fixed32<T, FB>(bottom, weight, bias, weight_shape, stride, pad, bottom_shape, top_shape, unroll);
 }
- 
+
 template <typename T, uint32_t FB>
 Func conv_qq_fixed32(Func bottom, T weight, T bias,
                      const std::vector<int32_t>& weight_shape, int32_t stride, int32_t pad,
@@ -1094,9 +1094,6 @@ Func binconv_module_fixed32(Func bottom, const std::vector<int32_t>& bottom_shap
     std::vector<int32_t> active_top_shape;
     active_f(c, x, y, n) = bin_active_fixed32<FB>(scale_f, scale_top_shape, active_top_shape)(c, x, y, n);
     schedule(active_f, active_top_shape);
-    if (unroll) {
-        active_f.hls_burst(active_top_shape[0]);
-    }
 
     // Conv
     Func conv_f("conv" + suffix);

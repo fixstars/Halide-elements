@@ -7,7 +7,6 @@
 namespace Halide {
 namespace Element {
 
-namespace {
 
 Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
             Param<float> scale_x, Param<float> scale_y,

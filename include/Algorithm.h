@@ -26,6 +26,8 @@ Expr bit_reverse(Expr i, const int n)
     return ri;
 }
 
+}
+
 Func fft(Func in, const int32_t n, const int32_t batch_size)
 {
     Var c{"c"}, i{"i"}, k{"k"};
@@ -89,7 +91,6 @@ Func copy(Func src)
     return dst;
 }
 
-}
 } // Element
 } // Halide
 

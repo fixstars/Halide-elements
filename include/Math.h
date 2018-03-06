@@ -2,13 +2,13 @@
 #define HALIDE_ELEMENT_MATH_H
 
 #include "Halide.h"
-#define user_assert(c) _halide_internal_assertion(c, Halide::Internal::ErrorReport::User)
+#define user_assert(c) _halide_internal_assertion(c, Internal::ErrorReport::User)
 
 
 namespace Halide {
 namespace Element {
 
-namespace {
+// namespace {
 
 inline Expr log2(const Expr &x) {
     user_assert(x.defined()) << "log of undefined Expr\n";
@@ -41,7 +41,7 @@ inline Expr logr2(const Expr &x) {
 #endif
 }
 
-}
+// }
 }
 }
 
