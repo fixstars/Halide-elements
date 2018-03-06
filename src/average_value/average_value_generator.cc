@@ -19,6 +19,7 @@ public:
         dst = Element::average_value<D>(src, roi, width, height);
         schedule(src, {width, height});
         schedule(roi, {width, height});
+        schedule(dst, {1});
 
         return dst;
     }
