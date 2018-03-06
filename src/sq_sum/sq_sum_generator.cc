@@ -6,8 +6,8 @@
 using namespace Halide;
 using Halide::Element::schedule;
 
-template<typename T>
-class Sq_sum : public Halide::Generator<Sq_sum<T>> {
+template<typename T, typename D>
+class Sq_sum : public Halide::Generator<Sq_sum<T, D>> {
 public:
 
     GeneratorParam<int32_t> width{"width", 1024};
@@ -17,7 +17,7 @@ public:
     Func build() {
         Func dst{"dst"};
 
-        dst =  Element::sq_sum<T>(src);
+        dst = Element::sq_sum<T, D>(src, width, height);
 
         schedule(src, {width, height});
         schedule(dst, {1, 1});
@@ -26,6 +26,9 @@ public:
     }
 };
 
-RegisterGenerator<Sq_sum<uint8_t>> sq_sum_u8{"sq_sum_u8"};
-RegisterGenerator<Sq_sum<uint16_t>> sq_sum_u16{"sq_sum_u16"};
-RegisterGenerator<Sq_sum<uint32_t>> sq_sum_u32{"sq_sum_u32"};
+RegisterGenerator<Sq_sum<uint8_t, float>> sq_sum_u8_f32{"sq_sum_u8_f32"};
+RegisterGenerator<Sq_sum<uint16_t, float>> sq_sum_u16_f32{"sq_sum_u16_f32"};
+RegisterGenerator<Sq_sum<uint32_t, float>> sq_sum_u32_f32{"sq_sum_u32_f32"};
+RegisterGenerator<Sq_sum<uint8_t, double>> sq_sum_u8_f64{"sq_sum_u8_f64"};
+RegisterGenerator<Sq_sum<uint16_t, double>> sq_sum_u16_f64{"sq_sum_u16_f64"};
+RegisterGenerator<Sq_sum<uint32_t, double>> sq_sum_u32_f64{"sq_sum_u32_f64"};
