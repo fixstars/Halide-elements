@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+namespace {
+
 typedef struct {
     void *ptr;
     size_t size;
@@ -195,4 +197,5 @@ int save_ppm(const char *fname, const uint8_t *buffer, int32_t channel, int32_t 
     return 0;
 }
 
+}
 #endif

@@ -5,6 +5,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 //
 // Complex Expression
 //
@@ -44,5 +46,6 @@ ComplexExpr norm(const ComplexExpr& a)
     return {a.x / len, a.y / len};
 }
 
+}
 } // Element
 } // Halide
