@@ -632,12 +632,12 @@ template<> Func bilateral<uint8_t>(Func src, int32_t width, int32_t height, Expr
     bri(x, y) = clamped(x-wRadius, y-wRadius);
 
     Func num;
-    num(x, y) = sum(kernel_d(w.x, w.y)
+    num(x, y) = sum_unroll(w, kernel_d(w.x, w.y)
                     * select(src(x, y) > bri(x+w.x, y+w.y),
                              kernel_r(src(x, y)-bri(x+w.x, y+w.y)),
                              kernel_r(bri(x+w.x, y+w.y)-src(x, y)))
                     * bri(w.x+x, w.y+y))
-                /sum(kernel_d(w.x, w.y)
+                /sum_unroll(w, kernel_d(w.x, w.y)
                      * select(src(x, y) > bri(x+w.x, y+w.y),
                               kernel_r(src(x, y)-bri(x+w.x, y+w.y)),
                               kernel_r(bri(x+w.x, y+w.y)-src(x, y))));
@@ -673,12 +673,12 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
     bri(x, y) = clamped(x-wRadius, y-wRadius);
 
     Func num;
-    num(x, y) = sum(kernel_d(w.x, w.y)
+    num(x, y) = sum_unroll(w, kernel_d(w.x, w.y)
                     * exp(-0.5f * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
                                 * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
                                 / (color*color))
                     * bri(w.x+x, w.y+y))
-                /sum(kernel_d(w.x, w.y)
+                /sum_unroll(w, kernel_d(w.x, w.y)
                      * exp(-0.5f * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
                                  * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
                                  / (color*color)));
