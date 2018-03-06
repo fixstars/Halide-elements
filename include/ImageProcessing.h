@@ -7,6 +7,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
             Param<float> scale_x, Param<float> scale_y,
             Param<float> shift_x, Param<float> shift_y, Param<float> skew_y)
@@ -588,6 +590,6 @@ Func split4(Func src, int32_t widthe, int32_t height)
     return dst;
 }
 
-
+} //anonymous
 } // Element
 } // Halide

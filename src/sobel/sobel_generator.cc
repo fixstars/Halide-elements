@@ -20,7 +20,7 @@ public:
         schedule(input, {width, height});
         schedule(output, {width, height});
 
-        return output
+        return output;
     }
 
 };
