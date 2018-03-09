@@ -139,7 +139,7 @@ Func scanCost(Func cost, int32_t width, int32_t height, int32_t disp)
     return f;
 }
 
-Func semi_global_matching(Func in_l, Func in_r, int32_t disp, int32_t width, int32_t height)
+Func semi_global_matching(Func in_l, Func in_r, int32_t width, int32_t height, int32_t disp)
 {
     Var d, x, y;
     Func f0_l("census_left");
