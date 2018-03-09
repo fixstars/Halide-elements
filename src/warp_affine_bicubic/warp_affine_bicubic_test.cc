@@ -87,7 +87,7 @@ Halide::Runtime::Buffer<T>& BC_ref(Halide::Runtime::Buffer<T>& dst,
                                 const Halide::Runtime::Buffer<T>& src,
                                 const int32_t width, const int32_t height,
                                 const T border_value, const int32_t border_type,
-                                const Halide::Runtime::Buffer<T>& transform)
+                                const Halide::Runtime::Buffer<double>& transform)
 {
     /* avoid overflow from X-1 to X+2 */
     float imin = static_cast<float>((std::numeric_limits<int>::min)() + 1);
@@ -126,8 +126,8 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer,
         const std::vector<int32_t> extents{width, height};
         const std::vector<int32_t> tableSize{6};
         const T border_value = mk_rand_scalar<T>();
-        const int32_t border_type = 1; // 0 or 1
-        auto transform = mk_rand_buffer<T>(tableSize);
+        const int32_t border_type = 0; // 0 or 1
+        auto transform = mk_rand_buffer<double>(tableSize);
         auto input = mk_rand_buffer<T>(extents);
         auto output = mk_null_buffer<T>(extents);
 

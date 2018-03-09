@@ -8,9 +8,9 @@ using Halide::Element::schedule;
 template<typename T>
 class WarpAffineBC : public Halide::Generator<WarpAffineBC<T>> {
     ImageParam src{type_of<T>(), 2, "src"};
-    GeneratorParam<int32_t> border_type{"border_type", 1}; //0 or 1
+    GeneratorParam<int32_t> border_type{"border_type", 0}; //0 or 1
     Param<T> border_value{"border_value", 1};
-    ImageParam transform{type_of<T>(), 1, "transform"};
+    ImageParam transform{type_of<double>(), 1, "transform"};
 
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
