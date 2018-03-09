@@ -8,32 +8,6 @@ namespace Element {
 
 namespace {
 
-Func split_lhs(Func input, int32_t width, int32_t height)
-{
-    Var x, y;
-    Func f("lhs");
-    f(x, y) = input(x, y);
-
-    return f;
-}
-
-Func split_rhs(Func input, int32_t width, int32_t height)
-{
-    Var x, y;
-    Func f("rhs");
-    f(x, y) = input(x+width/2, y);
-
-    return f;
-}
-
-Func enlarge(Func input)
-{
-    Var x, y;
-    Func f("enlarge");
-    f(x, y) = input(x/2, y);
-    return f;
-}
-   
 Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
 {
     Var d, x, y;
