@@ -68,26 +68,6 @@ Func disparity_own_argmin_ex(Func cost, int32_t width, int32_t height, int32_t d
     return f;
 }
 
-Func disparity_(Func cost, int32_t disp)
-{
-    Var x("x"), y("y");
-    RDom r(0, disp);
-
-    Expr e = cost(r, x, y);
-
-    Func g("argmin");
-    g(x, y) = Tuple(0, e.type().max());
-    g(x, y) = tuple_select(e < g(x, y)[1], Tuple(r, e), g(x, y));
-
-    g.unroll(x).unroll(y)
-     .update().unroll(x).unroll(y).unroll(r[0]);
-
-    Func f("disparity");
-    f(x, y) = g(x, y)[0];
-
-    return f;
-}
- 
 Func disparity(Func cost, int32_t disp)
 {
     Var x("x"), y("y");
@@ -139,32 +119,7 @@ Func census(Func input, int32_t width, int32_t height, int32_t hori, int32_t ver
  
 Func census(Func input, int32_t width, int32_t height)
 {
-    Var x("x"), y("y"), d("d");
-
-    const int32_t hori = 9, vert = 7;
-    const int32_t radh = hori/2, radv = vert/2;
-
-    Func f;
-    RDom rh(-radh, hori);
-    RDom rv(-radv, vert);
-    Expr rX = radh - rh;
-    Expr rY = radv - rv;
-    Expr vrX = select(rX > radh, rX - 1, rX);
-    Expr vrY = select(rY > radh, rY - 1, rY);
-    Expr shift = cast<uint64_t>(vrY * (hori-1) + vrX);
-    Expr inside = x >= radh && x < width-radh && y >= radh && y < height-radh;
-
-    Func in = BoundaryConditions::constant_exterior(input, 0, 0, width, 0, height);
-
-    f(x, y) = select(inside,
-                        sum_unroll(rh,
-                                sum_unroll(rv, select(rh == 0 || rv == 0,
-                                                        cast<uint64_t>(0),
-                                                        select(in(x, y) > in(x+rh, y+rv),
-                                                                cast<uint64_t>(1) << shift,
-                                                                cast<uint64_t>(0))))),
-                        cast<uint64_t>(0));
-    return f;
+    return census(input, width, height, 9, 7);
 }
 
 Func matchingCost(Func left, Func right, int32_t width, int32_t height)
