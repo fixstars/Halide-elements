@@ -16,32 +16,6 @@ Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
     return f;
 }
 
-Func disparity_own_argmin_ex(Func cost, int32_t width, int32_t height, int32_t disp)
-{
-    Var x("x"), y("y"), d("d");
-    RDom r(0, disp);
-    Func f("disparity"), g("arg_min");
-
-    // f(x, y) = cast<uint8_t>(argmin(r, cost(r, x, y))[0]);
-
-    g(d, x, y) = Tuple(cast<uint16_t>(d), cost(d, x, y));
-    Expr pc = r-1;
-    g(r, x, y) = Tuple(
-        select(pc < 0, g(r, x, y)[0], select(g(r, x, y)[1] < g(pc, x, y)[1], g(r, x, y)[0], g(pc, x, y)[0])),
-        select(pc < 0, g(r, x, y)[1], min(g(pc, x, y)[1], g(r, x, y)[1]))
-        );
-
-    g.compute_root()
-     .bound(d, 0, disp)
-     .bound(x, 0, width)
-     .bound(y, 0, height)
-     .unroll(d).update().unroll(r).allow_race_conditions();
-
-    f(x, y) = g(disp-1, x, y)[0];
-
-    return f;
-}
-
 Func disparity(Func cost, int32_t disp)
 {
     Var x("x"), y("y");
