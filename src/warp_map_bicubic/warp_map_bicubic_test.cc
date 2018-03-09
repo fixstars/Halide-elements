@@ -134,7 +134,7 @@ int test(int (*func)(struct halide_buffer_t *_src_buffer0,
         // for each x and y
         for (int j=0; j<width; ++j) {
             for (int i=0; i<height; ++i) {
-                if (abs(expect(j, i) - output(j, i)) > 0) {
+                if (abs(expect(j, i) - output(j, i)) > 1) {
                     throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
                                                 j, i, expect(j, i), j, i, output(j, i)));
                 }
