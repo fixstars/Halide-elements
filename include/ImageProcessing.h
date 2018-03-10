@@ -697,6 +697,17 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
     return dst;
 }
 
+template <typename T>
+Func subimage(Func src, Expr originx, Expr originy)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    // RDom r{0, width, 0, height, "r"};
+    dst(x, y) = src(x+originx, y+originy);
+    return dst;
+}
+
 } // anonymous
 
 } // Element
