@@ -6,7 +6,7 @@ using namespace Halide;
 using Halide::Element::schedule;
 
 template<typename T>
-class Xor : public Halide::Generator<Xor<T>> {
+class Or : public Halide::Generator<Or<T>> {
 public:
     ImageParam src0{type_of<T>(), 2, "src0"};
     ImageParam src1{type_of<T>(), 2, "src1"};
@@ -16,7 +16,7 @@ public:
 
     Func build() {
         Func dst{"dst"};
-        dst = Element::filter_xor(src0, src1);
+        dst = Element::filter_or(src0, src1);
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(dst, {width, height});
@@ -25,6 +25,6 @@ public:
     }
 };
 
-RegisterGenerator<Xor<uint8_t>> xor_u8{"xor_u8"};
-RegisterGenerator<Xor<uint16_t>> xor_u16{"xor_u16"};
-RegisterGenerator<Xor<uint32_t>> xor_u32{"xor_u32"};
+RegisterGenerator<Or<uint8_t>> or_u8{"or_u8"};
+RegisterGenerator<Or<uint16_t>> or_u16{"or_u16"};
+RegisterGenerator<Or<uint32_t>> or_u32{"or_u32"};

@@ -8,20 +8,14 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 //
 // Fixed point
 //
 
-template<uint32_t NB, uint32_t FB, bool is_signed = true>
-struct FixedN {
-    Expr v;
-
-    explicit operator Expr() const {
-        return v;
-    }
-};
-
 Type base_type(uint32_t nb, bool is_signed) {
+    // If not used with hls-backend, represent the type by the next uppermost integer type valid in C
 #if !defined(HALIDE_FOR_FPGA)
     int new_nb;
     for (new_nb = 8; new_nb < nb; new_nb *= 2);
@@ -35,32 +29,86 @@ Type upper_type(const Type& type) {
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed = true>
+struct FixedN {
+    Expr v;
+
+    explicit operator Expr() const {
+        return v;
+    }
+
+    static inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
+    {
+        Type type = base_type(NB, is_signed);
+        throw_assert(x.defined(), "conversion of undefined Expr");
+        if (x.type().is_float()) {
+            return FixedN<NB, FB, is_signed>{cast(type, x * Halide::Internal::make_const(type, 1<<FB))};
+        } else {
+            return FixedN<NB, FB, is_signed>{cast(type, x) << FB};
+        }
+    }
+
+    template<typename T> static inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
+    {
+        throw_assert(x.v.defined(), "conversion of undefined Expr");
+        if (type_of<T>().is_float()) {
+            return cast<T>(x.v) / cast<T>(1 << FB);
+        } else {
+            return cast<T>(x.v >> FB);
+        }
+    }
+
+    static inline Expr fixed_expr(Expr x)
+    {
+        auto fixed = FixedN<NB, FB, is_signed>::to_fixed(x);
+        return static_cast<Expr>(fixed);
+    }
+
+    template<typename T> static inline Expr from_fixed_expr(Expr x)
+    {
+        return from_fixed<T>(FixedN<NB, FB, is_signed>{x});
+    }
+};
+
+template<uint32_t NB, uint32_t FB, bool is_signed = true>
 inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
 {
-    Type type = base_type(NB, is_signed);
-    throw_assert(x.defined(), "conversion of undefined Expr");
-    if (x.type().is_float()) {
-        return FixedN<NB, FB, is_signed>{cast(type, x * Halide::Internal::make_const(type, 1<<FB))};
-    } else {
-        return FixedN<NB, FB, is_signed>{cast(type, x) << FB};
-    }
+    return FixedN<NB, FB, is_signed>::to_fixed(x);
+}
+ 
+template<uint32_t NB, uint32_t FB, bool is_signed>
+inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
+{
+    return FixedN<NB, FB, is_signed>::from_fixed(x);
+}
+ 
+template<uint32_t NB, uint32_t FB, bool is_signed>
+inline Expr fixed_expr(Expr x)
+{
+    return FixedN<NB, FB, is_signed>::fixed_expr(x);
 }
 
 template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
-inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
+inline Expr from_fixed_expr(Expr x)
 {
-    throw_assert(x.v.defined(), "conversion of undefined Expr");
-    if (type_of<T>().is_float()) {
-        return cast<T>(x.v) / cast<T>(1 << FB);
-    } else {
-        return cast<T>(x.v >> FB);
-    }
-}
+    return from_fixed<T>(FixedN<NB, FB, is_signed>{x});
+} 
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> operator-(const FixedN<NB, FB, is_signed>& x)
 {
     return FixedN<NB, FB, is_signed>{-x.v};
+}
+
+template<typename BASE_T, uint32_t FB>
+inline BASE_T to_fixed_base(float x)
+{
+    return static_cast<BASE_T>(x * (1<<FB));
+}
+
+template<typename T, typename BASE_T, uint32_t FB>
+inline T from_fixed(BASE_T x)
+{
+    return cast<T>(x) / cast<T>(1 << FB);
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
@@ -220,5 +268,6 @@ inline Fixed<T, FB> to_fixed(Expr x)
     return to_fixed<sizeof(T) * 8, FB, std::is_signed<T>::value>(x);
 }
 
+}
 } //namespace Element
 } //namespace Halide
