@@ -75,10 +75,10 @@ inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
     return FixedN<NB, FB, is_signed>::to_fixed(x);
 }
  
-template<uint32_t NB, uint32_t FB, bool is_signed>
+ template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
 {
-    return FixedN<NB, FB, is_signed>::from_fixed(x);
+    return FixedN<NB, FB, is_signed>::template from_fixed<T>(x);
 }
  
 template<uint32_t NB, uint32_t FB, bool is_signed>
