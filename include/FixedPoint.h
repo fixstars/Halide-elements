@@ -87,6 +87,12 @@ inline Expr fixed_expr(Expr x)
     return FixedN<NB, FB, is_signed>::fixed_expr(x);
 }
 
+template<typename T, uint32_t FB>
+inline Expr fixed_expr(Expr x)
+{
+    return fixed_expr<sizeof(T) * 8, FB, std::is_signed<T>::value>(x);
+}
+
 template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr from_fixed_expr(Expr x)
 {
