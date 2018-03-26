@@ -399,7 +399,7 @@ Func bitonic_sort(Func input, int32_t size, int32_t width, int32_t height) {
 
             }
 
-            schedule(next, {size, width, height});
+            prev.compute_at(next, x);
             next.unroll(i);
             prev = next;
         }
@@ -429,6 +429,7 @@ Func median(Func in, int32_t width, int32_t height, int32_t window_width, int32_
     Func median("median");
     median(x, y) = sorted(window_size / 2, x, y);
 
+    sorted.compute_at(median, x);
     schedule(window, {window_size, width, height});
     return median;
 }
