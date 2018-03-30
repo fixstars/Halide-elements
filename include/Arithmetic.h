@@ -356,6 +356,22 @@ Func filter_xor(Func src0, Func src1) {
     return dst;
 }
 
+template<typename T>
+Func sq_integral(Func src, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = cast<T>(src(x, y)) * cast<T>(src(x, y));
+
+    RDom h{1, width-1, 0, height, "h"};
+    dst(h.x, h.y) += dst(h.x-1, h.y);
+
+    RDom v{0, width, 1, height-1, "v"};
+    dst(v.x, v.y) += dst(v.x, v.y-1);
+
+    return dst;
+}
+
 } // anonymous
 
 } // element
