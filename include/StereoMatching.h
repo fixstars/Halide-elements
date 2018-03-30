@@ -6,6 +6,8 @@
 namespace Halide {
 namespace Element {
 
+namespace {
+
 Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
 {
     Var d, x, y;
@@ -13,7 +15,6 @@ Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
     f(d, x, y) = cost_ul(d, x, y) + cost_u(d, x, y) + cost_ur(d, x, y);
     return f;
 }
-
 
 Func disparity(Func cost, int32_t disp)
 {
@@ -35,34 +36,38 @@ Func disparity(Func cost, int32_t disp)
     return f;
 }
 
+Func census(Func input, int32_t width, int32_t height, int32_t hori, int32_t vert)
+{
+  Var x("x"), y("y");
+  const int32_t radh = hori/2, radv = vert/2;
+
+  Func f("census");
+  RDom rh(-radh, hori);
+  RDom rv(-radv, vert);
+  Expr rX = radh - rh;
+  Expr rY = radv - rv;
+  Expr vrX = select(rX > radh, rX - 1, rX);
+  Expr vrY = select(rY > radh, rY - 1, rY);
+  Expr shift = cast<uint64_t>(vrY * (hori-1) + vrX);
+  Expr inside = x >= radh && x < width-radh && y >= radh && y < height-radh;
+
+  Func in = BoundaryConditions::constant_exterior(input, 0, 0, width, 0, height);
+
+  f(x, y) = select(inside,
+                   sum_unroll(rh,
+                              sum_unroll(rv, select(rh == 0 || rv == 0,
+                                                    cast<uint64_t>(0),
+                                                    select(in(x, y) > in(x+rh, y+rv),
+                                                           cast<uint64_t>(1) << shift,
+                                                           cast<uint64_t>(0))))),
+                              cast<uint64_t>(0));
+
+  return f;
+}
+ 
 Func census(Func input, int32_t width, int32_t height)
 {
-    Var x("x"), y("y"), d("d");
-
-    const int32_t hori = 9, vert = 7;
-    const int32_t radh = hori/2, radv = vert/2;
-
-    Func f;
-    RDom rh(-radh, hori);
-    RDom rv(-radv, vert);
-    Expr rX = radh - rh;
-    Expr rY = radv - rv;
-    Expr vrX = select(rX > radh, rX - 1, rX);
-    Expr vrY = select(rY > radh, rY - 1, rY);
-    Expr shift = cast<uint64_t>(vrY * (hori-1) + vrX);
-    Expr inside = x >= radh && x < width-radh && y >= radh && y < height-radh;
-
-    Func in = BoundaryConditions::constant_exterior(input, 0, 0, width, 0, height);
-
-    f(x, y) = select(inside,
-                        sum_unroll(rh,
-                                sum_unroll(rv, select(rh == 0 || rv == 0,
-                                                        cast<uint64_t>(0),
-                                                        select(in(x, y) > in(x+rh, y+rv),
-                                                                cast<uint64_t>(1) << shift,
-                                                                cast<uint64_t>(0))))),
-                        cast<uint64_t>(0));
-    return f;
+    return census(input, width, height, 9, 7);
 }
 
 Func matchingCost(Func left, Func right, int32_t width, int32_t height)
@@ -134,7 +139,7 @@ Func scanCost(Func cost, int32_t width, int32_t height, int32_t disp)
     return f;
 }
 
-Func semi_global_matching(Func in_l, Func in_r, int32_t disp, int32_t width, int32_t height)
+Func semi_global_matching(Func in_l, Func in_r, int32_t width, int32_t height, int32_t disp)
 {
     Var d, x, y;
     Func f0_l("census_left");
@@ -172,6 +177,6 @@ Func semi_global_matching(Func in_l, Func in_r, int32_t disp, int32_t width, int
     return out;
 }
 
-
+}
 } // Element
 } // Halide
