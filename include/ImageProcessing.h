@@ -136,6 +136,7 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     return dst;
 }
 
+template<uint32_t NB, uint32_t FB>
 Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t kernel_size, int32_t unroll_factor) {
     Var x, y;
 
@@ -150,10 +151,9 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Func k;
     k(x, y) = kernel(x, y);
 
-    constexpr uint32_t frac_bits = 10;
-    using Fixed16 = Fixed<int16_t, frac_bits>;
-    Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
-    Fixed16 kv{k(r.x, r.y)};
+    using FixedNB = FixedN<NB, FB>;
+    FixedNB pv = to_fixed<NB, FB>(bounded(x+dx, y+dy));
+    FixedNB kv{k(r.x, r.y)};
 
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
