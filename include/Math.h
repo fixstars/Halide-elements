@@ -2,7 +2,9 @@
 #define HALIDE_ELEMENT_MATH_H
 
 #include "Halide.h"
-#define user_assert(c) _halide_internal_assertion(c, Internal::ErrorReport::User)
+#ifndef he_user_assert
+#define he_user_assert(c) _halide_internal_assertion(c, Internal::ErrorReport::User)
+#endif
 
 namespace Halide {
 namespace Element {
@@ -10,7 +12,7 @@ namespace Element {
 namespace {
 
 inline Expr log2(const Expr &x) {
-    _halide_user_assert(x.defined()) << "log of undefined Expr\n";
+    he_user_assert(x.defined()) << "log of undefined Expr\n";
 #if defined(HALIDE_FOR_FPGA)
     if (x.type() == Int(32)) {
         return Internal::Call::make(Int(32), "log2_i32", {x}, Internal::Call::PureExtern);
@@ -26,7 +28,7 @@ inline Expr log2(const Expr &x) {
 
 // This is approximated as 2 * log2(x) + x.bit[31-nlz(x)-1]
 inline Expr logr2(const Expr &x) {
-    _halide_user_assert(x.defined()) << "log of undefined Expr\n";
+    he_user_assert(x.defined()) << "log of undefined Expr\n";
 #if defined(HALIDE_FOR_FPGA)
     if (x.type() == Int(32)) {
         return Internal::Call::make(Int(32), "logr2_i32", {x}, Internal::Call::PureExtern);
