@@ -697,6 +697,87 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
     return dst;
 }
 
+std::map<int32_t, int32_t, std::greater<int32_t>> insertMap(std::map<int32_t, int32_t, std::greater<int32_t>> myMap, int32_t from, int32_t into){
+    std::pair<std::map<int32_t, int32_t>::iterator,bool> ret;
+    ret = myMap.insert ( std::pair<int32_t,int32_t>(from,into) );
+    if(ret.second == false){
+        if(myMap[from] > into){
+            myMap = insertMap(myMap, myMap[from], into);
+            myMap[from] = into;
+        }else if(myMap[from] < into){
+            myMap = insertMap(myMap, into, myMap[from]);
+        }
+    }
+    return myMap;
+}
+
+
+Func label_firstpass(Func src, int32_t width, int32_t height)
+{
+    Expr MAX = width * height + 2;
+    Func original;
+    Var x, y;
+    original(x, y) = cast<uint32_t>(select(src(x,y)==0, 0, x+y*width+1));
+
+    Func extend = BoundaryConditions::constant_exterior(original, 0, 0, width, 0, height);
+
+    Func findMin;
+    findMin(x, y) = select(extend(x, y)!=0, extend(x, y), MAX);
+
+
+    RDom s{0, width, 0, height, "s"};
+    findMin(s.x, s.y) = select(findMin(s.x, s.y)== MAX,
+                                    findMin(s.x, s.y),
+                                    min(findMin(s.x, s.y),
+                                        min(min(findMin(s.x-1, s.y-1),
+                                                findMin(s.x, s.y-1)),
+                                            min(findMin(s.x+1  , s.y-1),
+                                                findMin(s.x-1, s.y)))));
+
+    findMin.compute_root();
+    Func firstPass;
+    firstPass(x, y) = Tuple(select(findMin(x, y)==MAX, 0, findMin(x, y)),
+                            select(findMin(x,y)!=MAX
+                                   &&findMin(x,y) > min(min(findMin(x+1, y),
+                                                            findMin(x-1, y+1)),
+                                                        min(findMin(x,   y+1),
+                                                            findMin(x+1, y+1))),
+                                    1, 0));
+
+    // Func findMin;
+    // findMin(x, y) = extend(x, y);
+    //
+    // RDom s{0, width, 0, height, "s"};
+    // findMin(s.x, s.y) = select(findMin(s.x, s.y)== 0,
+    //                                 0,
+    //                                 min(findMin(s.x, s.y)-1,
+    //                                     min(min(findMin(s.x-1, s.y-1)-1,
+    //                                             findMin(s.x, s.y-1)-1),
+    //                                         min(findMin(s.x+1  , s.y-1)-1,
+    //                                             findMin(s.x-1, s.y)-1)))+1);
+    //     findMin.compute_root();
+    // Func firstPass;
+    // firstPass(x, y) = Tuple(findMin(x, y),
+    //                         select(findMin(x,y) > min(min(findMin(x+1, y)-1,
+    //                                                         findMin(x-1, y+1)-1),
+    //                                                     min(findMin(x,   y+1)-1,
+    //                                                         findMin(x+1, y+1)-1)),
+    //                                 1, 0));
+    return firstPass;
+}
+//
+Func label_secondpass(Func src, Func buf, int32_t width, int32_t height, Expr bufW, Expr bufH){
+    Func secondPass;
+    Var x, y;
+    RDom r{0, bufW, 0, bufH, "r"};
+
+    secondPass(x, y) = src(x, y);
+    secondPass(x, y) = select(buf(r.x, 0) == secondPass(x, y), cast<uint32_t>(buf(r.x, 1)),
+                                                               secondPass(x, y));
+
+    return secondPass;
+}
+
 } // anonymous
 
 } // Element
