@@ -128,7 +128,7 @@ Halide::Runtime::Buffer<uint32_t>& label_ref(Halide::Runtime::Buffer<uint32_t>& 
 }
 
 //non-Halide process between 2 Halide functions in Halide::Element//////////////
-std::map<uint32_t, uint32_t, std::greater<uint32_t>> insertMap(std::map<uint32_t, uint32_t, std::greater<uint32_t>> myMap,
+std::map<uint32_t, uint32_t, std::greater<uint32_t>> insertMap(std::map<uint32_t, uint32_t, std::greater<uint32_t>>& myMap,
                                                                uint32_t from, uint32_t into){
     std::pair<std::map<uint32_t, uint32_t>::iterator,bool> ret;
     ret = myMap.insert(std::pair<uint32_t,uint32_t>(from,into));
@@ -144,25 +144,44 @@ std::map<uint32_t, uint32_t, std::greater<uint32_t>> insertMap(std::map<uint32_t
 }
 
 Halide::Runtime::Buffer<uint32_t>  mergeSameGroup(Halide::Runtime::Buffer<uint32_t>& srcdst,
-                                                  Halide::Runtime::Buffer<uint32_t>& marker){
-    int32_t height = srcdst.height();
-    int32_t width  = srcdst.width();
+                                                  Halide::Runtime::Buffer<uint32_t>& marker,
+                                                  int32_t width, int32_t height){
+
     std::map<uint32_t, uint32_t, std::greater<uint32_t>> sameLabel;
     for(int i = 0; i<height; i++){
         for(int j = 0; j<width; j++){
             if(marker(j, i)!= 0){
-                if(j < width-1 && srcdst(j+1,i)!=0 && srcdst(j,i) > srcdst(j+1,i)){
-                    sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i));
-                }
-                if(i < height-1&&j != 0 && srcdst(j-1,i+1)!=0 && srcdst(j,i) > srcdst(j-1,i+1)){
-                    sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j-1,i+1));
-                }
-                if(i< height-1&&srcdst(j,i+1)!=0 && srcdst(j,i) > srcdst(j,i+1)){
-                    sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j,i+1));
-                }
-                if(i < height-1 &&j < width-1 && srcdst(j+1,i+1)!=0 && srcdst(j,i) > srcdst(j+1,i+1)){
-                    sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i+1));
-                }
+                // if(j < width-1 && srcdst(j+1,i)!=0 && srcdst(j,i) > srcdst(j+1,i)){
+                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i));
+                // }
+                // if(i < height-1&&j != 0 && srcdst(j-1,i+1)!=0 && srcdst(j,i) > srcdst(j-1,i+1)){
+                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j-1,i+1));
+                // }
+                // if(i< height-1&&srcdst(j,i+1)!=0 && srcdst(j,i) > srcdst(j,i+1)){
+                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j,i+1));
+                // }
+                // if(i < height-1 &&j < width-1 && srcdst(j+1,i+1)!=0 && srcdst(j,i) > srcdst(j+1,i+1)){
+                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i+1));
+                // }
+                uint32_t thisLabel = srcdst(j, i);
+                uint32_t label5 = j < width-1 ? srcdst(j+1, i) : 0;
+                uint32_t label6 = i < height-1 && j!=0 ? srcdst(j-1, i+1) : 0;
+                uint32_t label7 = i < height-1 ? srcdst(j, i+1) : 0;
+                uint32_t label8 = i < height-1 && j < width-1 ? srcdst(j+1, i+1) : 0;
+
+                uint32_t minLabel = std::min(std::min(label5-1, label6-1), std::min(label7-1, label8-1)) + 1;
+
+                sameLabel = insertMap(sameLabel, thisLabel, minLabel);
+
+                    if(label5 > minLabel)
+                        sameLabel = insertMap(sameLabel, label5, minLabel);
+                    if(label6 > minLabel)
+                        sameLabel = insertMap(sameLabel, label6, minLabel);
+                    if(label7 > minLabel)
+                        sameLabel = insertMap(sameLabel, label7, minLabel);
+                    if(label8 > minLabel)
+                        sameLabel = insertMap(sameLabel, label8, minLabel);
+
             }
         }
     }
@@ -179,6 +198,7 @@ Halide::Runtime::Buffer<uint32_t>  mergeSameGroup(Halide::Runtime::Buffer<uint32
     return toReturn;
 }
 ////////////////////////////////////////////////////////////////////////////////
+//another idea
 
 template<typename T>
 int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
@@ -209,13 +229,13 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
         auto h1e = std::chrono::high_resolution_clock::now();
 
         auto nons = std::chrono::high_resolution_clock::now();
-        Halide::Runtime::Buffer<uint32_t> buf = mergeSameGroup(pass1[0], pass1[1]);
+        Halide::Runtime::Buffer<uint32_t> buf = mergeSameGroup(pass1[0], pass1[1], width, height);
         auto none = std::chrono::high_resolution_clock::now();
 
         int32_t bufWidth = buf.width();
 
         auto h2s = std::chrono::high_resolution_clock::now();
-        second_pass(pass1[0], buf, bufWidth, 2, output);
+        second_pass(pass1[0], buf, bufWidth,output);
         auto h2e = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double> dth1 = h1e - h1s;
