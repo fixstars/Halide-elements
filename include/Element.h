@@ -4,7 +4,7 @@
 #include "Complex.h"
 #include "FixedPoint.h"
 #include "ImageProcessing.h"
-#include "Math.h"
+#include "MathFunc.h"
 #include "Morphology.h"
 #include "NeuralNet.h"
 #include "Reduction.h"

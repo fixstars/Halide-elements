@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
+#include <cmath>
 #include <Halide.h>
 #include "FixedPoint.h"
 #include "Schedule.h"
