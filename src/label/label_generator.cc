@@ -11,11 +11,12 @@ public:
     ImageParam src{type_of<T>(), 2, "src"};
 
     GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 500};
+    GeneratorParam<int32_t> height{"height", 768};
 
     Func build() {
         Func dst{"dst"};
-        dst = Element::label_firstpass(src, width, height);
+        // dst = Element::label_firstpass(src, width, height);
+         dst = Element::label_firstpass(src, width, height);
 
         schedule(src, {width, height});
         schedule(dst, {width, height});

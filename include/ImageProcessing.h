@@ -697,56 +697,102 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
     return dst;
 }
 
-std::map<int32_t, int32_t, std::greater<int32_t>> insertMap(std::map<int32_t, int32_t, std::greater<int32_t>> myMap, int32_t from, int32_t into){
-    std::pair<std::map<int32_t, int32_t>::iterator,bool> ret;
-    ret = myMap.insert ( std::pair<int32_t,int32_t>(from,into) );
-    if(ret.second == false){
-        if(myMap[from] > into){
-            myMap = insertMap(myMap, myMap[from], into);
-            myMap[from] = into;
-        }else if(myMap[from] < into){
-            myMap = insertMap(myMap, into, myMap[from]);
-        }
-    }
-    return myMap;
-}
-
-
 Func label_firstpass(Func src, int32_t width, int32_t height)
 {
-    Expr MAX = width * height + 2;
-    Func original;
-    Var x, y;
-    original(x, y) = cast<uint32_t>(select(src(x,y)==0, 0, x+y*width+1));
+    Func original{"original"};
+    Expr MAX = width*height+1;
+    Var x{"org_x"}, y{"org_y"};
+    original(x, y) = cast<int32_t>(select(src(x,y)==0, MAX, x+y*width+1));
 
-    Func extend = BoundaryConditions::constant_exterior(original, 0, 0, width, 0, height);
+    Func extend = BoundaryConditions::constant_exterior(original, MAX, 0, width, 0, height);
+    Func copy{"copy"};
 
-    Func findMin;
-    findMin(x, y) = select(extend(x, y)!=0, extend(x, y), MAX);
-
+    Func findMin{"findMin"};
+    findMin(x, y) = extend(x, y);
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // RDom s{0, width, 0, height, "s"};
+    // findMin(s.x, s.y) = select(findMin(s.x, s.y)== 0,
+    //                                 findMin(s.x, s.y),
+    //                                 min(findMin(s.x, s.y)-1,
+    //                                     min(min(findMin(s.x-1, s.y-1)-1,
+    //                                             findMin(s.x, s.y-1)-1),
+    //                                         min(findMin(s.x+1  , s.y-1)-1,
+    //                                             findMin(s.x-1, s.y)-1)))+1);
+    // findMin.compute_root();
+    //
+    //
+    //
+    // Func firstPass;
+    // firstPass(x, y) = Tuple(findMin(x, y),
+    //                         select(findMin(x, y) ==0, 0,
+    //                                findMin(x,y) < findMin(x-1, y-1) ||
+    //                                findMin(x,y) < findMin(x  , y-1) ||
+    //                                findMin(x,y) < findMin(x+1, y-1) ||
+    //                                findMin(x,y) < findMin(x-1, y),
+    //                                 1, 0));
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
 
     RDom s{0, width, 0, height, "s"};
     findMin(s.x, s.y) = select(findMin(s.x, s.y)== MAX,
                                     findMin(s.x, s.y),
                                     min(findMin(s.x, s.y),
                                         min(min(findMin(s.x-1, s.y-1),
-                                                findMin(s.x, s.y-1)),
-                                            min(findMin(s.x+1  , s.y-1),
-                                                findMin(s.x-1, s.y)))));
-
-
+                                                findMin(s.x,   s.y-1)),
+                                            min(findMin(s.x+1, s.y-1),
+                                                findMin(s.x-1, s.y  )))));
     findMin.compute_root();
-    Func firstPass;
-    firstPass(x, y) = Tuple(select(findMin(x, y)==MAX, 0, findMin(x, y)),
-                            select(findMin(x,y)!=MAX
-                                   &&findMin(x,y) > min(min(findMin(x+1, y),
-                                                            findMin(x-1, y+1)),
-                                                        min(findMin(x,   y+1),
-                                                            findMin(x+1, y+1))),
+    Func backward{"back"}, whereUp{"where"};
+    whereUp(x, y) = select(findMin(x, y)== MAX, MAX,
+                                                min(min(findMin(x+1, y  ),
+                                                        findMin(x-1, y+1)),
+                                                    min(findMin(x  , y+1),
+                                                        findMin(x+1, y+1))));
+    whereUp(x, y) = select(whereUp(x, y) < findMin(x, y), whereUp(x, y), MAX);
+    whereUp.compute_root();
+
+    backward(x, y) = findMin(x, y);
+    Expr indX{"indx"};
+
+    indX = (findMin(s.x, s.y)-1)%width;
+    Expr indY{"indy"};
+    indY = select((findMin(s.x, s.y)-1)/width < height, (findMin(s.x, s.y)-1)/width, height-1);
+    Expr target = backward(clamp(indX, 0, width), clamp(indY, 0, height));
+    Expr tarX = (whereUp(s.x, s.y)-1)%width;
+    Expr tarY = select((whereUp(s.x, s.y)-1)/width < height, (whereUp(s.x, s.y)-1)/width, height-1);
+    Expr origin = backward(clamp(tarX, 0, width), clamp(tarY, 0, height));
+    backward(clamp(indX, 0, width), clamp(indY, 0, height)) =
+        select( target> whereUp(s.x, s.y), min(whereUp(s.x, s.y), origin),
+               target);
+    backward.compute_root();
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+
+ Func final;
+ final(x, y) = backward(x, y);
+ final(s.x, s.y) = select(final(s.x, s.y)== MAX,
+                                     final(s.x, s.y),
+                                     min(final(s.x, s.y),
+                                         min(min(final(s.x-1, s.y-1),
+                                                 final(s.x,   s.y-1)),
+                                             min(final(s.x+1, s.y-1),
+                                                 final(s.x-1, s.y  )))));
+    final.compute_root();
+
+    Func firstPass{"firstPass"};
+    copy(x, y) = select(final(x, y) == MAX, 0, final(x, y));
+    firstPass(x, y) = Tuple(copy(x, y),
+                            select(copy(x, y) ==0, 0,
+                                   copy(x,y) < copy(x-1, y-1) ||
+                                   copy(x,y) < copy(x  , y-1) ||
+                                   copy(x,y) < copy(x+1, y-1) ||
+                                   copy(x,y) < copy(x-1, y),
                                     1, 0));
+    firstPass.print_loop_nest();
     return firstPass;
 }
-//
+
 Func label_secondpass(Func src, Func buf, int32_t width, int32_t height, Expr bufW){
     Func secondPass;
     Var x, y;
@@ -754,37 +800,12 @@ Func label_secondpass(Func src, Func buf, int32_t width, int32_t height, Expr bu
 
     secondPass(x, y) = src(x, y);
     secondPass(x, y) = select(src(x, y)!=0&&buf(r.x, 0) == secondPass(x, y),
-                                    cast<uint32_t>(buf(r.x, 1)),
+                                    buf(r.x, 1),
                                     secondPass(x, y));
 
-    secondPass.print_loop_nest();
+    //secondPass.print_loop_nest();
     return secondPass;
 }
-
-// Func test_label(Func src, int32_t width, int32_t height)
-// {
-//     Expr MAX = width * height + 2;
-//     Var x, y;
-//
-//     Func extend = BoundaryConditions::constant_exterior(src, 0, 0, width, 0, height);
-//
-//     Func findMin;
-//     findMin(x, y) = select(extend(x, y)!=0, extend(x, y), MAX);
-//
-//
-//     RDom s{0, width, 0, height, "s"};
-//     findMin(s.x, s.y) = select(findMin(s.x, s.y)== MAX,
-//                                     0,
-//                                     min(findMin(s.x, s.y),
-//                                         min(min(findMin(s.x-1, s.y-1),
-//                                                 findMin(s.x, s.y-1)),
-//                                             min(findMin(s.x+1  , s.y-1),
-//                                                 findMin(s.x-1, s.y)))));
-//
-//     findMin.compute_root();
-//
-//     return firstPass;
-// }
 
 } // anonymous
 

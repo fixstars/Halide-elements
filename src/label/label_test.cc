@@ -12,6 +12,7 @@
 
 #include "second_pass.h"
 
+
 #include <map>
 #include <chrono>
 
@@ -151,37 +152,20 @@ Halide::Runtime::Buffer<uint32_t>  mergeSameGroup(Halide::Runtime::Buffer<uint32
     for(int i = 0; i<height; i++){
         for(int j = 0; j<width; j++){
             if(marker(j, i)!= 0){
-                // if(j < width-1 && srcdst(j+1,i)!=0 && srcdst(j,i) > srcdst(j+1,i)){
-                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i));
-                // }
-                // if(i < height-1&&j != 0 && srcdst(j-1,i+1)!=0 && srcdst(j,i) > srcdst(j-1,i+1)){
-                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j-1,i+1));
-                // }
-                // if(i< height-1&&srcdst(j,i+1)!=0 && srcdst(j,i) > srcdst(j,i+1)){
-                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j,i+1));
-                // }
-                // if(i < height-1 &&j < width-1 && srcdst(j+1,i+1)!=0 && srcdst(j,i) > srcdst(j+1,i+1)){
-                //     sameLabel = insertMap(sameLabel, srcdst(j,i), srcdst(j+1,i+1));
-                // }
-                uint32_t thisLabel = srcdst(j, i);
-                uint32_t label5 = j < width-1 ? srcdst(j+1, i) : 0;
-                uint32_t label6 = i < height-1 && j!=0 ? srcdst(j-1, i+1) : 0;
-                uint32_t label7 = i < height-1 ? srcdst(j, i+1) : 0;
-                uint32_t label8 = i < height-1 && j < width-1 ? srcdst(j+1, i+1) : 0;
+                uint32_t minLabel = srcdst(j, i);
+                uint32_t label1 = j > 0 && i > 0 ? srcdst(j-1, i-1) : 0;
+                uint32_t label2 = i > 0 ? srcdst(j, i-1) : 0;
+                uint32_t label3 = j < width-1 && i > 0 ? srcdst(j+1, i-1) : 0;
+                uint32_t label4 = j > 0 ? srcdst(j-1, i) : 0;
 
-                uint32_t minLabel = std::min(std::min(label5-1, label6-1), std::min(label7-1, label8-1)) + 1;
-
-                sameLabel = insertMap(sameLabel, thisLabel, minLabel);
-
-                    if(label5 > minLabel)
-                        sameLabel = insertMap(sameLabel, label5, minLabel);
-                    if(label6 > minLabel)
-                        sameLabel = insertMap(sameLabel, label6, minLabel);
-                    if(label7 > minLabel)
-                        sameLabel = insertMap(sameLabel, label7, minLabel);
-                    if(label8 > minLabel)
-                        sameLabel = insertMap(sameLabel, label8, minLabel);
-
+                if(label1 > minLabel)
+                    sameLabel = insertMap(sameLabel, label1, minLabel);
+                if(label2 > minLabel)
+                    sameLabel = insertMap(sameLabel, label2, minLabel);
+                if(label3 > minLabel)
+                    sameLabel = insertMap(sameLabel, label3, minLabel);
+                if(label4 > minLabel)
+                    sameLabel = insertMap(sameLabel, label4, minLabel);
             }
         }
     }
@@ -197,8 +181,105 @@ Halide::Runtime::Buffer<uint32_t>  mergeSameGroup(Halide::Runtime::Buffer<uint32
     }
     return toReturn;
 }
-////////////////////////////////////////////////////////////////////////////////
-//another idea
+
+Halide::Runtime::Buffer<uint32_t>& anotheridea(Halide::Runtime::Buffer<uint32_t>& srcdst,
+                                const Halide::Runtime::Buffer<uint32_t>& marker,
+                                const int32_t width, const int32_t height){
+    for(int i = 0; i<height; i++){
+        for(int j = 0; j<width; j++){
+            int x, y;
+
+
+
+            if(marker(j, i)!= 0){
+                uint32_t minLabel = srcdst(j, i);
+                uint32_t label1 = j > 0 && i > 0 ? srcdst(j-1, i-1) : 0;
+                uint32_t label2 = i > 0 ? srcdst(j, i-1) : 0;
+                uint32_t label3 = j < width-1 && i > 0 ? srcdst(j+1, i-1) : 0;
+                uint32_t label4 = j > 0 ? srcdst(j-1, i) : 0;
+
+                if(j==1&&i==4){
+                    printf("moimoi %d %d %d %d %d\n", srcdst(j,i), label1, label2, label3, label4);
+                }
+
+
+                if(label1 > minLabel){
+                    int cx = x = (label1-1)%width;
+                    int cy = y = (label1-1)/width;
+                    label1 = minLabel;
+                    while (label1 != srcdst(x, y)){
+                        x = (label1-1)%width;
+                        y = (label1-1)/width;
+                        label1 = srcdst(x, y);
+                    }
+                        srcdst(j-1, i-1) = label1;
+                        srcdst(cx, cy) = label1;
+                }
+                if(j==4&&i==26){
+                    printf("\n\n momoi! at (%d, %d), min is %d and label2 is %d\n\n", j, i, minLabel, label4);
+                }
+                if(label2 > minLabel){
+                    int cx = x = (label2-1)%width;
+                    int cy = y = (label2-1)/width;
+                    label2 = minLabel;
+                    while (label2 != srcdst(x, y)){
+
+                        x = (label2-1)%width;
+                        y = (label2-1)/width;
+                        label2 = srcdst(x, y);
+                    }
+                        srcdst(j, i-1) = label2;
+                        srcdst(cx, cy) = label2;
+                }
+
+                if(label3 > minLabel){
+                    int cx = x = (label3-1)%width;
+                    int cy = y = (label3-1)/width;
+                    label3 = minLabel;
+                    while (label3 != srcdst(x, y)){
+
+                        x = (label3-1)%width;
+                        y = (label3-1)/width;
+                        label3 = srcdst(x, y);
+                    }
+                        srcdst(j+1, i-1) = label3;
+                        srcdst(cx, cy) = label3;
+
+
+                }
+
+                if(label4 > minLabel){
+                    int cx = x = (label4-1)%width;
+                    int cy = y = (label4-1)/width;
+                    label4 = minLabel;
+                    while (label4 != srcdst(x, y)){
+
+                        x = (label4-1)%width;
+                        y = (label4-1)/width;
+                        label4 = srcdst(x, y);if(j==4&&i==26){
+                            printf("\n\n (x, y) = (%d, %d), and label2 is %d\n\n", x, y, label4);
+                        }
+
+                    }
+                        srcdst(j-1, i) = label4;
+                        srcdst(cx, cy) = label4;
+
+                }
+                if(j==4&&i==26){
+                    printf("\n\n momoi! at (%d, %d), min is %d and label2 is %d\n\n", j, i, minLabel, label4);
+                }
+
+
+            }
+
+
+
+
+        }
+
+    }
+    return srcdst;
+}
 
 template<typename T>
 int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
@@ -207,7 +288,7 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
 {
     try {
         const int32_t width = 1024;
-        const int32_t height = 500;
+        const int32_t height = 768;
         const std::vector<int32_t> extents{width, height};
         auto input = mk_rand_buffer<T>(extents);
         Halide::Runtime::Buffer<uint32_t> pass1[2];
@@ -219,14 +300,19 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
         for (int j=0; j<width; ++j) {
             for (int i=0; i<height; ++i) {
                 input(j,i) = input(j,i)%10;
-                if(input(j,i) < 7){
+                if(input(j,i) < 6){
                     input(j,i) = 0;
                 }
             }
         }
+        auto expect = mk_null_buffer<uint32_t>(extents);
+        expect = label_ref(expect, input, width, height);
         auto h1s = std::chrono::high_resolution_clock::now();
         first_pass(input, pass1[0], pass1[1]);
         auto h1e = std::chrono::high_resolution_clock::now();
+
+        // Halide::Runtime::Buffer<uint32_t> copysrcdst = pass1[0];
+        // Halide::Runtime::Buffer<uint32_t> copysrcdst = input;
 
         auto nons = std::chrono::high_resolution_clock::now();
         Halide::Runtime::Buffer<uint32_t> buf = mergeSameGroup(pass1[0], pass1[1], width, height);
@@ -241,27 +327,64 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
         std::chrono::duration<double> dth1 = h1e - h1s;
         std::chrono::duration<double> dtn = none - nons;
         std::chrono::duration<double> dth2 = h2e - h2s;
-        printf("for each, Halide part1:%fs, non-Halide part:%fs, Halide part2:%fs\n", dth1.count(), dtn.count(), dth2.count());
+        printf("\nsize of bffer is %d:::for each, Halide part1:%fs, non-Halide part:%fs, Halide part2:%fs\n", bufWidth, dth1.count(), dtn.count(), dth2.count());
+        bool print = false;
+        if(print == true){
+                printf("\ninput\n");
+                for (int i=0; i<height; ++i) {
+                    for (int j=0; j<width; ++j) {
+                                if(input(j,i)==0)
+                                printf("    .");
+                                else
+                                printf("%5d", input(j, i));
+                            }
+                            printf("\n");
+                        }
 
-        auto expect = mk_null_buffer<uint32_t>(extents);
-        expect = label_ref(expect, input, width, height);
+                printf("\npass1[0]\n");
+                for (int i=0; i<height; ++i) {
+                    for (int j=0; j<width; ++j) {
+                                if(pass1[0](j,i)==0)
+                                printf("    .");
+                                else
+                                printf("%5d", pass1[0](j, i));
+                            }
+                            printf("\n");
+                        }
+            printf("\npass1[1]\n");
+                    for (int i=0; i<height; ++i) {
+                        for (int j=0; j<width; ++j) {
+                            if(pass1[1](j,i)==0)
+                            printf("    .");
+                            else
+                            printf("%5d", pass1[1](j, i));
+                        }
+                        printf("\n");
+                    }
 
-        // for each x and y
-        for (int i=0; i<height; ++i) {
-            for (int j=0; j<width; ++j) {
-                if (abs(expect(j, i) - output(j, i)) > 0) {
-                    throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
-                                                j, i, expect(j, i), j, i, output(j, i)));
-                }
-
-            }
+                printf("\noutput\n");
+                        for (int i=0; i<height; ++i) {
+                            for (int j=0; j<width; ++j) {
+                                if(output(j,i)==0)
+                                printf("    .");
+                                else
+                                printf("%5d", output(j, i));
+                            }
+                            printf("\n");
+                        }
         }
 
+        // for each x and y
 
+          for (int i=0; i<height; ++i) {
+              for (int j=0; j<width; ++j) {
+                  if (abs(expect(j, i) - output(j, i)) > 0) {
+                      throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
+                                                  j, i, expect(j, i), j, i, output(j, i)));
+                  }
 
-
-
-
+              }
+          }
     } catch (const std::exception& e){
         std::cerr << e.what() << std::endl;
         return 1;
@@ -276,7 +399,7 @@ int main()
 #ifdef TYPE_u8
     test<uint8_t>(label_u8);
 #endif
-#ifdef TYPE_u16
-    test<uint16_t>(label_u16);
-#endif
+// #ifdef TYPE_u16
+//     test<uint16_t>(label_u16);
+// #endif
 }

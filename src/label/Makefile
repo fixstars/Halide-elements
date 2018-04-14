@@ -28,6 +28,8 @@ all:
 	-L${HALIDE_LIB_MAKE} -I../../include second_pass_generator.cc \
 	${HALIDE_TOOLS_DIR}/GenGen.cpp -o second_pass_gen -ldl -lpthread -lz -lHalide
 
+
+
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./label_gen -o . \
 	-g label_u8 -e h,static_library target=x86-64-no_asserts;
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./label_gen -o . \
@@ -35,6 +37,8 @@ all:
 
 	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./second_pass_gen -o . \
 	-g second_pass -e h,static_library target=x86-64-no_asserts;
+
+
 
 	g++ -DTYPE_u8 -DTYPE_u16 -I . -O2 -g -std=c++11 \
 	-I${HALIDE_BUILD}/include -I${HALIDE_ROOT}/tools \

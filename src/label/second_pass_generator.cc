@@ -13,7 +13,7 @@ public:
     Param<int32_t> bufW{"bufW", 1};
 
     GeneratorParam<int32_t> width{"width", 1024};
-    GeneratorParam<int32_t> height{"height", 500};
+    GeneratorParam<int32_t> height{"height", 768};
 
     Func build() {
         Func dst{"dst"};
