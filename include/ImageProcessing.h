@@ -1056,6 +1056,66 @@ Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func 
     schedule(dst, {width, height});
 }
 
+template <typename T>
+Func threshold_min(Func src, Expr threshold)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, threshold, src(x,y));
+
+    return dst;
+}
+
+template <typename T>
+Func threshold_max(Func src, Expr threshold)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, src(x,y), threshold);
+
+    return dst;
+}
+
+template <typename T>
+Func threshold_binary(Func src, Expr threshold, Expr value)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, value, 0);
+
+    return dst;
+}
+
+template <typename T>
+Func threshold_binary_inv(Func src, Expr threshold, Expr value)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, 0, value);
+
+    return dst;
+}
+
+template <typename T>
+Func threshold_tozero(Func src, Expr threshold)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, src(x,y), 0);
+
+    return dst;
+}
+
+template <typename T>
+Func threshold_tozero_inv(Func src, Expr threshold)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = select (src(x, y) > threshold, 0, src(x,y));
+
+    return dst;
+}
+
 } // anonymous
 } // Element
 } // Halide
