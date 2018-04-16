@@ -11,8 +11,8 @@
 
 namespace Halide {
 namespace Element {
-
 namespace {
+
 
 Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
             Param<float> scale_x, Param<float> scale_y,
@@ -948,7 +948,6 @@ Func warp_affine_NN(Func src, int32_t border_type, Expr border_value, Func trans
     return dst;
 }
 
-
 template<typename T>
 Func warp_affine_bilinear(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
 {
@@ -1116,7 +1115,6 @@ Func threshold_tozero_inv(Func src, Expr threshold)
 
     return dst;
 }
-
 
 template<typename T>
 Func warp_perspective_NN(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)

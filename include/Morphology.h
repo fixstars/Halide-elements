@@ -11,8 +11,7 @@
 
 namespace Halide {
 namespace Element {
-
-namespace {
+namespace{
 
 template<typename T>
 Func dilate(Func src, int32_t width, int32_t height, int32_t window_width, int32_t window_height, Func structure, int32_t iteration)
@@ -246,6 +245,6 @@ Func erode_rect(Func src, int32_t width, int32_t height, int32_t window_width, i
     return dst;
 }
 
-}
-} // namespace Element
-} // namespace Halide
+} // anonymous
+} // Element
+} // Halide
