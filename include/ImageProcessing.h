@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
+#include <cmath>
 #include <Halide.h>
 #include "FixedPoint.h"
 #include "Schedule.h"
@@ -100,11 +105,6 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
 
-    schedule(in, {width, height});
-    schedule(tx, {width, height});
-    schedule(ty, {width, height});
-    schedule(affine, {width, height});
-
     return affine;
 }
 
@@ -126,12 +126,10 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
     dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
 
-    schedule(in, {width, height});
     kernel.compute_root();
     kernel.bound(x, -(window_width / 2), window_width);
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
-    schedule(dst, {width, height});
 
     return dst;
 }
@@ -158,10 +156,8 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
 
-    schedule(in, {width, height});
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
-    schedule(out, {width, height}).unroll(x, unroll_factor);
 
     return out;
 }
@@ -478,11 +474,6 @@ Func prewitt(Func input, int32_t width, int32_t height)
     Func output("output");
     output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
 
-    schedule(input_f, {width, height});
-    schedule(diff_x, {width, height});
-    schedule(diff_y, {width, height});
-    schedule(output, {width, height});
-
     return output;
 }
 
@@ -581,6 +572,7 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
 
     return out;
 }
+
 Func split3(Func src, int32_t widthe, int32_t height)
 {
     Var x{"x"}, y{"y"};
