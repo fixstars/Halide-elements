@@ -613,6 +613,7 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 
 	return output;
 }
+
 template<typename T>Func bilateral(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space)
 {
     return Func();
@@ -947,7 +948,6 @@ Func warp_affine_NN(Func src, int32_t border_type, Expr border_value, Func trans
     return dst;
 }
 
-
 template<typename T>
 Func warp_affine_bilinear(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
 {
@@ -1251,6 +1251,15 @@ Func warp_perspective_bicubic(Func src, int32_t border_type, Expr border_value, 
                    value < cast<float>(type_of<T>().min()), cast<float>(type_of<T>().min()),
                    value + 0.5f);
     dst(x, y) = cast<T>(value);
+    return dst;
+}
+
+template <typename T>
+Func subimage(Func src, Expr originx, Expr originy)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = src(x+originx, y+originy);
     return dst;
 }
 
