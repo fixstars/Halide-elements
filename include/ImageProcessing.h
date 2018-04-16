@@ -653,7 +653,7 @@ template<> Func bilateral<uint8_t>(Func src, int32_t width, int32_t height, Expr
         cast<uint8_t>(num(x, y)));
 
     schedule(num, {width, height});
-    schedule(dst, {width, height});
+
     return dst;
 }
 
@@ -694,7 +694,7 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
         cast<uint16_t>(num(x, y)));
 
     schedule(num, {width, height});
-    schedule(dst, {width, height});
+    
     return dst;
 }
 
