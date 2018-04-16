@@ -349,28 +349,16 @@ Func sub(Func src0, Func src1)
 }
 
 
-Func filter_xor(Func src0, Func src1) {
-    Var x{"x"}, y{"y"};
-    Func dst;
-    dst(x, y) = src0(x, y) ^ src1(x, y);
-    return dst;
-}
-
 template<typename T>
-Func sq_integral(Func src, int32_t width, int32_t height)
+Func sub_scalar(Func src, Expr val)
 {
     Var x{"x"}, y{"y"};
-    Func dst{"dst"};
-    dst(x, y) = cast<T>(src(x, y)) * cast<T>(src(x, y));
-
-    RDom h{1, width-1, 0, height, "h"};
-    dst(h.x, h.y) += dst(h.x-1, h.y);
-
-    RDom v{0, width, 1, height-1, "v"};
-    dst(v.x, v.y) += dst(v.x, v.y-1);
+    Func dst;
+    dst(x, y) = cast<T>(clamp(round(cast<double>(src(x, y)) - val), 0, cast<double>(type_of<T>().max())));
 
     return dst;
 }
+
 
 } // anonymous
 

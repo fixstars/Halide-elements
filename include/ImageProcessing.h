@@ -573,11 +573,20 @@ Func tm_zncc(Func src0, Func src1, const int32_t img_width, const int32_t img_he
     return out;
 }
 
-Func set_scalar(Expr val)
+Func split3(Func src, int32_t widthe, int32_t height)
 {
     Var x{"x"}, y{"y"};
-    Func dst;
-    dst(x, y) = val;
+    Func dst{"dst"};
+    dst(x, y) = Tuple(src(0, x, y), src(1, x, y), src(2, x, y));
+
+    return dst;
+}
+
+Func split4(Func src, int32_t widthe, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = Tuple(src(0, x, y), src(1, x, y), src(2, x, y), src(3, x, y));
 
     return dst;
 }
@@ -623,6 +632,7 @@ Func warp_affine_NN(Func src, int32_t border_type, Expr border_value, Func trans
 
     return dst;
 }
+
 
 template<typename T>
 Func warp_affine_bilinear(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
@@ -831,7 +841,6 @@ Func warp_map_bicubic(Func src0, Func src1, Func src2, int32_t border_type, Expr
 
     return dst;
 }
-
 
 } // anonymous
 } // Element
