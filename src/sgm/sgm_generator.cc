@@ -17,7 +17,7 @@ public:
     {
         Func out{"out"};
 
-        out = semi_global_matching(in_l, in_r, disp, width, height);
+        out = semi_global_matching(in_l, in_r, width, height, disp);
 
         schedule(in_l, {width, height});
         schedule(in_r, {width, height});

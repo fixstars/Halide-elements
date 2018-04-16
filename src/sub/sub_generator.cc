@@ -6,17 +6,18 @@ using namespace Halide;
 using Halide::Element::schedule;
 
 template<typename T>
-class Or : public Halide::Generator<Or<T>> {
-public:
+class Sub : public Halide::Generator<Sub<T>> {
     ImageParam src0{type_of<T>(), 2, "src0"};
     ImageParam src1{type_of<T>(), 2, "src1"};
 
     GeneratorParam<int32_t> width{"width", 1024};
     GeneratorParam<int32_t> height{"height", 768};
 
+public:
     Func build() {
         Func dst{"dst"};
-        dst = Element::filter_or(src0, src1);
+        dst =  Element::sub<T>(src0, src1);
+        
         schedule(src0, {width, height});
         schedule(src1, {width, height});
         schedule(dst, {width, height});
@@ -25,6 +26,6 @@ public:
     }
 };
 
-RegisterGenerator<Or<uint8_t>> or_u8{"or_u8"};
-RegisterGenerator<Or<uint16_t>> or_u16{"or_u16"};
-RegisterGenerator<Or<uint32_t>> or_u32{"or_u32"};
+RegisterGenerator<Sub<uint8_t>> sub_u8{"sub_u8"};
+RegisterGenerator<Sub<uint16_t>> sub_u16{"sub_u16"};
+RegisterGenerator<Sub<uint32_t>> sub_u32{"sub_u32"};

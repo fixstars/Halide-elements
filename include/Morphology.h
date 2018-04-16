@@ -27,7 +27,9 @@ Func dilate(Func src, int32_t width, int32_t height, int32_t window_width, int32
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};
@@ -51,7 +53,9 @@ Func dilate_rect(Func src, int32_t width, int32_t height, int32_t window_width, 
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};
@@ -73,7 +77,9 @@ Func dilate_cross(Func src, int32_t width, int32_t height, int32_t window_width,
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};
@@ -92,7 +98,9 @@ Func conv_rect(Func src, std::function<Expr(RDom, Expr)> f, int32_t width, int32
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};
@@ -113,7 +121,9 @@ Func conv_cross(Func src, std::function<Expr(RDom, Expr)> f, int32_t width, int3
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf("workbuf");
@@ -139,7 +149,9 @@ Func conv_with_structure(Func src, std::function<Expr(RDom, Expr)> f, Expr init,
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf("workbuf");
@@ -168,7 +180,9 @@ Func erode(Func src, int32_t width, int32_t height, int32_t window_width, int32_
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf("workbuf" + std::to_string(i));
@@ -194,7 +208,9 @@ Func erode_cross(Func src, int32_t width, int32_t height, int32_t window_width, 
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};
@@ -215,7 +231,9 @@ Func erode_rect(Func src, int32_t width, int32_t height, int32_t window_width, i
     Func dst = src;
 
     for (int32_t i = 0; i < iteration; i++) {
-        schedule(dst, {width, height});
+        if (i != 0) {
+            schedule(dst, {width, height});
+        }
         Func clamped = BoundaryConditions::repeat_edge(dst, {{0, cast<int32_t>(width)}, {0, cast<int32_t>(height)}});
 
         Func workbuf{"workbuf" + std::to_string(i)};

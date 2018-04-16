@@ -20,6 +20,8 @@ public:
     Func build() {
         Func dst{"dst"};
         dst = Element::bilateral<T>(src, width, height, window_size, sigma_color, sigma_space);
+
+        window_size.set_range(1, 7);
         schedule(src, {width, height});
         schedule(dst, {width, height});
         return dst;

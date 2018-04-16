@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
+#include <cmath>
 #include <Halide.h>
 #include "FixedPoint.h"
 #include "Schedule.h"
@@ -100,11 +105,6 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
 
-    schedule(in, {width, height});
-    schedule(tx, {width, height});
-    schedule(ty, {width, height});
-    schedule(affine, {width, height});
-
     return affine;
 }
 
@@ -126,16 +126,15 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
     dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
 
-    schedule(in, {width, height});
     kernel.compute_root();
     kernel.bound(x, -(window_width / 2), window_width);
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
-    schedule(dst, {width, height});
 
     return dst;
 }
 
+template<uint32_t NB, uint32_t FB>
 Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t kernel_size, int32_t unroll_factor) {
     Var x, y;
 
@@ -150,18 +149,15 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Func k;
     k(x, y) = kernel(x, y);
 
-    constexpr uint32_t frac_bits = 10;
-    using Fixed16 = Fixed<int16_t, frac_bits>;
-    Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
-    Fixed16 kv{k(r.x, r.y)};
+    using FixedNB = FixedN<NB, FB>;
+    FixedNB pv = to_fixed<NB, FB>(bounded(x+dx, y+dy));
+    FixedNB kv{k(r.x, r.y)};
 
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
 
-    schedule(in, {width, height});
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
-    schedule(out, {width, height}).unroll(x, unroll_factor);
 
     return out;
 }
@@ -399,7 +395,7 @@ Func bitonic_sort(Func input, int32_t size, int32_t width, int32_t height) {
 
             }
 
-            schedule(next, {size, width, height});
+            prev.compute_at(next, x);
             next.unroll(i);
             prev = next;
         }
@@ -429,6 +425,7 @@ Func median(Func in, int32_t width, int32_t height, int32_t window_width, int32_
     Func median("median");
     median(x, y) = sorted(window_size / 2, x, y);
 
+    sorted.compute_at(median, x);
     schedule(window, {window_size, width, height});
     return median;
 }
@@ -476,11 +473,6 @@ Func prewitt(Func input, int32_t width, int32_t height)
 
     Func output("output");
     output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
-
-    schedule(input_f, {width, height});
-    schedule(diff_x, {width, height});
-    schedule(diff_y, {width, height});
-    schedule(output, {width, height});
 
     return output;
 }
@@ -692,6 +684,68 @@ Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_wi
     schedule(dst, {out_width, out_height});
     return dst;
 }
+
+template<typename T>
+Func warp_map_bicubic(Func src0, Func src1, Func src2, int32_t border_type, Expr border_value, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    Expr srcx = src1(x, y);
+    Expr srcy = src2(x, y);
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = srcy - 0.5f;
+    Expr j = srcx - 0.5f;
+    Expr xf = cast<int>(j-1.0f);
+    Expr yf = cast<int>(i-1.0f);
+    xf = xf - (xf > j-1.0f);
+    yf = yf - (yf > i-1.0f);
+
+    Func type0 = BoundaryConditions::constant_exterior(src0, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src0, 0, width, 0, height);
+
+    RDom r{0, 4, 0, 4, "r"};
+    Expr d = cast<float>(select(border_type==1,type1(xf+r.x, yf+r.y) ,type0(xf+r.x, yf+r.y)));
+
+    Expr dx = min(max(0.0f, j-cast<float>(xf)-1.0f), 1.0f);
+    Expr dy = min(max(0.0f, i-cast<float>(yf)-1.0f), 1.0f);
+
+    static const float a = -0.75f;
+    Expr w0 = ((a*(dx+1.0f)-5.0f*a)*(dx+1.0f)+8.0f*a)*(dx+1.0f)-4.0f*a;
+    Expr w1 = ((a+2.0f)*dx-(a+3.0f))*dx*dx+1.0f;
+    Expr w2 = ((a+2.0f)*(1.0f-dx)-(a+3.0f))*(1.0f-dx)*(1.0f-dx)+1.0f;
+    Expr w3 = 1.0f - w2 - w1 -w0;
+
+    d = select(r.x == 0, d*w0,
+               r.x == 1, d*w1,
+               r.x == 2, d*w2,
+               r.x == 3, d*w3, d);
+
+    w0 = ((a*(dy+1.0f)-5.0f*a)*(dy+1.0f)+8.0f*a)*(dy+1.0f)-4.0f*a;
+    w1 = ((a+2.0f)*dy-(a+3.0f))*dy*dy+1.0f;
+    w2 = ((a+2.0f)*(1.0f-dy)-(a+3.0f))*(1.0f-dy)*(1.0f-dy)+1.0f;
+    w3 = 1.0f - w2 - w1 -w0;
+
+    Expr c0 = sum(select(r.y ==0, d, 0))*w0;
+    Expr c1 = sum(select(r.y ==1, d, 0))*w1;
+    Expr c2 = sum(select(r.y ==2, d, 0))*w2;
+    Expr c3 = sum(select(r.y ==3, d, 0))*w3;
+
+    Expr value = c0 + c1 + c2 + c3;
+    value = select(value > cast<float>(type_of<T>().max()), cast<float>(type_of<T>().max()),
+                   value < cast<float>(type_of<T>().min()), cast<float>(type_of<T>().min()),
+                   value + 0.5f);
+    dst(x, y) = cast<T>(value);
+
+    return dst;
+}
+
 
 } // anonymous
 } // Element
