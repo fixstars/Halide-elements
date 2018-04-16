@@ -158,10 +158,8 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
 
-    schedule(in, {width, height});
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
-    schedule(out, {width, height}).unroll(x, unroll_factor);
 
     return out;
 }
@@ -694,7 +692,7 @@ template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Exp
         cast<uint16_t>(num(x, y)));
 
     schedule(num, {width, height});
-    
+
     return dst;
 }
 
