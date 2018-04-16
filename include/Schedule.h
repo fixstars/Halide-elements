@@ -7,7 +7,6 @@
 
 namespace Halide {
 namespace Element {
-
 namespace {
 
 //
@@ -94,6 +93,6 @@ ImageParam& schedule_memory(ImageParam& ip)
     return ip;
 }
 
-}
+} // anonymous
 } // Element
 } // Halide

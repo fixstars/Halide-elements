@@ -5,7 +5,6 @@
 
 namespace Halide {
 namespace Element {
-
 namespace {
 
 Func addCost3(Func cost_ul, Func cost_u, Func cost_ur)
@@ -177,6 +176,6 @@ Func semi_global_matching(Func in_l, Func in_r, int32_t width, int32_t height, i
     return out;
 }
 
-}
+} // anonymous
 } // Element
 } // Halide

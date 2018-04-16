@@ -42,8 +42,8 @@ inline Expr logr2(const Expr &x) {
 #endif
 }
 
-}
-}
-}
+} // anonymous
+} // Element
+} // Halide
 
 #endif
