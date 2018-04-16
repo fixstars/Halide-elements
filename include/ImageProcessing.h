@@ -126,12 +126,10 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
     dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
 
-    schedule(in, {width, height});
     kernel.compute_root();
     kernel.bound(x, -(window_width / 2), window_width);
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
-    schedule(dst, {width, height});
 
     return dst;
 }
