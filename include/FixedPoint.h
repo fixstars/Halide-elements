@@ -275,20 +275,26 @@ inline Fixed<T, FB> to_fixed(Expr x)
 
 template<uint32_t NB, uint32_t FB>
 FixedN<NB, NB - 2> sin(const FixedN<NB, FB>& x) {
-#if defined(HALIDE_FOR_FPGA)
-    return FixedN<NB, NB - 2>{Internal::Call::make(Int(NB), "sin_fixed", {(Expr)x, make_const(UInt(32), FB)}, Internal::Call::PureExtern)};
-#else
+//
+// NOTE: This implementation is reverted. See issue #206 on M3/Halide.
+//
+//#if defined(HALIDE_FOR_FPGA)
+//    return FixedN<NB, NB - 2>{Internal::Call::make(Int(NB), "sin_fixed", {(Expr)x, make_const(UInt(32), FB)}, Internal::Call::PureExtern)};
+//#else
     return to_fixed<NB, NB - 2>(sin(from_fixed<double>(x)));
-#endif
+//#endif
 }
 
 template<uint32_t NB, uint32_t FB>
 FixedN<NB, NB - 2> cos(const FixedN<NB, FB>& x) {
-#if defined(HALIDE_FOR_FPGA)
-    return FixedN<NB, NB - 2>{Internal::Call::make(Int(NB), "cos_fixed", {(Expr)x, make_const(UInt(32), FB)}, Internal::Call::PureExtern)};
-#else
+//
+// NOTE: This implementation is reverted. See issue #206 on M3/Halide.
+//
+//#if defined(HALIDE_FOR_FPGA)
+//    return FixedN<NB, NB - 2>{Internal::Call::make(Int(NB), "cos_fixed", {(Expr)x, make_const(UInt(32), FB)}, Internal::Call::PureExtern)};
+//#else
     return to_fixed<NB, NB - 2>(cos(from_fixed<double>(x)));
-#endif
+//#endif
 }
 
 }
