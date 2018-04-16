@@ -8,7 +8,7 @@
 namespace Halide {
 namespace Element {
 
-namespace{
+namespace {
 
 template<typename T, typename D>
 Func sq_sum(ImageParam src, int32_t width, int32_t height)
@@ -53,7 +53,6 @@ Func add(Func src0, Func src1)
 
     return dst;
 }
-
 
 template<typename T>
 Func add_scalar(Func src, Expr val)
@@ -341,16 +340,41 @@ Func histogram2d(Func src0, Func src1, int32_t width, int32_t height, int32_t hi
 }
 
 template<typename T>
+Func sub(Func src0, Func src1)
+{
+    Var x{"x"}, y{"y"};
+    Func dst;
+    dst(x, y) = cast<T>(select(src0(x, y) > src1(x,y), src0(x, y)-src1(x,y), 0));
+    return dst;
+}
+
+
 Func filter_xor(Func src0, Func src1) {
     Var x{"x"}, y{"y"};
     Func dst;
     dst(x, y) = src0(x, y) ^ src1(x, y);
+    return dst;
+}
+
+template<typename T>
+Func sq_integral(Func src, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = cast<T>(src(x, y)) * cast<T>(src(x, y));
+
+    RDom h{1, width-1, 0, height, "h"};
+    dst(h.x, h.y) += dst(h.x-1, h.y);
+
+    RDom v{0, width, 1, height-1, "v"};
+    dst(v.x, v.y) += dst(v.x, v.y-1);
 
     return dst;
 }
 
 } // anonymous
-} // Element
+
+} // element
 } // Halide
 
 #endif
