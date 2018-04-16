@@ -15,7 +15,6 @@ public:
 
     Func build() {
         Func dst{"dst"};
-        // dst = Element::label_firstpass(src, width, height);
          dst = Element::label_firstpass(src, width, height);
 
         schedule(src, {width, height});

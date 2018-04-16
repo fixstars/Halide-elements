@@ -709,30 +709,6 @@ Func label_firstpass(Func src, int32_t width, int32_t height)
 
     Func findMin{"findMin"};
     findMin(x, y) = extend(x, y);
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-    // RDom s{0, width, 0, height, "s"};
-    // findMin(s.x, s.y) = select(findMin(s.x, s.y)== 0,
-    //                                 findMin(s.x, s.y),
-    //                                 min(findMin(s.x, s.y)-1,
-    //                                     min(min(findMin(s.x-1, s.y-1)-1,
-    //                                             findMin(s.x, s.y-1)-1),
-    //                                         min(findMin(s.x+1  , s.y-1)-1,
-    //                                             findMin(s.x-1, s.y)-1)))+1);
-    // findMin.compute_root();
-    //
-    //
-    //
-    // Func firstPass;
-    // firstPass(x, y) = Tuple(findMin(x, y),
-    //                         select(findMin(x, y) ==0, 0,
-    //                                findMin(x,y) < findMin(x-1, y-1) ||
-    //                                findMin(x,y) < findMin(x  , y-1) ||
-    //                                findMin(x,y) < findMin(x+1, y-1) ||
-    //                                findMin(x,y) < findMin(x-1, y),
-    //                                 1, 0));
-        ///////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////
 
     RDom s{0, width, 0, height, "s"};
     findMin(s.x, s.y) = select(findMin(s.x, s.y)== MAX,
@@ -743,6 +719,7 @@ Func label_firstpass(Func src, int32_t width, int32_t height)
                                             min(findMin(s.x+1, s.y-1),
                                                 findMin(s.x-1, s.y  )))));
     findMin.compute_root();
+
     Func backward{"back"}, whereUp{"where"};
     whereUp(x, y) = select(findMin(x, y)== MAX, MAX,
                                                 min(min(findMin(x+1, y  ),
@@ -753,25 +730,23 @@ Func label_firstpass(Func src, int32_t width, int32_t height)
     whereUp.compute_root();
 
     backward(x, y) = findMin(x, y);
-    Expr indX{"indx"};
-
+    Expr indX{"indx"},indY{"indy"};
     indX = (findMin(s.x, s.y)-1)%width;
-    Expr indY{"indy"};
     indY = select((findMin(s.x, s.y)-1)/width < height, (findMin(s.x, s.y)-1)/width, height-1);
     Expr target = backward(clamp(indX, 0, width), clamp(indY, 0, height));
+
     Expr tarX = (whereUp(s.x, s.y)-1)%width;
     Expr tarY = select((whereUp(s.x, s.y)-1)/width < height, (whereUp(s.x, s.y)-1)/width, height-1);
     Expr origin = backward(clamp(tarX, 0, width), clamp(tarY, 0, height));
+
     backward(clamp(indX, 0, width), clamp(indY, 0, height)) =
         select( target> whereUp(s.x, s.y), min(whereUp(s.x, s.y), origin),
                target);
     backward.compute_root();
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
 
- Func final;
- final(x, y) = backward(x, y);
- final(s.x, s.y) = select(final(s.x, s.y)== MAX,
+    Func final;
+    final(x, y) = backward(x, y);
+    final(s.x, s.y) = select(final(s.x, s.y)== MAX,
                                      final(s.x, s.y),
                                      min(final(s.x, s.y),
                                          min(min(final(s.x-1, s.y-1),
@@ -789,7 +764,7 @@ Func label_firstpass(Func src, int32_t width, int32_t height)
                                    copy(x,y) < copy(x+1, y-1) ||
                                    copy(x,y) < copy(x-1, y),
                                     1, 0));
-    firstPass.print_loop_nest();
+    //firstPass.print_loop_nest();
     return firstPass;
 }
 
@@ -803,7 +778,7 @@ Func label_secondpass(Func src, Func buf, int32_t width, int32_t height, Expr bu
                                     buf(r.x, 1),
                                     secondPass(x, y));
 
-    //secondPass.print_loop_nest();
+    // secondPass.print_loop_nest();
     return secondPass;
 }
 

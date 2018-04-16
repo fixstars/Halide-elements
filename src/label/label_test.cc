@@ -12,10 +12,8 @@
 
 #include "second_pass.h"
 
-
 #include <map>
 #include <chrono>
-
 
 template<typename T>
 Halide::Runtime::Buffer<uint32_t>& label_ref(Halide::Runtime::Buffer<uint32_t>& dst,
@@ -32,12 +30,9 @@ Halide::Runtime::Buffer<uint32_t>& label_ref(Halide::Runtime::Buffer<uint32_t>& 
           label4 = dst(j, i) = 0;
           continue;
         }
-
-
         uint32_t label1 = i > 0 && j > 0 ? dst(j-1, i-1) : 0;
         uint32_t label2 = i > 0 ? dst(j, i-1) : 0;
-        uint32_t label3 =
-            i > 0 && j < width - 1 ? dst(j+1, i-1) : 0;
+        uint32_t label3 = i > 0 && j < width - 1 ? dst(j+1, i-1) : 0;
 
         if (label1 > 0){
             x = (label1-1)%dst_pitch;
@@ -182,104 +177,7 @@ Halide::Runtime::Buffer<uint32_t>  mergeSameGroup(Halide::Runtime::Buffer<uint32
     return toReturn;
 }
 
-Halide::Runtime::Buffer<uint32_t>& anotheridea(Halide::Runtime::Buffer<uint32_t>& srcdst,
-                                const Halide::Runtime::Buffer<uint32_t>& marker,
-                                const int32_t width, const int32_t height){
-    for(int i = 0; i<height; i++){
-        for(int j = 0; j<width; j++){
-            int x, y;
 
-
-
-            if(marker(j, i)!= 0){
-                uint32_t minLabel = srcdst(j, i);
-                uint32_t label1 = j > 0 && i > 0 ? srcdst(j-1, i-1) : 0;
-                uint32_t label2 = i > 0 ? srcdst(j, i-1) : 0;
-                uint32_t label3 = j < width-1 && i > 0 ? srcdst(j+1, i-1) : 0;
-                uint32_t label4 = j > 0 ? srcdst(j-1, i) : 0;
-
-                if(j==1&&i==4){
-                    printf("moimoi %d %d %d %d %d\n", srcdst(j,i), label1, label2, label3, label4);
-                }
-
-
-                if(label1 > minLabel){
-                    int cx = x = (label1-1)%width;
-                    int cy = y = (label1-1)/width;
-                    label1 = minLabel;
-                    while (label1 != srcdst(x, y)){
-                        x = (label1-1)%width;
-                        y = (label1-1)/width;
-                        label1 = srcdst(x, y);
-                    }
-                        srcdst(j-1, i-1) = label1;
-                        srcdst(cx, cy) = label1;
-                }
-                if(j==4&&i==26){
-                    printf("\n\n momoi! at (%d, %d), min is %d and label2 is %d\n\n", j, i, minLabel, label4);
-                }
-                if(label2 > minLabel){
-                    int cx = x = (label2-1)%width;
-                    int cy = y = (label2-1)/width;
-                    label2 = minLabel;
-                    while (label2 != srcdst(x, y)){
-
-                        x = (label2-1)%width;
-                        y = (label2-1)/width;
-                        label2 = srcdst(x, y);
-                    }
-                        srcdst(j, i-1) = label2;
-                        srcdst(cx, cy) = label2;
-                }
-
-                if(label3 > minLabel){
-                    int cx = x = (label3-1)%width;
-                    int cy = y = (label3-1)/width;
-                    label3 = minLabel;
-                    while (label3 != srcdst(x, y)){
-
-                        x = (label3-1)%width;
-                        y = (label3-1)/width;
-                        label3 = srcdst(x, y);
-                    }
-                        srcdst(j+1, i-1) = label3;
-                        srcdst(cx, cy) = label3;
-
-
-                }
-
-                if(label4 > minLabel){
-                    int cx = x = (label4-1)%width;
-                    int cy = y = (label4-1)/width;
-                    label4 = minLabel;
-                    while (label4 != srcdst(x, y)){
-
-                        x = (label4-1)%width;
-                        y = (label4-1)/width;
-                        label4 = srcdst(x, y);if(j==4&&i==26){
-                            printf("\n\n (x, y) = (%d, %d), and label2 is %d\n\n", x, y, label4);
-                        }
-
-                    }
-                        srcdst(j-1, i) = label4;
-                        srcdst(cx, cy) = label4;
-
-                }
-                if(j==4&&i==26){
-                    printf("\n\n momoi! at (%d, %d), min is %d and label2 is %d\n\n", j, i, minLabel, label4);
-                }
-
-
-            }
-
-
-
-
-        }
-
-    }
-    return srcdst;
-}
 
 template<typename T>
 int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
@@ -305,31 +203,36 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
                 }
             }
         }
+
         auto expect = mk_null_buffer<uint32_t>(extents);
         expect = label_ref(expect, input, width, height);
-        auto h1s = std::chrono::high_resolution_clock::now();
+
+            auto halide1_s = std::chrono::high_resolution_clock::now();
         first_pass(input, pass1[0], pass1[1]);
-        auto h1e = std::chrono::high_resolution_clock::now();
+            auto halide1_e = std::chrono::high_resolution_clock::now();
 
-        // Halide::Runtime::Buffer<uint32_t> copysrcdst = pass1[0];
-        // Halide::Runtime::Buffer<uint32_t> copysrcdst = input;
-
-        auto nons = std::chrono::high_resolution_clock::now();
+            auto non_halide_s = std::chrono::high_resolution_clock::now();
         Halide::Runtime::Buffer<uint32_t> buf = mergeSameGroup(pass1[0], pass1[1], width, height);
-        auto none = std::chrono::high_resolution_clock::now();
+            auto non_halide_e = std::chrono::high_resolution_clock::now();
 
         int32_t bufWidth = buf.width();
 
-        auto h2s = std::chrono::high_resolution_clock::now();
+            auto halide2_s = std::chrono::high_resolution_clock::now();
         second_pass(pass1[0], buf, bufWidth,output);
-        auto h2e = std::chrono::high_resolution_clock::now();
+            auto halide2_e = std::chrono::high_resolution_clock::now();
 
-        std::chrono::duration<double> dth1 = h1e - h1s;
-        std::chrono::duration<double> dtn = none - nons;
-        std::chrono::duration<double> dth2 = h2e - h2s;
-        printf("\nsize of bffer is %d:::for each, Halide part1:%fs, non-Halide part:%fs, Halide part2:%fs\n", bufWidth, dth1.count(), dtn.count(), dth2.count());
-        bool print = false;
-        if(print == true){
+        std::chrono::duration<double> dth1 = halide1_e - halide1_s;
+        std::chrono::duration<double> dtn = non_halide_e - non_halide_s;
+        std::chrono::duration<double> dth2 = halide2_e - halide2_s;
+        //print to test
+        bool printbuff = false;
+        bool printtime = false;
+        if(printtime==true){
+            printf("\nsize of bffer is %d:::for each, Halide part1:%fs, non-Halide part:%fs, Halide part2:%fs\n",
+                   bufWidth, dth1.count(), dtn.count(), dth2.count());
+
+        }
+        if(printbuff == true){
                 printf("\ninput\n");
                 for (int i=0; i<height; ++i) {
                     for (int j=0; j<width; ++j) {
@@ -375,16 +278,15 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
         }
 
         // for each x and y
-
-          for (int i=0; i<height; ++i) {
-              for (int j=0; j<width; ++j) {
-                  if (abs(expect(j, i) - output(j, i)) > 0) {
-                      throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
-                                                  j, i, expect(j, i), j, i, output(j, i)));
-                  }
-
+        for (int i=0; i<height; ++i) {
+          for (int j=0; j<width; ++j) {
+              if (abs(expect(j, i) - output(j, i)) > 0) {
+                  throw std::runtime_error(format("Error: expect(%d, %d) = %d, actual(%d, %d) = %d",
+                                              j, i, expect(j, i), j, i, output(j, i)));
               }
+
           }
+        }
     } catch (const std::exception& e){
         std::cerr << e.what() << std::endl;
         return 1;
@@ -399,7 +301,7 @@ int main()
 #ifdef TYPE_u8
     test<uint8_t>(label_u8);
 #endif
-// #ifdef TYPE_u16
-//     test<uint16_t>(label_u16);
-// #endif
+#ifdef TYPE_u16
+    test<uint16_t>(label_u16);
+#endif
 }
