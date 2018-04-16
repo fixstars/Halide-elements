@@ -7,7 +7,6 @@
 
 namespace Halide {
 namespace Element {
-
 namespace {
 
 //
@@ -74,13 +73,13 @@ inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
 {
     return FixedN<NB, FB, is_signed>::to_fixed(x);
 }
- 
+
  template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
 {
     return FixedN<NB, FB, is_signed>::template from_fixed<T>(x);
 }
- 
+
 template<uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr fixed_expr(Expr x)
 {
@@ -97,7 +96,7 @@ template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr from_fixed_expr(Expr x)
 {
     return from_fixed<T>(FixedN<NB, FB, is_signed>{x});
-} 
+}
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> operator-(const FixedN<NB, FB, is_signed>& x)

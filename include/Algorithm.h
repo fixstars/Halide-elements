@@ -93,7 +93,7 @@ Func copy(Func src)
     return dst;
 }
 
-}
+} // anonymous
 } // Element
 } // Halide
 

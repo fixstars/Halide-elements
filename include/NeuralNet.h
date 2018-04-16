@@ -1110,6 +1110,6 @@ Func binconv_module_fixed32(Func bottom, const std::vector<int32_t>& bottom_shap
     return relu_f;
 }
 
-}
-} //namespace Element
-} //namespace Halide
+} // anonymous
+} // Element
+} // Halide

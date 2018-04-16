@@ -204,6 +204,6 @@ T round_to_nearest_even(double v)
     }
 }
 
-}
+} //anonymous namespace
 
 #endif /* TEST_COMMON_H */
