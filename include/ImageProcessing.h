@@ -613,7 +613,6 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 
 	return output;
 }
-
 template<typename T>Func bilateral(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space)
 {
     return Func();
