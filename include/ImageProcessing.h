@@ -582,6 +582,24 @@ Func set_scalar(Expr val)
     return dst;
 }
 
+Func split3(Func src, int32_t widthe, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = Tuple(src(0, x, y), src(1, x, y), src(2, x, y));
+
+    return dst;
+}
+
+Func split4(Func src, int32_t widthe, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    dst(x, y) = Tuple(src(0, x, y), src(1, x, y), src(2, x, y), src(3, x, y));
+
+    return dst;
+}
+
 template<typename T>
 Func sad(Func input0, Func input1, int32_t width, int32_t height)
 {
@@ -594,6 +612,449 @@ Func sad(Func input0, Func input1, int32_t width, int32_t height)
 	output(x,y) = select(diffval<0, cast<T>(-diffval), cast<T>(diffval));
 
 	return output;
+}
+
+template<typename T>Func bilateral(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space)
+{
+    return Func();
+}
+//for uint8_t and for uint16_t
+
+template<> Func bilateral<uint8_t>(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space){
+    Func dst{"dst"};
+    Var x{"x"}, y{"y"};
+
+    Func kernel_r{"kernel_r"};
+    Var i{"i"};
+    kernel_r(i) = exp(cast<double>(-0.5f) * cast<double>(i) * cast<double>(i)/ (color * color));
+    schedule(kernel_r, {256});
+
+    Expr wRadius = cast<int>(wSize/2);
+    RDom w{0, wSize, 0, wSize, "w"};
+
+    Expr diff_x = cast<double>(x-wRadius);
+    Expr diff_y = cast<double>(y-wRadius);
+    Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
+    Func kernel_d;
+    kernel_d(x, y) = select( r > wRadius, 0,
+                             exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
+    schedule(kernel_d, {5, 5});
+
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    Func bri;
+    bri(x, y) = clamped(x-wRadius, y-wRadius);
+
+    Func num;
+    num(x, y) = sum_unroll(w, kernel_d(w.x, w.y)
+                    * select(src(x, y) > bri(x+w.x, y+w.y),
+                             kernel_r(src(x, y)-bri(x+w.x, y+w.y)),
+                             kernel_r(bri(x+w.x, y+w.y)-src(x, y)))
+                    * bri(w.x+x, w.y+y))
+                /sum_unroll(w, kernel_d(w.x, w.y)
+                     * select(src(x, y) > bri(x+w.x, y+w.y),
+                              kernel_r(src(x, y)-bri(x+w.x, y+w.y)),
+                              kernel_r(bri(x+w.x, y+w.y)-src(x, y))));
+
+    dst(x, y) = select(
+        cast<float>(num(x, y)-floor(num(x, y))-0.5f) > (std::numeric_limits<float>::epsilon)()
+        || (cast<uint8_t>(num(x, y)))%2==1,
+        cast<uint8_t>(num(x, y) + 0.5f),
+        cast<uint8_t>(num(x, y)));
+
+    schedule(num, {width, height});
+
+    return dst;
+}
+
+template<> Func bilateral<uint16_t>(Func src, int32_t width, int32_t height, Expr wSize, Expr color, Expr space){
+    Func dst{"dst"};
+    Var x{"x"}, y{"y"};
+
+    Expr wRadius = cast<int>(wSize/2);
+    RDom w{0, wSize, 0, wSize, "w"};
+
+    Expr diff_x = cast<double>(x-wRadius);
+    Expr diff_y = cast<double>(y-wRadius);
+    Expr r = sqrt(diff_y*diff_y + diff_x*diff_x);
+    Func kernel_d;
+    kernel_d(x, y) = select( r > wRadius, 0,
+                             exp(-0.5f * (diff_x * diff_x + diff_y * diff_y) / (space * space)));
+    schedule(kernel_d, {5, 5});
+
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    Func bri;
+    bri(x, y) = clamped(x-wRadius, y-wRadius);
+
+    Func num;
+    num(x, y) = sum_unroll(w, kernel_d(w.x, w.y)
+                    * exp(-0.5f * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
+                                * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
+                                / (color*color))
+                    * bri(w.x+x, w.y+y))
+                /sum_unroll(w, kernel_d(w.x, w.y)
+                     * exp(-0.5f * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
+                                 * (cast<double>(src(x, y))-cast<double>(bri(x+w.x, y+w.y)))
+                                 / (color*color)));
+
+    dst(x, y) = select(
+        cast<float>(num(x, y)-floor(num(x, y))-0.5f) > (std::numeric_limits<float>::epsilon)()
+        || (cast<uint16_t>(num(x, y)))%2==1,
+        cast<uint16_t>(num(x, y) + 0.5f),
+        cast<uint16_t>(num(x, y)));
+
+    schedule(num, {width, height});
+
+    return dst;
+}
+
+template <typename T>
+Func scale_NN(Func src, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    Expr srcx = cast<int>(cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width));
+    Expr srcy = cast<int>(cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height));
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, in_width, 0, in_height);
+
+    dst(x, y) = clamped(srcx, srcy);
+    return dst;
+}
+
+template <typename T>
+Func scale_bicubic(Func src, int32_t in_width, int32_t in_height, int32_t out_width, int32_t out_height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    ////////////////////////////////////////////////////////////////////////////
+    Expr srcx = cast<float>(cast<float>(x)+cast<float>(0.5f))*cast<float>(in_width)/cast<float>(out_width);
+    Expr srcy = cast<float>(cast<float>(y)+cast<float>(0.5f))*cast<float>(in_height)/cast<float>(out_height);
+
+    // At this point, Simplify changes the float arithmetic order
+    // They seems expand the equation even though the variables are float
+    // (if the flaot numbers are both constant, they do not expand. Check the following test result)
+    //
+    // This might make the error and the largest difference between actual and expected is 9 where 1024x768->500x500
+    //
+    //  test result
+        // (x + y) * a  ->  (x + y) * a
+        // (x + y) / a -> (x + y) * (1/a)
+        // (x * a) + (y * a) -> (x + y) * a
+        // (x + y) * b / c -> (x * b / c) + (x * b / c)
+        // (x + a) * b -> (x * b) + (a * b)
+        // (x + a) / b -> (x / b) + (a / b)
+        // (a + b) / c -> (a + b) * c
+    //
+    // Guessing that srcx and srcy are passing:
+    // ( X + a ) * b / c -> ( X + a ) * b * 1/c
+    //                   -> ( X + a) * (b * 1/c)
+    //                   -> (X * (b * 1/c)) + (a * (b * 1/c))
+    //
+    // Check Simplify.cpp
+        // void visit(const Mul *op)
+        // void visit(const Div *op)
+    ////////////////////////////////////////////////////////////////////////////
+    srcx = srcx - 0.5f;
+    srcy = srcy - 0.5f;
+
+    Expr diffx = srcx - cast<float>(floor(srcx));
+    Expr diffy = srcy - cast<float>(floor(srcy));
+
+    RDom r{-1, 4, -1, 4, "r"};
+    Func weight, value, totalWeight;
+    Expr alpha = -1.0f;
+
+    Expr iX = select(r.x > diffx, cast<float>( r.x - diffx), cast<float>(diffx - r.x) );
+    Expr iY = select(r.y > diffy, cast<float>(r.y - diffy), cast<float>(diffy - r.y));
+    Expr iX2 = iX * iX;
+    Expr iX3 = iX * iX * iX;
+    Expr iY2 = iY * iY;
+    Expr iY3 = iY * iY * iY;
+    iX = select(iX <= 1.0f, (alpha+2)*iX3-(alpha+3)*iX2+1,
+                    iX < 2.0f, alpha*iX3-5.0f*alpha*iX2+8.0f*alpha*iX-4.0f*alpha,
+                    0.0f);
+    iY = select(iY <= 1, (alpha+2)*iY3-(alpha+3)*iY2+1,
+                    iY < 2.0f, alpha*iY3-5.0f*alpha*iY2+8.0f*alpha*iY-4.0f*alpha,
+                    0.0f);
+
+    Expr tmp = cast<float>(iX * iY);
+    Func clamped = BoundaryConditions::repeat_edge(src, 0, in_width, 0, in_height);
+    value(x, y) = sum(cast<double>(tmp*clamped(cast<int>(srcx + r.x), cast<int>(srcy + r.y))));
+
+    totalWeight(x, y) = sum(tmp);
+    totalWeight(x, y) = select(totalWeight(x,y) < 0, -totalWeight(x, y), totalWeight(x,y));
+
+    value(x,y) = select(totalWeight(x,y) ==cast<double>(0.0f), cast<double>(0.5f),
+                        value(x,y)/cast<double>(totalWeight(x, y)) +cast<double>(0.5f));
+    dst(x, y) = cast<T>(clamp(value(x,y),
+                              cast<double>(type_of<T>().min()),
+                              cast<double>(type_of<T>().max())));
+
+    schedule(value, {out_width, out_height});
+    schedule(totalWeight, {out_width, out_height});
+    schedule(dst, {out_width, out_height});
+    return dst;
+}
+
+template<typename T>
+Func warp_map_NN(Func src0, Func src1, Func src2, int32_t border_type, Expr border_value, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    Expr srcx = src1(x, y);
+    Expr srcy = src2(x, y);
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = cast<int>(floor(srcy));
+    Expr j = cast<int>(floor(srcx));
+    Func type0 = BoundaryConditions::constant_exterior(src0, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src0, 0, width, 0, height);
+    dst(x, y) = select(border_type==1, type1(j, i), type0(j, i));
+
+    return dst;
+}
+
+template<typename T>
+Func warp_map_bilinear(Func src0, Func src1, Func src2, int32_t border_type, Expr border_value, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    Expr srcx = src1(x, y);
+    Expr srcy = src2(x, y);
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = srcy - 0.5f;
+    Expr j = srcx - 0.5f;
+    Expr xf = cast<int>(j);
+    Expr yf = cast<int>(i);
+    xf = xf - (xf > j);
+    yf = yf - (yf > i);
+
+    Func type0 = BoundaryConditions::constant_exterior(src0, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src0, 0, width, 0, height);
+    Expr d[4];
+    d[0] = select(border_type==1, type1(xf, yf), type0(xf, yf));
+    d[1] = select(border_type==1, type1(xf+1, yf), type0(xf+1, yf));
+    d[2] = select(border_type==1, type1(xf, yf+1), type0(xf, yf+1));
+    d[3] = select(border_type==1, type1(xf+1, yf+1), type0(xf+1, yf+1));
+
+    Expr dx = min(max(0.0f, j-cast<float>(xf)), 1.0f);
+    Expr dy = min(max(0.0f, i-cast<float>(yf)), 1.0f);
+    Expr value = (d[0]*(1.0f-dx)*(1.0f-dy) + d[1]*dx*(1.0f-dy))
+                 + (d[2]*(1.0f-dx)*dy + d[3]*dx*dy);
+    dst(x, y) = cast<T>(value+0.5f);
+
+    return dst;
+}
+
+template<typename T>
+Func warp_map_bicubic(Func src0, Func src1, Func src2, int32_t border_type, Expr border_value, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+
+    Expr srcx = src1(x, y);
+    Expr srcy = src2(x, y);
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = srcy - 0.5f;
+    Expr j = srcx - 0.5f;
+    Expr xf = cast<int>(j-1.0f);
+    Expr yf = cast<int>(i-1.0f);
+    xf = xf - (xf > j-1.0f);
+    yf = yf - (yf > i-1.0f);
+
+    Func type0 = BoundaryConditions::constant_exterior(src0, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src0, 0, width, 0, height);
+
+    RDom r{0, 4, 0, 4, "r"};
+    Expr d = cast<float>(select(border_type==1,type1(xf+r.x, yf+r.y) ,type0(xf+r.x, yf+r.y)));
+
+    Expr dx = min(max(0.0f, j-cast<float>(xf)-1.0f), 1.0f);
+    Expr dy = min(max(0.0f, i-cast<float>(yf)-1.0f), 1.0f);
+
+    static const float a = -0.75f;
+    Expr w0 = ((a*(dx+1.0f)-5.0f*a)*(dx+1.0f)+8.0f*a)*(dx+1.0f)-4.0f*a;
+    Expr w1 = ((a+2.0f)*dx-(a+3.0f))*dx*dx+1.0f;
+    Expr w2 = ((a+2.0f)*(1.0f-dx)-(a+3.0f))*(1.0f-dx)*(1.0f-dx)+1.0f;
+    Expr w3 = 1.0f - w2 - w1 -w0;
+
+    d = select(r.x == 0, d*w0,
+               r.x == 1, d*w1,
+               r.x == 2, d*w2,
+               r.x == 3, d*w3, d);
+
+    w0 = ((a*(dy+1.0f)-5.0f*a)*(dy+1.0f)+8.0f*a)*(dy+1.0f)-4.0f*a;
+    w1 = ((a+2.0f)*dy-(a+3.0f))*dy*dy+1.0f;
+    w2 = ((a+2.0f)*(1.0f-dy)-(a+3.0f))*(1.0f-dy)*(1.0f-dy)+1.0f;
+    w3 = 1.0f - w2 - w1 -w0;
+
+    Expr c0 = sum(select(r.y ==0, d, 0))*w0;
+    Expr c1 = sum(select(r.y ==1, d, 0))*w1;
+    Expr c2 = sum(select(r.y ==2, d, 0))*w2;
+    Expr c3 = sum(select(r.y ==3, d, 0))*w3;
+
+    Expr value = c0 + c1 + c2 + c3;
+    value = select(value > cast<float>(type_of<T>().max()), cast<float>(type_of<T>().max()),
+                   value < cast<float>(type_of<T>().min()), cast<float>(type_of<T>().min()),
+                   value + 0.5f);
+    dst(x, y) = cast<T>(value);
+
+    return dst;
+}
+
+template<typename T>
+Func warp_affine_NN(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    Expr orgx = cast<float>(x) + 0.5f;
+    Expr orgy = cast<float>(y) + 0.5f;
+    Expr srcx = cast<float>(transform(2)) + cast<float>(transform(1)) * orgy;
+    Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
+    srcx = srcx + cast<float>(transform(0)) * orgx;
+    srcy = srcy + cast<float>(transform(3)) * orgx;
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = cast<int>(floor(srcy));
+    Expr j = cast<int>(floor(srcx));
+
+    Func type0 = BoundaryConditions::constant_exterior(src, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    dst(x, y) = select(border_type==1, type1(j, i), type0(j, i));
+
+    return dst;
+}
+
+
+template<typename T>
+Func warp_affine_bilinear(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
+{
+    Var x{"x"}, y{"y"};
+    Func dst{"dst"};
+    Expr orgx = cast<float>(x) + 0.5f;
+    Expr orgy = cast<float>(y) + 0.5f;
+    Expr srcx = cast<float>(transform(2)) + cast<float>(transform(1)) * orgy;
+    Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
+    srcx = srcx + cast<float>(transform(0)) * orgx;
+    srcy = srcy + cast<float>(transform(3)) * orgx;
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = srcy - 0.5f;
+    Expr j = srcx - 0.5f;
+    Expr xf = cast<int>(j);
+    Expr yf = cast<int>(i);
+    xf = xf - (xf > j);
+    yf = yf - (yf > i);
+
+    Func type0 = BoundaryConditions::constant_exterior(src, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+    Expr d[4];
+    d[0] = select(border_type==1, type1(xf, yf), type0(xf, yf));
+    d[1] = select(border_type==1, type1(xf+1, yf), type0(xf+1, yf));
+    d[2] = select(border_type==1, type1(xf, yf+1), type0(xf, yf+1));
+    d[3] = select(border_type==1, type1(xf+1, yf+1), type0(xf+1, yf+1));
+
+    Expr dx = min(max(0.0f, j-cast<float>(xf)), 1.0f);
+    Expr dy = min(max(0.0f, i-cast<float>(yf)), 1.0f);
+    Expr value = (d[0]*(1.0f-dx)*(1.0f-dy) + d[1]*dx*(1.0f-dy))
+                 + (d[2]*(1.0f-dx)*dy + d[3]*dx*dy);
+    dst(x, y) = cast<T>(value+0.5f);
+    return dst;
+}
+
+template<typename T>
+Func warp_affine_bicubic(Func src, int32_t border_type, Expr border_value, Func transform, int32_t width, int32_t height)
+{
+    Var x{"x"};
+    Var y{"y"};
+    Func dst{"dst"};
+
+    Expr orgx = cast<float>(x) + 0.5f;
+    Expr orgy = cast<float>(y) + 0.5f;
+    Expr srcx = cast<float>(transform(2)) + cast<float>(transform(1)) * orgy;
+    Expr srcy = cast<float>(transform(5)) + cast<float>(transform(4)) * orgy;
+    srcx = srcx + cast<float>(transform(0)) * orgx;
+    srcy = srcy + cast<float>(transform(3)) * orgx;
+
+    /* avoid overflow from X-1 to X+2 */
+    Expr imin = cast<float>(type_of<int>().min() + 1);
+    Expr imax = cast<float>(type_of<int>().max() - 2);
+    srcx = select(srcx<imin, imin, select(srcx>imax, imax, srcx));
+    srcy = select(srcy<imin, imin, select(srcy>imax, imax, srcy));
+
+    Expr i = srcy - 0.5f;
+    Expr j = srcx - 0.5f;
+    Expr xf = cast<int>(j-1.0f);
+    Expr yf = cast<int>(i-1.0f);
+    xf = xf - (xf > j-1.0f);
+    yf = yf - (yf > i-1.0f);
+
+    Func type0 = BoundaryConditions::constant_exterior(src, border_value, 0, width, 0, height);
+    Func type1 = BoundaryConditions::repeat_edge(src, 0, width, 0, height);
+
+    RDom r{0, 4, 0, 4, "r"};
+    Expr d = cast<float>(select(border_type==1,type1(xf+r.x, yf+r.y) ,type0(xf+r.x, yf+r.y)));
+
+    Expr dx = min(max(0.0f, j-cast<float>(xf)-1.0f), 1.0f);
+    Expr dy = min(max(0.0f, i-cast<float>(yf)-1.0f), 1.0f);
+
+    static const float a = -0.75f;
+    Expr w0 = ((a*(dx+1.0f)-5.0f*a)*(dx+1.0f)+8.0f*a)*(dx+1.0f)-4.0f*a;
+    Expr w1 = ((a+2.0f)*dx-(a+3.0f))*dx*dx+1.0f;
+    Expr w2 = ((a+2.0f)*(1.0f-dx)-(a+3.0f))*(1.0f-dx)*(1.0f-dx)+1.0f;
+    Expr w3 = 1.0f - w2 - w1 -w0;
+
+    d = select(r.x == 0, d*w0,
+               r.x == 1, d*w1,
+               r.x == 2, d*w2,
+               r.x == 3, d*w3, d);
+
+    w0 = ((a*(dy+1.0f)-5.0f*a)*(dy+1.0f)+8.0f*a)*(dy+1.0f)-4.0f*a;
+    w1 = ((a+2.0f)*dy-(a+3.0f))*dy*dy+1.0f;
+    w2 = ((a+2.0f)*(1.0f-dy)-(a+3.0f))*(1.0f-dy)*(1.0f-dy)+1.0f;
+    w3 = 1.0f - w2 - w1 -w0;
+
+    Expr c0 = sum(select(r.y ==0, d, 0))*w0;
+    Expr c1 = sum(select(r.y ==1, d, 0))*w1;
+    Expr c2 = sum(select(r.y ==2, d, 0))*w2;
+    Expr c3 = sum(select(r.y ==3, d, 0))*w3;
+
+    Expr value = c0 + c1 + c2 + c3;
+    value = select(value > cast<float>(type_of<T>().max()), cast<float>(type_of<T>().max()),
+                   value < cast<float>(type_of<T>().min()), cast<float>(type_of<T>().min()),
+                   value + 0.5f);
+    dst(x, y) = cast<T>(value);
+    return dst;
+
+    schedule(dst, {width, height});
 }
 
 template <typename T>
