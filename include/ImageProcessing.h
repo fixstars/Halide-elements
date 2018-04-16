@@ -105,11 +105,6 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
 
-    schedule(in, {width, height});
-    schedule(tx, {width, height});
-    schedule(ty, {width, height});
-    schedule(affine, {width, height});
-
     return affine;
 }
 
