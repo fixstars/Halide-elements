@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
+#include <cmath>
 #include <Halide.h>
 #include "FixedPoint.h"
 #include "Schedule.h"
@@ -100,11 +105,6 @@ Func affine(Func in, int32_t width, int32_t height, Param<float> degrees,
     Func limited = BoundaryConditions::constant_exterior(in, 255, 0, width, 0, height);
     affine(x, y) = limited(tx(x, y), ty(x, y));
 
-    schedule(in, {width, height});
-    schedule(tx, {width, height});
-    schedule(ty, {width, height});
-    schedule(affine, {width, height});
-
     return affine;
 }
 
@@ -126,16 +126,15 @@ Func gaussian(Func in, int32_t width, int32_t height, int32_t window_width, int3
     Expr dstval = cast<double>(sum(clamped(x + r.x, y + r.y) * kernel(r.x, r.y)));
     dst(x,y) = cast<T>(round(dstval / kernel_sum(0)));
 
-    schedule(in, {width, height});
     kernel.compute_root();
     kernel.bound(x, -(window_width / 2), window_width);
     kernel.bound(y, -(window_height / 2), window_height);
     schedule(kernel_sum, {1});
-    schedule(dst, {width, height});
 
     return dst;
 }
 
+template<uint32_t NB, uint32_t FB>
 Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t kernel_size, int32_t unroll_factor) {
     Var x, y;
 
@@ -150,18 +149,15 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     Func k;
     k(x, y) = kernel(x, y);
 
-    constexpr uint32_t frac_bits = 10;
-    using Fixed16 = Fixed<int16_t, frac_bits>;
-    Fixed16 pv = to_fixed<int16_t, frac_bits>(bounded(x+dx, y+dy));
-    Fixed16 kv{k(r.x, r.y)};
+    using FixedNB = FixedN<NB, FB>;
+    FixedNB pv = to_fixed<NB, FB>(bounded(x+dx, y+dy));
+    FixedNB kv{k(r.x, r.y)};
 
     Func out("out");
     out(x, y) = from_fixed<uint8_t>(sum_unroll(r, pv * kv));
 
-    schedule(in, {width, height});
     schedule(kernel, {5, 5});
     schedule(k, {5, 5});
-    schedule(out, {width, height}).unroll(x, unroll_factor);
 
     return out;
 }
@@ -399,7 +395,7 @@ Func bitonic_sort(Func input, int32_t size, int32_t width, int32_t height) {
 
             }
 
-            schedule(next, {size, width, height});
+            prev.compute_at(next, x);
             next.unroll(i);
             prev = next;
         }
@@ -429,6 +425,7 @@ Func median(Func in, int32_t width, int32_t height, int32_t window_width, int32_
     Func median("median");
     median(x, y) = sorted(window_size / 2, x, y);
 
+    sorted.compute_at(median, x);
     schedule(window, {window_size, width, height});
     return median;
 }
@@ -476,11 +473,6 @@ Func prewitt(Func input, int32_t width, int32_t height)
 
     Func output("output");
     output(x, y) = cast<T>(hypot(diff_x(x, y), diff_y(x, y)));
-
-    schedule(input_f, {width, height});
-    schedule(diff_x, {width, height});
-    schedule(diff_y, {width, height});
-    schedule(output, {width, height});
 
     return output;
 }
