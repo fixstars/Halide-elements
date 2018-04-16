@@ -28,12 +28,14 @@ Func& schedule(Func& f, const std::vector<int32_t>& mins, const std::vector<int3
 
     f.compute_root();
 
-    auto bounds = f.function().schedule().bounds();
+    // auto bounds = f.function().schedule().bounds();
     for (size_t i=0; i<mins.size(); ++i) {
         Var var = f.args()[i];
-        if (std::find_if(bounds.begin(), bounds.end(), [&](const Internal::Bound& b) { return b.var == var.name(); }) == bounds.end()) {
-            f.bound(var, mins[i], extents[i]);
-        }
+        // NOTE: Internal API should not be used. It is responsible to user to scheduled just once.
+        // if (std::find_if(bounds.begin(), bounds.end(), [&](const Internal::Bound& b) { return b.var == var.name(); }) == bounds.end()) {
+        //     f.bound(var, mins[i], extents[i]);
+        // }
+        f.bound(var, mins[i], extents[i]);
     }
     return f;
 }
