@@ -8,8 +8,16 @@ using namespace Halide;
 using Halide::Element::schedule;
 
 class Convolution : public Halide::Generator<Convolution> {
+    static constexpr uint32_t NB = 20;
+    static constexpr uint32_t FB = 10;
+    static constexpr uint32_t UB = 32;
+
     ImageParam in{UInt(8), 2, "in"};
-    ImageParam kernel{Int(16), 2, "kernel"};
+#if defined(HALIDE_FOR_FPGA)
+    ImageParam kernel{Int(NB), 2, "kernel"};
+#else
+    ImageParam kernel{Int(UB), 2, "kernel"};
+#endif
     Param<int32_t> kernel_size{"kernel_size", 3, 1, 5};
 
     GeneratorParam<int32_t> width{"width", 512};
@@ -20,7 +28,7 @@ public:
     Func build() {
         Func out{"out"};
 
-        out = Element::convolution<16, 10>(in, width, height, kernel, kernel_size.get(), unroll_factor);
+        out = Element::convolution<NB, FB>(in, width, height, kernel, kernel_size.get(), unroll_factor);
 
         schedule(in, {width, height});
         schedule(kernel, {5, 5});
@@ -34,4 +42,4 @@ public:
     }
 };
 
-HALIDE_REGISTER_GENERATOR(Convolution, "convolution")
+HALIDE_REGISTER_GENERATOR(Convolution, "convolution_arbitrary_bits")
