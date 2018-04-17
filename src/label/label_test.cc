@@ -185,6 +185,9 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
                      struct halide_buffer_t *_dst1_buffer))
 {
     try {
+        bool printbuff = false;
+        bool printtime = false;
+        
         const int32_t width = 1024;
         const int32_t height = 768;
         const std::vector<int32_t> extents{width, height};
@@ -225,8 +228,7 @@ int test(int (*first_pass)(struct halide_buffer_t *_src_buffer,
         std::chrono::duration<double> dtn = non_halide_e - non_halide_s;
         std::chrono::duration<double> dth2 = halide2_e - halide2_s;
         //print to test
-        bool printbuff = false;
-        bool printtime = false;
+
         if(printtime==true){
             printf("\nsize of bffer is %d:::for each, Halide part1:%fs, non-Halide part:%fs, Halide part2:%fs\n",
                    bufWidth, dth1.count(), dtn.count(), dth2.count());
