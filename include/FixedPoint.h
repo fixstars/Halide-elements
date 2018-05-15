@@ -74,7 +74,7 @@ inline FixedN<NB, FB, is_signed> to_fixed(Expr x)
     return FixedN<NB, FB, is_signed>::to_fixed(x);
 }
 
- template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
+template<typename T, uint32_t NB, uint32_t FB, bool is_signed>
 inline Expr from_fixed(const FixedN<NB, FB, is_signed>& x)
 {
     return FixedN<NB, FB, is_signed>::template from_fixed<T>(x);
@@ -145,9 +145,15 @@ FixedN<NB, FB, is_signed> operator/(const FixedN<NB, FB, is_signed>& x, const Fi
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
-FixedN<NB, FB, is_signed> operator<<(const FixedN<NB, FB, is_signed>& x, int32_t y)
+FixedN<NB, FB, is_signed> operator<<(const FixedN<NB, FB, is_signed>& x, Expr y)
 {
     return FixedN<NB, FB, is_signed>{x.v << y};
+}
+
+template<uint32_t NB, uint32_t FB, bool is_signed>
+FixedN<NB, FB, is_signed> operator>>(const FixedN<NB, FB, is_signed>& x, Expr y)
+{
+    return FixedN<NB, FB, is_signed>{x.v >> y};
 }
 
 template<uint32_t NB, uint32_t FB, bool is_signed>
