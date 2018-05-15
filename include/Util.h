@@ -70,6 +70,6 @@ struct SumType<double> {
     using type = double;
 };
 
-}
-} //namespace Element
-} //namespace Halide
+} // anonymous
+} // Element
+} // Halide

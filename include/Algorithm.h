@@ -1,6 +1,10 @@
 #ifndef HALIDE_ELEMENT_ALGORITHM_H
 #define HALIDE_ELEMENT_ALGORITHM_H
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+
 #include <Halide.h>
 #include "Schedule.h"
 #include "Complex.h"
@@ -89,7 +93,7 @@ Func copy(Func src)
     return dst;
 }
 
-}
+} // anonymous
 } // Element
 } // Halide
 
