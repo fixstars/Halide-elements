@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpMapBicubic<uint8_t>> warp_map_bicubic_u8{"warp_map_bicubic_u8"};
-RegisterGenerator<WarpMapBicubic<uint16_t>> warp_map_bicubic_u16{"warp_map_bicubic_u16"};
+HALIDE_REGISTER_GENERATOR(WarpMapBicubic<uint8_t>, warp_map_bicubic_u8);
+HALIDE_REGISTER_GENERATOR(WarpMapBicubic<uint16_t>, warp_map_bicubic_u16);

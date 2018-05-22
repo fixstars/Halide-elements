@@ -31,5 +31,5 @@ public:
     }
 };
 
-RegisterGenerator<Dilate<uint8_t>> dilate_u8{"dilate_u8"};
-RegisterGenerator<Dilate<uint16_t>> dilate_u16{"dilate_u16"};
+HALIDE_REGISTER_GENERATOR(Dilate<uint8_t>, dilate_u8);
+HALIDE_REGISTER_GENERATOR(Dilate<uint16_t>, dilate_u16);

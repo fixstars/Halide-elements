@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpAffineBC<uint8_t>> warp_affine_bicubic_u8{"warp_affine_bicubic_u8"};
-RegisterGenerator<WarpAffineBC<uint16_t>> warp_affine_bicubic_u16{"warp_affine_bicubic_u16"};
+HALIDE_REGISTER_GENERATOR(WarpAffineBC<uint8_t>, warp_affine_bicubic_u8);
+HALIDE_REGISTER_GENERATOR(WarpAffineBC<uint16_t>, warp_affine_bicubic_u16);

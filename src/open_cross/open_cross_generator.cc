@@ -31,5 +31,5 @@ public:
     }
 };
 
-RegisterGenerator<OpenCross<uint8_t>> open_cross_u8{"open_cross_u8"};
-RegisterGenerator<OpenCross<uint16_t>> open_cross_u16{"open_cross_u16"};
+HALIDE_REGISTER_GENERATOR(OpenCross<uint8_t>, open_cross_u8);
+HALIDE_REGISTER_GENERATOR(OpenCross<uint16_t>, open_cross_u16);

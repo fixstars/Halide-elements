@@ -26,11 +26,19 @@ public:
     }
 };
 
-RegisterGenerator<Sum<uint8_t, float>> sum_u8_f32{"sum_u8_f32"};
-RegisterGenerator<Sum<uint16_t, float>> sum_u16_f32{"sum_u16_f32"};
-RegisterGenerator<Sum<uint32_t, float>> sum_u32_f32{"sum_u32_f32"};
-RegisterGenerator<Sum<uint8_t, double>> sum_u8_f64{"sum_u8_f64"};
-RegisterGenerator<Sum<uint16_t, double>> sum_u16_f64{"sum_u16_f64"};
-RegisterGenerator<Sum<uint32_t, double>> sum_u32_f64{"sum_u32_f64"};
-RegisterGenerator<Sum<float, float>> sum_f32_f32{"sum_f32_f32"};
-RegisterGenerator<Sum<double, double>> sum_f64_f64{"sum_f64_f64"};
+using Sum_u8_f32 = Sum<uint8_t, float>;
+HALIDE_REGISTER_GENERATOR(Sum_u8_f32, sum_u8_f32);
+using Sum_u16_f32 = Sum<uint16_t, float>;
+HALIDE_REGISTER_GENERATOR(Sum_u16_f32, sum_u16_f32);
+using Sum_u32_f32 = Sum<uint32_t, float>;
+HALIDE_REGISTER_GENERATOR(Sum_u32_f32, sum_u32_f32);
+using Sum_u8_f64 = Sum<uint8_t, double>;
+HALIDE_REGISTER_GENERATOR(Sum_u8_f64, sum_u8_f64);
+using Sum_u16_f64 = Sum<uint16_t, double>;
+HALIDE_REGISTER_GENERATOR(Sum_u16_f64, sum_u16_f64);
+using Sum_u32_f64 = Sum<uint32_t, double>;
+HALIDE_REGISTER_GENERATOR(Sum_u32_f64, sum_u32_f64);
+using Sum_f32_f32 = Sum<float, float>;
+HALIDE_REGISTER_GENERATOR(Sum_f32_f32, sum_f32_f32);
+using Sum_f64_f64 = Sum<double, double>;
+HALIDE_REGISTER_GENERATOR(Sum_f64_f64, sum_f64_f64);

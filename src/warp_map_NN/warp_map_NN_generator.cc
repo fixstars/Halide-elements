@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpMapNN<uint8_t>> warp_map_NN_u8{"warp_map_NN_u8"};
-RegisterGenerator<WarpMapNN<uint16_t>> warp_map_NN_u16{"warp_map_NN_u16"};
+HALIDE_REGISTER_GENERATOR(WarpMapNN<uint8_t>, warp_map_NN_u8);
+HALIDE_REGISTER_GENERATOR(WarpMapNN<uint16_t>, warp_map_NN_u16);

@@ -23,7 +23,7 @@ public:
     }
 };
 
-RegisterGenerator<Split4<uint8_t>> split4_u8{"split4_u8"};
-RegisterGenerator<Split4<uint16_t>> split4_u16{"split4_u16"};
-RegisterGenerator<Split4<int8_t>> split4_i8{"split4_i8"};
-RegisterGenerator<Split4<int16_t>> split4_i16{"split4_i16"};
+HALIDE_REGISTER_GENERATOR(Split4<uint8_t>, split4_u8);
+HALIDE_REGISTER_GENERATOR(Split4<uint16_t>, split4_u16);
+HALIDE_REGISTER_GENERATOR(Split4<int8_t>, split4_i8);
+HALIDE_REGISTER_GENERATOR(Split4<int16_t>, split4_i16);

@@ -24,5 +24,5 @@ public:
     }
 };
 
-RegisterGenerator<ThresholdMin<uint8_t>> threshold_min_u8{"threshold_min_u8"};
-RegisterGenerator<ThresholdMin<uint16_t>> threshold_min_u16{"threshold_min_u16"};
+HALIDE_REGISTER_GENERATOR(ThresholdMin<uint8_t>, threshold_min_u8);
+HALIDE_REGISTER_GENERATOR(ThresholdMin<uint16_t>, threshold_min_u16);

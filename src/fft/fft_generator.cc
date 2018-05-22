@@ -26,4 +26,4 @@ public:
     }
 };
 
-RegisterGenerator<FFT> fft{"fft"};
+HALIDE_REGISTER_GENERATOR(FFT, fft);

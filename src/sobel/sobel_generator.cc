@@ -25,6 +25,6 @@ public:
 
 };
 
-RegisterGenerator<Sobel<uint8_t>> sobel_u8{"sobel_u8"};
-RegisterGenerator<Sobel<uint16_t>> sobel_u16{"sobel_u16"};
+HALIDE_REGISTER_GENERATOR(Sobel<uint8_t>, sobel_u8);
+HALIDE_REGISTER_GENERATOR(Sobel<uint16_t>, sobel_u16);
 

@@ -32,6 +32,6 @@ public:
     }
 };
 
-RegisterGenerator<TmSad<uint8_t>> tm_sad_u8{"tm_sad_u8"};
-RegisterGenerator<TmSad<uint16_t>> tm_sad_u16{"tm_sad_u16"};
-RegisterGenerator<TmSad<uint32_t>> tm_sad_u32{"tm_sad_u32"};
+HALIDE_REGISTER_GENERATOR(TmSad<uint8_t>, tm_sad_u8);
+HALIDE_REGISTER_GENERATOR(TmSad<uint16_t>, tm_sad_u16);
+HALIDE_REGISTER_GENERATOR(TmSad<uint32_t>, tm_sad_u32);

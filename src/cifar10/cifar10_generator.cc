@@ -261,4 +261,4 @@ public:
         return tof;
     }
 };
-HALIDE_REGISTER_GENERATOR(CIFAR10, "cifar10")
+HALIDE_REGISTER_GENERATOR(CIFAR10, cifar10)

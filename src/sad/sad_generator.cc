@@ -29,6 +29,6 @@ public:
     }
 };
 
-RegisterGenerator<Sad<uint8_t>> sad_u8{"sad_u8"};
-RegisterGenerator<Sad<uint16_t>> sad_u16{"sad_u16"};
-RegisterGenerator<Sad<uint32_t>> sad_u32{"sad_u32"};
+HALIDE_REGISTER_GENERATOR(Sad<uint8_t>, sad_u8);
+HALIDE_REGISTER_GENERATOR(Sad<uint16_t>, sad_u16);
+HALIDE_REGISTER_GENERATOR(Sad<uint32_t>, sad_u32);

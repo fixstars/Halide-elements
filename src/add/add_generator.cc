@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Add<uint8_t>> add_u8{"add_u8"};
-RegisterGenerator<Add<uint16_t>> add_u16{"add_u16"};
-RegisterGenerator<Add<uint32_t>> add_u32{"add_u32"};
+HALIDE_REGISTER_GENERATOR(Add<uint8_t>, add_u8);
+HALIDE_REGISTER_GENERATOR(Add<uint16_t>, add_u16);
+HALIDE_REGISTER_GENERATOR(Add<uint32_t>, add_u32);

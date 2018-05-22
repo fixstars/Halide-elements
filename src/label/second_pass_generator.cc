@@ -25,4 +25,4 @@ public:
     }
 };
 
-RegisterGenerator<SecondPass> second_pass{"second_pass"};
+HALIDE_REGISTER_GENERATOR(SecondPass, second_pass);

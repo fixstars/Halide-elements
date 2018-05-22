@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<Histogram<uint8_t>> histogram_u8{"histogram_u8"};
-RegisterGenerator<Histogram<uint16_t>> histogram_u16{"histogram_u16"};
+HALIDE_REGISTER_GENERATOR(Histogram<uint8_t>, histogram_u8);
+HALIDE_REGISTER_GENERATOR(Histogram<uint16_t>, histogram_u16);

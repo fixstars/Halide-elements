@@ -26,6 +26,6 @@ public:
     }
 };
 
-RegisterGenerator<SubScalar<uint8_t>> sub_scalar_u8{"sub_scalar_u8"};
-RegisterGenerator<SubScalar<uint16_t>> sub_scalar_u16{"sub_scalar_u16"};
-RegisterGenerator<SubScalar<uint32_t>> sub_scalar_u32{"sub_scalar_u32"};
+HALIDE_REGISTER_GENERATOR(SubScalar<uint8_t>, sub_scalar_u8);
+HALIDE_REGISTER_GENERATOR(SubScalar<uint16_t>, sub_scalar_u16);
+HALIDE_REGISTER_GENERATOR(SubScalar<uint32_t>, sub_scalar_u32);

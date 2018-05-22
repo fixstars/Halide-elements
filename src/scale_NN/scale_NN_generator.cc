@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<ScaleNN<uint8_t>> scale_NN_u8{"scale_NN_u8"};
-RegisterGenerator<ScaleNN<uint16_t>> scale_NN_u16{"scale_NN_u16"};
-RegisterGenerator<ScaleNN<int16_t>> scale_NN_i16{"scale_NN_i16"};
+HALIDE_REGISTER_GENERATOR(ScaleNN<uint8_t>, scale_NN_u8);
+HALIDE_REGISTER_GENERATOR(ScaleNN<uint16_t>, scale_NN_u16);
+HALIDE_REGISTER_GENERATOR(ScaleNN<int16_t>, scale_NN_i16);

@@ -22,5 +22,5 @@ public:
     }
 };
 
-RegisterGenerator<SetScalar<uint8_t>> set_scalar_u8{"set_scalar_u8"};
-RegisterGenerator<SetScalar<uint16_t>> set_scalar_u16{"set_scalar_u16"};
+HALIDE_REGISTER_GENERATOR(SetScalar<uint8_t>, set_scalar_u8);
+HALIDE_REGISTER_GENERATOR(SetScalar<uint16_t>, set_scalar_u16);

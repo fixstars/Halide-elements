@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<Average<uint8_t>> average_u8{"average_u8"};
-RegisterGenerator<Average<uint16_t>> average_u16{"average_u16"};
+HALIDE_REGISTER_GENERATOR(Average<uint8_t>, average_u8);
+HALIDE_REGISTER_GENERATOR(Average<uint16_t>, average_u16);

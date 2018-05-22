@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<Equal<uint8_t>> equal_u8{"equal_u8"};
-RegisterGenerator<Equal<uint16_t>> equal_u16{"equal_u16"};
-RegisterGenerator<Equal<uint32_t>> equal_u32{"equal_u32"};
+HALIDE_REGISTER_GENERATOR(Equal<uint8_t>, equal_u8);
+HALIDE_REGISTER_GENERATOR(Equal<uint16_t>, equal_u16);
+HALIDE_REGISTER_GENERATOR(Equal<uint32_t>, equal_u32);

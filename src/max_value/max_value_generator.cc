@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<MaxValue<uint8_t>> max_value_u8{"max_value_u8"};
-RegisterGenerator<MaxValue<uint16_t>> max_value_u16{"max_value_u16"};
-RegisterGenerator<MaxValue<uint32_t>> max_value_u32{"max_value_u32"};
+HALIDE_REGISTER_GENERATOR(MaxValue<uint8_t>, max_value_u8);
+HALIDE_REGISTER_GENERATOR(MaxValue<uint16_t>, max_value_u16);
+HALIDE_REGISTER_GENERATOR(MaxValue<uint32_t>, max_value_u32);

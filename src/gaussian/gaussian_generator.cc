@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<Gaussian<uint8_t>> gaussian_u8{"gaussian_u8"};
-RegisterGenerator<Gaussian<uint16_t>> gaussian_u16{"gaussian_u16"};
+HALIDE_REGISTER_GENERATOR(Gaussian<uint8_t>, gaussian_u8);
+HALIDE_REGISTER_GENERATOR(Gaussian<uint16_t>, gaussian_u16);

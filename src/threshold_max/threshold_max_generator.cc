@@ -24,5 +24,5 @@ public:
     }
 };
 
-RegisterGenerator<ThresholdMax<uint8_t>> threshold_max_u8{"threshold_max_u8"};
-RegisterGenerator<ThresholdMax<uint16_t>> threshold_max_u16{"threshold_max_u16"};
+HALIDE_REGISTER_GENERATOR(ThresholdMax<uint8_t>, threshold_max_u8);
+HALIDE_REGISTER_GENERATOR(ThresholdMax<uint16_t>, threshold_max_u16);

@@ -28,5 +28,5 @@ public:
 
 };
 
-RegisterGenerator<Prewitt<uint8_t>> prewitt_u8{"prewitt_u8"};
-RegisterGenerator<Prewitt<uint16_t>> prewitt_u16{"prewitt_u16"};
+HALIDE_REGISTER_GENERATOR(Prewitt<uint8_t>, prewitt_u8);
+HALIDE_REGISTER_GENERATOR(Prewitt<uint16_t>, prewitt_u16);

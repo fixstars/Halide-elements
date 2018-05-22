@@ -26,9 +26,15 @@ public:
     }
 };
 
-RegisterGenerator<Sq_sum<uint8_t, float>> sq_sum_u8_f32{"sq_sum_u8_f32"};
-RegisterGenerator<Sq_sum<uint16_t, float>> sq_sum_u16_f32{"sq_sum_u16_f32"};
-RegisterGenerator<Sq_sum<uint32_t, float>> sq_sum_u32_f32{"sq_sum_u32_f32"};
-RegisterGenerator<Sq_sum<uint8_t, double>> sq_sum_u8_f64{"sq_sum_u8_f64"};
-RegisterGenerator<Sq_sum<uint16_t, double>> sq_sum_u16_f64{"sq_sum_u16_f64"};
-RegisterGenerator<Sq_sum<uint32_t, double>> sq_sum_u32_f64{"sq_sum_u32_f64"};
+using Sq_sum_u8_f32 = Sq_sum<uint8_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u8_f32 , sq_sum_u8_f32);
+using Sq_sum_u16_f32 = Sq_sum<uint16_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u16_f32 , sq_sum_u16_f32);
+using Sq_sum_u32_f32 = Sq_sum<uint32_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u32_f32 , sq_sum_u32_f32);
+using Sq_sum_u8_f64 = Sq_sum<uint8_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u8_f64 , sq_sum_u8_f64);
+using Sq_sum_u16_f64 = Sq_sum<uint16_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u16_f64 , sq_sum_u16_f64);
+using Sq_sum_u32_f64 = Sq_sum<uint32_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_sum_u32_f64 , sq_sum_u32_f64);

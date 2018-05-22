@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<AndScalar<uint8_t>> and_scalar_u8{"and_scalar_u8"};
-RegisterGenerator<AndScalar<uint16_t>> and_scalar_u16{"and_scalar_u16"};
-RegisterGenerator<AndScalar<uint32_t>> and_scalar_u32{"and_scalar_u32"};
+HALIDE_REGISTER_GENERATOR(AndScalar<uint8_t>, and_scalar_u8);
+HALIDE_REGISTER_GENERATOR(AndScalar<uint16_t>, and_scalar_u16);
+HALIDE_REGISTER_GENERATOR(AndScalar<uint32_t>, and_scalar_u32);

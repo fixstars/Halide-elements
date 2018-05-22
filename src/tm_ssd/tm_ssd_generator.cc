@@ -32,6 +32,6 @@ public:
     }
 };
 
-RegisterGenerator<TmSsd<uint8_t>> tm_ssd_u8{"tm_ssd_u8"};
-RegisterGenerator<TmSsd<uint16_t>> tm_ssd_u16{"tm_ssd_u16"};
-RegisterGenerator<TmSsd<uint32_t>> tm_ssd_u32{"tm_ssd_u32"};
+HALIDE_REGISTER_GENERATOR(TmSsd<uint8_t>, tm_ssd_u8);
+HALIDE_REGISTER_GENERATOR(TmSsd<uint16_t>, tm_ssd_u16);
+HALIDE_REGISTER_GENERATOR(TmSsd<uint32_t>, tm_ssd_u32);

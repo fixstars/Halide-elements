@@ -26,6 +26,6 @@ public:
     }
 };
 
-RegisterGenerator<Sub<uint8_t>> sub_u8{"sub_u8"};
-RegisterGenerator<Sub<uint16_t>> sub_u16{"sub_u16"};
-RegisterGenerator<Sub<uint32_t>> sub_u32{"sub_u32"};
+HALIDE_REGISTER_GENERATOR(Sub<uint8_t>, sub_u8);
+HALIDE_REGISTER_GENERATOR(Sub<uint16_t>, sub_u16);
+HALIDE_REGISTER_GENERATOR(Sub<uint32_t>, sub_u32);

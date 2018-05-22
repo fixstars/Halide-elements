@@ -34,5 +34,5 @@ public:
 	}
 };
 
-RegisterGenerator<CloseRect<uint8_t>> close_rect_u8{"close_rect_u8"};
-RegisterGenerator<CloseRect<uint16_t>> close_rect_u16{"close_rect_u16"};
+HALIDE_REGISTER_GENERATOR(CloseRect<uint8_t>, close_rect_u8);
+HALIDE_REGISTER_GENERATOR(CloseRect<uint16_t>, close_rect_u16);

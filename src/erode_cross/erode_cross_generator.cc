@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<ErodeCross<uint8_t>> erode_cross_u8{"erode_cross_u8"};
-RegisterGenerator<ErodeCross<uint16_t>> erode_cross_u16{"erode_cross_u16"};
+HALIDE_REGISTER_GENERATOR(ErodeCross<uint8_t>, erode_cross_u8);
+HALIDE_REGISTER_GENERATOR(ErodeCross<uint16_t>, erode_cross_u16);

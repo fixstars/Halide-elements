@@ -26,8 +26,8 @@ public:
     }
 };
 
-RegisterGenerator<MinPos<uint8_t>> min_pos_u8{"min_pos_u8"};
-RegisterGenerator<MinPos<uint16_t>> min_pos_u16{"min_pos_u16"};
-RegisterGenerator<MinPos<uint32_t>> min_pos_u32{"min_pos_u32"};
-RegisterGenerator<MinPos<float>> min_pos_f32{"min_pos_f32"};
-RegisterGenerator<MinPos<double>> min_pos_f64{"min_pos_f64"};
+HALIDE_REGISTER_GENERATOR(MinPos<uint8_t>, min_pos_u8);
+HALIDE_REGISTER_GENERATOR(MinPos<uint16_t>, min_pos_u16);
+HALIDE_REGISTER_GENERATOR(MinPos<uint32_t>, min_pos_u32);
+HALIDE_REGISTER_GENERATOR(MinPos<float>, min_pos_f32);
+HALIDE_REGISTER_GENERATOR(MinPos<double>, min_pos_f64);

@@ -29,6 +29,6 @@ public:
     }
 };
 
-RegisterGenerator<Subimage<uint8_t>> subimage_u8{"subimage_u8"};
-RegisterGenerator<Subimage<uint16_t>> subimage_u16{"subimage_u16"};
-RegisterGenerator<Subimage<uint32_t>> subimage_u32{"subimage_u32"};
+HALIDE_REGISTER_GENERATOR(Subimage<uint8_t>, subimage_u8);
+HALIDE_REGISTER_GENERATOR(Subimage<uint16_t>, subimage_u16);
+HALIDE_REGISTER_GENERATOR(Subimage<uint32_t>, subimage_u32);
