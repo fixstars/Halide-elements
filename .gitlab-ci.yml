@@ -13,11 +13,9 @@ build:linux:
   script:
     - export GOPATH=~/go/
     - export PATH=/usr/local/go/bin:${GOPATH}/bin:${PATH}
-    - cd ~/go/src/
-    - git clone ssh://git@gl.fixstars.com:8022/M3/Genesis.git
-    - cd Genesis/
-    - git submodule init
-    - git submodule update --init --recursive
+    - cd ~/go/src/Genesis
+    - git pull origin master
+    - git submodule update 
     - ./build.sh
   cache:
     untracked: true
