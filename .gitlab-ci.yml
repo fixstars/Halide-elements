@@ -1,0 +1,39 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - build
+  - test
+
+build:linux:
+  stage: build
+  tags:
+    - cad1
+    - shell 
+  script:
+    - export GOPATH=~/go/
+    - export PATH=/usr/local/go/bin:${GOPATH}/bin:${PATH}
+    - cd ~/go/src/
+    - git clone ssh://git@gl.fixstars.com:8022/M3/Genesis.git
+    - cd Genesis/
+    - ./build.sh
+  cache:
+    untracked: true
+  artifacts:
+    paths:
+      - genesis/
+  except:
+    - /^feature\/wip-.*/
+
+test:linux:
+  stage: test
+  tags:
+    - cad1
+    - shell
+  script:
+    - export HALIDE_ROOT=~/go/src/Genesis/genesis/
+    - ./testall.sh
+  dependencies:
+    - build:linux
+  except:
+    - /^feature\/wip-.*/
