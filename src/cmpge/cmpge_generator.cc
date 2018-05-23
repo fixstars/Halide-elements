@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Cmpge<uint8_t>> cmpge_u8{"cmpge_u8"};
-RegisterGenerator<Cmpge<uint16_t>> cmpge_u16{"cmpge_u16"};
-RegisterGenerator<Cmpge<uint32_t>> cmpge_u32{"cmpge_u32"};
+HALIDE_REGISTER_GENERATOR(Cmpge<uint8_t>, cmpge_u8);
+HALIDE_REGISTER_GENERATOR(Cmpge<uint16_t>, cmpge_u16);
+HALIDE_REGISTER_GENERATOR(Cmpge<uint32_t>, cmpge_u32);

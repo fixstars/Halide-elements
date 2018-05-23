@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpMapBilinear<uint8_t>> warp_map_bilinear_u8{"warp_map_bilinear_u8"};
-RegisterGenerator<WarpMapBilinear<uint16_t>> warp_map_bilinear_u16{"warp_map_bilinear_u16"};
+HALIDE_REGISTER_GENERATOR(WarpMapBilinear<uint8_t>, warp_map_bilinear_u8);
+HALIDE_REGISTER_GENERATOR(WarpMapBilinear<uint16_t>, warp_map_bilinear_u16);

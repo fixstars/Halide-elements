@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Multiply<uint8_t>> multiply_u8{"multiply_u8"};
-RegisterGenerator<Multiply<uint16_t>> multiply_u16{"multiply_u16"};
-RegisterGenerator<Multiply<uint32_t>> multiply_u32{"multiply_u32"};
+HALIDE_REGISTER_GENERATOR(Multiply<uint8_t>, multiply_u8);
+HALIDE_REGISTER_GENERATOR(Multiply<uint16_t>, multiply_u16);
+HALIDE_REGISTER_GENERATOR(Multiply<uint32_t>, multiply_u32);

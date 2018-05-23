@@ -217,4 +217,4 @@ public:
         return prob;
     }
 };
-HALIDE_REGISTER_GENERATOR(MNIST, "mnist")
+HALIDE_REGISTER_GENERATOR(MNIST, mnist)

@@ -24,9 +24,15 @@ public:
     }
 };
 
-RegisterGenerator<SqIntegral<uint8_t, float>> sq_integral_u8_f32{"sq_integral_u8_f32"};
-RegisterGenerator<SqIntegral<uint16_t, float>> sq_integral_u16_f32{"sq_integral_u16_f32"};
-RegisterGenerator<SqIntegral<uint32_t, float>> sq_integral_u32_f32{"sq_integral_u32_f32"};
-RegisterGenerator<SqIntegral<uint8_t, double>> sq_integral_u8_f64{"sq_integral_u8_f64"};
-RegisterGenerator<SqIntegral<uint16_t, double>> sq_integral_u16_f64{"sq_integral_u16_f64"};
-RegisterGenerator<SqIntegral<uint32_t, double>> sq_integral_u32_f64{"sq_integral_u32_f64"};
+using Sq_integral_u8_f32 = SqIntegral<uint8_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u8_f32 , sq_integral_u8_f32);
+using Sq_integral_u16_f32 = SqIntegral<uint16_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u16_f32 , sq_integral_u16_f32);
+using Sq_integral_u32_f32 = SqIntegral<uint32_t, float>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u32_f32 , sq_integral_u32_f32);
+using Sq_integral_u8_f64 = SqIntegral<uint8_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u8_f64 , sq_integral_u8_f64);
+using Sq_integral_u16_f64 = SqIntegral<uint16_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u16_f64 , sq_integral_u16_f64);
+using Sq_integral_u32_f64 = SqIntegral<uint32_t, double>;
+HALIDE_REGISTER_GENERATOR(Sq_integral_u32_f64 , sq_integral_u32_f64);

@@ -54,4 +54,4 @@ public:
     }
 };
 
-HALIDE_REGISTER_GENERATOR(SimpleISP, "simple_isp")
+HALIDE_REGISTER_GENERATOR(SimpleISP, simple_isp)

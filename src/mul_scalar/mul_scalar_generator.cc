@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<MulScalar<uint8_t>> mul_scalar_u8{"mul_scalar_u8"};
-RegisterGenerator<MulScalar<uint16_t>> mul_scalar_u16{"mul_scalar_u16"};
-RegisterGenerator<MulScalar<uint32_t>> mul_scalar_u32{"mul_scalar_u32"};
+HALIDE_REGISTER_GENERATOR(MulScalar<uint8_t>, mul_scalar_u8);
+HALIDE_REGISTER_GENERATOR(MulScalar<uint16_t>, mul_scalar_u16);
+HALIDE_REGISTER_GENERATOR(MulScalar<uint32_t>, mul_scalar_u32);

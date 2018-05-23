@@ -29,4 +29,4 @@ public:
 private:
 
 };
-HALIDE_REGISTER_GENERATOR(SGM, "sgm")
+HALIDE_REGISTER_GENERATOR(SGM, sgm)

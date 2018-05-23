@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpPerspectiveBilinear<uint8_t>> warp_perspective_bilinear_u8{"warp_perspective_bilinear_u8"};
-RegisterGenerator<WarpPerspectiveBilinear<uint16_t>> warp_perspective_bilinear_u16{"warp_perspective_bilinear_u16"};
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveBilinear<uint8_t>, warp_perspective_bilinear_u8);
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveBilinear<uint16_t>, warp_perspective_bilinear_u16);

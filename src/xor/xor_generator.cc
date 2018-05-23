@@ -25,6 +25,6 @@ public:
     }
 };
 
-RegisterGenerator<Xor<uint8_t>> xor_u8{"xor_u8"};
-RegisterGenerator<Xor<uint16_t>> xor_u16{"xor_u16"};
-RegisterGenerator<Xor<uint32_t>> xor_u32{"xor_u32"};
+HALIDE_REGISTER_GENERATOR(Xor<uint8_t>, xor_u8);
+HALIDE_REGISTER_GENERATOR(Xor<uint16_t>, xor_u16);
+HALIDE_REGISTER_GENERATOR(Xor<uint32_t>, xor_u32);

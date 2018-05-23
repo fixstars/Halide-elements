@@ -24,9 +24,15 @@ public:
     }
 };
 
-RegisterGenerator<Integral<uint8_t, float>> integral_u8_f32{"integral_u8_f32"};
-RegisterGenerator<Integral<uint16_t, float>> integral_u16_f32{"integral_u16_f32"};
-RegisterGenerator<Integral<uint32_t, float>> integral_u32_f32{"integral_u32_f32"};
-RegisterGenerator<Integral<uint8_t, double>> integral_u8_f64{"integral_u8_f64"};
-RegisterGenerator<Integral<uint16_t, double>> integral_u16_f64{"integral_u16_f64"};
-RegisterGenerator<Integral<uint32_t, double>> integral_u32_f64{"integral_u32_f64"};
+using Integral_u8_f32 = Integral<uint8_t, float>;
+HALIDE_REGISTER_GENERATOR(Integral_u8_f32 , integral_u8_f32);
+using Integral_u16_f32 = Integral<uint16_t, float>;
+HALIDE_REGISTER_GENERATOR(Integral_u16_f32 , integral_u16_f32);
+using Integral_u32_f32 = Integral<uint32_t, float>;
+HALIDE_REGISTER_GENERATOR(Integral_u32_f32 , integral_u32_f32);
+using Integral_u8_f64 = Integral<uint8_t, double>;
+HALIDE_REGISTER_GENERATOR(Integral_u8_f64 , integral_u8_f64);
+using Integral_u16_f64 = Integral<uint16_t, double>;
+HALIDE_REGISTER_GENERATOR(Integral_u16_f64 , integral_u16_f64);
+using Integral_u32_f64 = Integral<uint32_t, double>;
+HALIDE_REGISTER_GENERATOR(Integral_u32_f64 , integral_u32_f64);

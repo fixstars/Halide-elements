@@ -30,5 +30,5 @@ public:
     }
 };
 
-RegisterGenerator<Erode<uint8_t>> erode_u8{"erode_u8"};
-RegisterGenerator<Erode<uint16_t>> erode_u16{"erode_u16"};
+HALIDE_REGISTER_GENERATOR(Erode<uint8_t>, erode_u8);
+HALIDE_REGISTER_GENERATOR(Erode<uint16_t>, erode_u16);

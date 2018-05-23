@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<Min_<uint8_t>> min_u8{"min_u8"};
-RegisterGenerator<Min_<uint16_t>> min_u16{"min_u16"};
-RegisterGenerator<Min_<uint32_t>> min_u32{"min_u32"};
+HALIDE_REGISTER_GENERATOR(Min_<uint8_t>, min_u8);
+HALIDE_REGISTER_GENERATOR(Min_<uint16_t>, min_u16);
+HALIDE_REGISTER_GENERATOR(Min_<uint32_t>, min_u32);

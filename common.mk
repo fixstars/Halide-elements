@@ -54,9 +54,9 @@ else
 endif
 else
 ifeq ($(OS), Linux)
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -g ${PROG} -e h,static_library target=host-no_asserts
 else
-	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e h,static_library target=host-no_asserts
+	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o .  -g ${PROG} -e h,static_library target=host-no_asserts
 endif
 endif
 	@touch ${PROG}_gen.exec
@@ -93,9 +93,9 @@ endif
 else
 ${PROG}.hls: ${PROG}_gen.hls
 ifeq ($(OS), Linux)
-	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
+	LD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o .  -g ${PROG} -e hls target=fpga-64-vivado_hls
 else
-	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o . -e hls target=fpga-64-vivado_hls
+	DYLD_LIBRARY_PATH=${HALIDE_LIB_DIR} ./$< -o .  -g ${PROG} -e hls target=fpga-64-vivado_hls
 endif
 endif
 

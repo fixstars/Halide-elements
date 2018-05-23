@@ -42,4 +42,4 @@ public:
     }
 };
 
-HALIDE_REGISTER_GENERATOR(Convolution, "convolution_arbitrary_bits")
+HALIDE_REGISTER_GENERATOR(Convolution, convolution_arbitrary_bits)

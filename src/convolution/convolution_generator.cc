@@ -34,4 +34,4 @@ public:
     }
 };
 
-HALIDE_REGISTER_GENERATOR(Convolution, "convolution")
+HALIDE_REGISTER_GENERATOR(Convolution, convolution)

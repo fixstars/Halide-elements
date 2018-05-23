@@ -34,5 +34,5 @@ public:
 	}
 };
 
-RegisterGenerator<CloseCross<uint8_t>> close_cross_u8{"close_cross_u8"};
-RegisterGenerator<CloseCross<uint16_t>> close_cross_u16{"close_cross_u16"};
+HALIDE_REGISTER_GENERATOR(CloseCross<uint8_t>, close_cross_u8);
+HALIDE_REGISTER_GENERATOR(CloseCross<uint16_t>, close_cross_u16);

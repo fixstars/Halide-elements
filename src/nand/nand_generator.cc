@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Nand<uint8_t>> nand_u8{"nand_u8"};
-RegisterGenerator<Nand<uint16_t>> nand_u16{"nand_u16"};
-RegisterGenerator<Nand<uint32_t>> nand_u32{"nand_u32"};
+HALIDE_REGISTER_GENERATOR(Nand<uint8_t>, nand_u8);
+HALIDE_REGISTER_GENERATOR(Nand<uint16_t>, nand_u16);
+HALIDE_REGISTER_GENERATOR(Nand<uint32_t>, nand_u32);

@@ -32,6 +32,6 @@ public:
     }
 };
 
-RegisterGenerator<TmNcc<uint8_t>> tm_ncc_u8{"tm_ncc_u8"};
-RegisterGenerator<TmNcc<uint16_t>> tm_ncc_u16{"tm_ncc_u16"};
-RegisterGenerator<TmNcc<uint32_t>> tm_ncc_u32{"tm_ncc_u32"};
+HALIDE_REGISTER_GENERATOR(TmNcc<uint8_t>, tm_ncc_u8);
+HALIDE_REGISTER_GENERATOR(TmNcc<uint16_t>, tm_ncc_u16);
+HALIDE_REGISTER_GENERATOR(TmNcc<uint32_t>, tm_ncc_u32);

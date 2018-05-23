@@ -29,5 +29,5 @@ public:
     }
 };
 
-RegisterGenerator<DilateCross<uint8_t>> dilate_cross_u8{"dilate_cross_u8"};
-RegisterGenerator<DilateCross<uint16_t>> dilate_cross_u16{"dilate_cross_u16"};
+HALIDE_REGISTER_GENERATOR(DilateCross<uint8_t>, dilate_cross_u8);
+HALIDE_REGISTER_GENERATOR(DilateCross<uint16_t>, dilate_cross_u16);

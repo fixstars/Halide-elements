@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpPerspectiveBicubic<uint8_t>> warp_perspective_bicubic_u8{"warp_perspective_bicubic_u8"};
-RegisterGenerator<WarpPerspectiveBicubic<uint16_t>> warp_perspective_bicubic_u16{"warp_perspective_bicubic_u16"};
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveBicubic<uint8_t>, warp_perspective_bicubic_u8);
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveBicubic<uint16_t>, warp_perspective_bicubic_u16);

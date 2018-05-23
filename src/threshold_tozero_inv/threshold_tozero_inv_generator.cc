@@ -24,5 +24,5 @@ public:
     }
 };
 
-RegisterGenerator<ThresholdTozeroInv<uint8_t>> threshold_tozero_inv_u8{"threshold_tozero_inv_u8"};
-RegisterGenerator<ThresholdTozeroInv<uint16_t>> threshold_tozero_inv_u16{"threshold_tozero_inv_u16"};
+HALIDE_REGISTER_GENERATOR(ThresholdTozeroInv<uint8_t>, threshold_tozero_inv_u8);
+HALIDE_REGISTER_GENERATOR(ThresholdTozeroInv<uint16_t>, threshold_tozero_inv_u16);

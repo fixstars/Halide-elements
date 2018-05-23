@@ -25,6 +25,6 @@ public:
     }
 };
 
-RegisterGenerator<Or<uint8_t>> or_u8{"or_u8"};
-RegisterGenerator<Or<uint16_t>> or_u16{"or_u16"};
-RegisterGenerator<Or<uint32_t>> or_u32{"or_u32"};
+HALIDE_REGISTER_GENERATOR(Or<uint8_t>, or_u8);
+HALIDE_REGISTER_GENERATOR(Or<uint16_t>, or_u16);
+HALIDE_REGISTER_GENERATOR(Or<uint32_t>, or_u32);

@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<ScaleBicubic<uint8_t>> scale_bicubic_u8{"scale_bicubic_u8"};
-RegisterGenerator<ScaleBicubic<uint16_t>> scale_bicubic_u16{"scale_bicubic_u16"};
-RegisterGenerator<ScaleBicubic<int16_t>> scale_bicubic_i16{"scale_bicubic_i16"};
+HALIDE_REGISTER_GENERATOR(ScaleBicubic<uint8_t>, scale_bicubic_u8);
+HALIDE_REGISTER_GENERATOR(ScaleBicubic<uint16_t>, scale_bicubic_u16);
+HALIDE_REGISTER_GENERATOR(ScaleBicubic<int16_t>, scale_bicubic_i16);

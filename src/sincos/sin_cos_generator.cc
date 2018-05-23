@@ -29,4 +29,4 @@ public:
     }
 };
 
-RegisterGenerator<SinCos> sin_cos{"sin_cos"};
+HALIDE_REGISTER_GENERATOR(SinCos, sin_cos);

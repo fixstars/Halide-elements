@@ -28,5 +28,5 @@ public:
     }
 };
 
-RegisterGenerator<Bilateral<uint8_t>> bilateral_u8{"bilateral_u8"};
-RegisterGenerator<Bilateral<uint16_t>> bilateral_u16{"bilateral_u16"};
+HALIDE_REGISTER_GENERATOR(Bilateral<uint8_t>, bilateral_u8);
+HALIDE_REGISTER_GENERATOR(Bilateral<uint16_t>, bilateral_u16);

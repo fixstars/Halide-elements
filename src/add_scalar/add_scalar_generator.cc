@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<AddScalar<uint8_t>> add_scalar_u8{"add_scalar_u8"};
-RegisterGenerator<AddScalar<uint16_t>> add_scalar_u16{"add_scalar_u16"};
-RegisterGenerator<AddScalar<uint32_t>> add_scalar_u32{"add_scalar_u32"};
+HALIDE_REGISTER_GENERATOR(AddScalar<uint8_t>, add_scalar_u8);
+HALIDE_REGISTER_GENERATOR(AddScalar<uint16_t>, add_scalar_u16);
+HALIDE_REGISTER_GENERATOR(AddScalar<uint32_t>, add_scalar_u32);

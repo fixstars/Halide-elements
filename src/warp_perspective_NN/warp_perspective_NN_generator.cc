@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpPerspectiveNN<uint8_t>> warp_perspective_NN_u8{"warp_perspective_NN_u8"};
-RegisterGenerator<WarpPerspectiveNN<uint16_t>> warp_perspective_NN_u16{"warp_perspective_NN_u16"};
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveNN<uint8_t>, warp_perspective_NN_u8);
+HALIDE_REGISTER_GENERATOR(WarpPerspectiveNN<uint16_t>, warp_perspective_NN_u16);

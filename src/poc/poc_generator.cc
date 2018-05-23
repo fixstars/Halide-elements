@@ -80,4 +80,4 @@ public:
     }
 };
 
-RegisterGenerator<POC> poc{"poc"};
+HALIDE_REGISTER_GENERATOR(POC, poc);

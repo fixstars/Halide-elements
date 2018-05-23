@@ -32,4 +32,4 @@ public:
     }
 };
 
-RegisterGenerator<Affine> affine{"affine"};
+HALIDE_REGISTER_GENERATOR(Affine, affine);

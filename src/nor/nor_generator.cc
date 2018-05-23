@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Nor<uint8_t>> nor_u8{"nor_u8"};
-RegisterGenerator<Nor<uint16_t>> nor_u16{"nor_u16"};
-RegisterGenerator<Nor<uint32_t>> nor_u32{"nor_u32"};
+HALIDE_REGISTER_GENERATOR(Nor<uint8_t>, nor_u8);
+HALIDE_REGISTER_GENERATOR(Nor<uint16_t>, nor_u16);
+HALIDE_REGISTER_GENERATOR(Nor<uint32_t>, nor_u32);

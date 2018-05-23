@@ -52,7 +52,9 @@ else
 
     if $all_succeed; then
         echo -e "\e[32mTest Successed!\e[m"
+        exit 0
     else
         echo -e "\e[31mTest Failed...\e[m"
+        exit 1
     fi
 fi

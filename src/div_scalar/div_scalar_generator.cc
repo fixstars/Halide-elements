@@ -27,6 +27,6 @@ public:
     }
 };
 
-RegisterGenerator<DivScalar<uint8_t>> div_scalar_u8{"div_scalar_u8"};
-RegisterGenerator<DivScalar<uint16_t>> div_scalar_u16{"div_scalar_u16"};
-RegisterGenerator<DivScalar<uint32_t>> div_scalar_u32{"div_scalar_u32"};
+HALIDE_REGISTER_GENERATOR(DivScalar<uint8_t>, div_scalar_u8);
+HALIDE_REGISTER_GENERATOR(DivScalar<uint16_t>, div_scalar_u16);
+HALIDE_REGISTER_GENERATOR(DivScalar<uint32_t>, div_scalar_u32);

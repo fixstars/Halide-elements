@@ -25,5 +25,5 @@ public:
     }
 };
 
-RegisterGenerator<Copy<uint8_t>> copy_u8{"copy_u8"};
-RegisterGenerator<Copy<uint16_t>> copy_u16{"copy_u16"};
+HALIDE_REGISTER_GENERATOR(Copy<uint8_t>, copy_u8);
+HALIDE_REGISTER_GENERATOR(Copy<uint16_t>, copy_u16);

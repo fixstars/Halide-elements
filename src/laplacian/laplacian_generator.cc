@@ -24,5 +24,5 @@ public:
     }
 };
 
-RegisterGenerator<Laplacian<uint8_t>> laplacian_u8{"laplacian_u8"};
-RegisterGenerator<Laplacian<uint16_t>> laplacian_u16{"laplacian_u16"};
+HALIDE_REGISTER_GENERATOR(Laplacian<uint8_t>, laplacian_u8);
+HALIDE_REGISTER_GENERATOR(Laplacian<uint16_t>, laplacian_u16);

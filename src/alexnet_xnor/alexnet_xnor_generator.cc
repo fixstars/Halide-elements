@@ -390,4 +390,4 @@ public:
         return prob;
     }
 };
-HALIDE_REGISTER_GENERATOR(AlexnetXNOR, "alexnet_xnor")
+HALIDE_REGISTER_GENERATOR(AlexnetXNOR, alexnet_xnor)

@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<Median<uint8_t>> median_u8{"median_u8"};
-RegisterGenerator<Median<uint16_t>> median_u16{"median_u16"};
+HALIDE_REGISTER_GENERATOR(Median<uint8_t>, median_u8);
+HALIDE_REGISTER_GENERATOR(Median<uint16_t>, median_u16);

@@ -23,5 +23,5 @@ public:
     }
 };
 
-RegisterGenerator<Label<uint8_t>> label_u8{"label_u8"};
-RegisterGenerator<Label<uint16_t>> label_u16{"label_u16"};
+HALIDE_REGISTER_GENERATOR(Label<uint8_t>, label_u8);
+HALIDE_REGISTER_GENERATOR(Label<uint16_t>, label_u16);

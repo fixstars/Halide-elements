@@ -29,7 +29,7 @@ public:
     }
 };
 
-RegisterGenerator<Merge3<uint8_t>> merge3_u8{"merge3_u8"};
-RegisterGenerator<Merge3<uint16_t>> merge3_u16{"merge3_u16"};
-RegisterGenerator<Merge3<int8_t>> merge3_i8{"merge3_i8"};
-RegisterGenerator<Merge3<int16_t>> merge3_i16{"merge3_i16"};
+HALIDE_REGISTER_GENERATOR(Merge3<uint8_t>, merge3_u8);
+HALIDE_REGISTER_GENERATOR(Merge3<uint16_t>, merge3_u16);
+HALIDE_REGISTER_GENERATOR(Merge3<int8_t>, merge3_i8);
+HALIDE_REGISTER_GENERATOR(Merge3<int16_t>, merge3_i16);

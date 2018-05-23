@@ -28,6 +28,6 @@ public:
     }
 };
 
-RegisterGenerator<Cmpgt<uint8_t>> cmpgt_u8{"cmpgt_u8"};
-RegisterGenerator<Cmpgt<uint16_t>> cmpgt_u16{"cmpgt_u16"};
-RegisterGenerator<Cmpgt<uint32_t>> cmpgt_u32{"cmpgt_u32"};
+HALIDE_REGISTER_GENERATOR(Cmpgt<uint8_t>, cmpgt_u8);
+HALIDE_REGISTER_GENERATOR(Cmpgt<uint16_t>, cmpgt_u16);
+HALIDE_REGISTER_GENERATOR(Cmpgt<uint32_t>, cmpgt_u32);

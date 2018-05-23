@@ -27,5 +27,5 @@ public:
     }
 };
 
-RegisterGenerator<WarpAffineNN<uint8_t>> warp_affine_NN_u8{"warp_affine_NN_u8"};
-RegisterGenerator<WarpAffineNN<uint16_t>> warp_affine_NN_u16{"warp_affine_NN_u16"};
+HALIDE_REGISTER_GENERATOR(WarpAffineNN<uint8_t>, warp_affine_NN_u8);
+HALIDE_REGISTER_GENERATOR(WarpAffineNN<uint16_t>, warp_affine_NN_u16);

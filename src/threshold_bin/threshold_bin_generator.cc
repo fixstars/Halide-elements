@@ -25,5 +25,5 @@ public:
     }
 };
 
-RegisterGenerator<ThresholdBin<uint8_t>> threshold_bin_u8{"threshold_bin_u8"};
-RegisterGenerator<ThresholdBin<uint16_t>> threshold_bin_u16{"threshold_bin_u16"};
+HALIDE_REGISTER_GENERATOR(ThresholdBin<uint8_t>, threshold_bin_u8);
+HALIDE_REGISTER_GENERATOR(ThresholdBin<uint16_t>, threshold_bin_u16);
