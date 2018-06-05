@@ -6,7 +6,7 @@
 
 #include "HalideRuntime.h"
 #include "HalideBuffer.h"
-#include "Util.h"
+#include "Element/Util.h"
 
 #include "sum_u8_f32.h"
 #include "sum_u16_f32.h"
