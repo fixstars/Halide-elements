@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Halide.h>
+#include "Util.h"
 
 namespace Halide {
 namespace Element {
