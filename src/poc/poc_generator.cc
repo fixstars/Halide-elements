@@ -1,9 +1,8 @@
 #include <cmath>
 #include <cstdint>
 
-#include "Halide.h"
-#include <Element.h>
-#include <Algorithm.h>
+#include <Halide.h>
+#include "Element.h"
 
 using namespace Halide;
 using namespace Halide::Element;
