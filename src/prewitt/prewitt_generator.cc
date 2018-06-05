@@ -1,8 +1,7 @@
 #include <cstdint>
 
-#include "Halide.h"
+#include <Halide.h>
 #include "Element.h"
-#include "ImageProcessing.h"
 
 using namespace Halide;
 using Halide::Element::schedule;
