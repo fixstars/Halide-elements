@@ -54,7 +54,7 @@ public:
     Func build()
     {
         const std::vector<int32_t> input_shape{1, 28, 28, batch_size};
-        schedule(in, input_shape);
+        schedule(in, to_expr(input_shape));
 
         std::vector<int32_t> conv1_weight_shape{1, 5, 5, 20};
         std::vector<int32_t> conv1_bias_shape{20};
@@ -107,7 +107,7 @@ public:
         Func lq1("lq1");
         std::vector<int32_t> lq1_top_shape;
         lq1(c, x, y, n) = log_quant_fixed32<FB>(input, input_shape, lq1_top_shape)(c, x, y, n);
-        schedule(lq1, lq1_top_shape);
+        schedule(lq1, to_expr(lq1_top_shape));
 
         // Conv1(1x5x5x20): (1, 28, 28, n) -> (20, 24, 24, n)
         Func conv1("conv1");
@@ -123,7 +123,7 @@ public:
         Func relu1("relu1");
         std::vector<int32_t> relu1_top_shape;
         relu1(c, x, y, n) = relu(bn1, bn1_top_shape, relu1_top_shape)(c, x, y, n);
-        schedule(relu1, relu1_top_shape);
+        schedule(relu1, to_expr(relu1_top_shape));
 
         // Pool1(2x2, 2): (20, 24, 24, n) -> (20, 12, 12, n)
         Func pool1("pool1");
@@ -144,7 +144,7 @@ public:
         Func active2("active2");
         std::vector<int32_t> active2_top_shape;
         active2(c, x, y, n) = bin_active_fixed32<FB>(scale2, scale2_top_shape, active2_top_shape)(c, x, y, n);
-        schedule_burst(active2, active2_top_shape, active2_top_shape[0]);
+        schedule_burst(active2, to_expr(active2_top_shape), active2_top_shape[0]);
 
         // Conv2(20x5x5x50): (20, 12, 12, n) -> (50, 8, 8, n)
         Func conv2("conv2");
@@ -156,13 +156,13 @@ public:
         Func relu2("relu2");
         std::vector<int32_t> relu2_top_shape;
         relu2(c, x, y, n) = relu(conv2, conv2_top_shape, relu2_top_shape)(c, x, y, n);
-        schedule(relu2, relu2_top_shape);
+        schedule(relu2, to_expr(relu2_top_shape));
 
         // Pool2(2x2, 2): (50, 8, 8, n) -> (50, 4, 4, n)
         Func pool2("pool2");
         std::vector<int32_t> pool2_top_shape;
         pool2(c, x, y, n) = pool_fixed32<FB>(relu2, pool2_window_shape, pool2_stride, relu2_top_shape, pool2_top_shape, true)(c, x, y, n);
-        schedule(pool2, pool2_top_shape);
+        schedule(pool2, to_expr(pool2_top_shape));
 
 
         // Bn3
@@ -179,7 +179,7 @@ public:
         Func active3("active3");
         std::vector<int32_t> active3_top_shape;
         active3(c, x, y, n) = bin_active_fixed32<FB>(scale3, scale3_top_shape, active3_top_shape)(c, x, y, n);
-        schedule_burst(active3, active3_top_shape, active3_top_shape[0]*active3_top_shape[1]*active3_top_shape[2]);
+        schedule_burst(active3, to_expr(active3_top_shape), active3_top_shape[0]*active3_top_shape[1]*active3_top_shape[2]);
 
         // Fc3: (800, n) -> (500, n)
         Func fc3("fc3");
@@ -195,7 +195,7 @@ public:
         Func lq4("lq4");
         std::vector<int32_t> lq4_top_shape;
         lq4(i, n) = log_quant_fixed32<FB>(relu3, relu3_top_shape, lq4_top_shape)(i, n);
-        schedule_memory(lq4, lq4_top_shape);
+        schedule_memory(lq4, to_expr(lq4_top_shape));
 
         // Fc4: (500, n) -> (10, n)
         Func fc4("fc4");
@@ -206,13 +206,13 @@ public:
         Func tof("tof");
         std::vector<int32_t> tof_top_shape;
         tof(i, n) = tofloat<FB>(fc4, fc4_top_shape, tof_top_shape)(i, n);
-        schedule(tof, tof_top_shape);
+        schedule(tof, to_expr(tof_top_shape));
 
         // Softmax
         Func prob("prob");
         std::vector<int32_t> prob_top_shape;
         prob(i, n) = softmax(tof, tof_top_shape, prob_top_shape)(i, n);
-        schedule(prob, prob_top_shape);
+        schedule(prob, to_expr(prob_top_shape));
 
         return prob;
     }

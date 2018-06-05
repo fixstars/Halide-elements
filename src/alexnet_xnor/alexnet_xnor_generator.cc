@@ -308,9 +308,9 @@ public:
         prob(i, n) = softmax(tof, tof_top_shape, prob_top_shape)(i, n);
 
         // Schedule
-        schedule(in, input_shape);
+        schedule(in, to_expr(input_shape));
 
-        schedule(conv1_weight,   conv1_weight_shape);
+        schedule(conv1_weight, to_expr(conv1_weight_shape));
         schedule(conv1_bias,    {conv1_num_output});
         schedule(bn1_mean,      {conv1_num_output});
         schedule(bn1_variance,  {conv1_num_output});
@@ -321,7 +321,7 @@ public:
         schedule(bn2_variance,  {conv1_num_output});
         schedule(scale2_weight, {conv1_num_output});
         schedule(scale2_bias,   {conv1_num_output});
-        schedule(conv2_weight,   conv2_weight_shape);
+        schedule(conv2_weight, to_expr(conv2_weight_shape));
         schedule(conv2_alpha,   {conv2_num_output});
         schedule(conv2_bias,    {conv2_num_output});
 
@@ -329,7 +329,7 @@ public:
         schedule(bn3_variance,  {conv2_num_output});
         schedule(scale3_weight, {conv2_num_output});
         schedule(scale3_bias,   {conv2_num_output});
-        schedule(conv3_weight,   conv3_weight_shape);
+        schedule(conv3_weight, to_expr(conv3_weight_shape));
         schedule(conv3_alpha,   {conv3_num_output});
         schedule(conv3_bias,    {conv3_num_output});
 
@@ -337,7 +337,7 @@ public:
         schedule(bn4_variance,  {conv3_num_output});
         schedule(scale4_weight, {conv3_num_output});
         schedule(scale4_bias,   {conv3_num_output});
-        schedule(conv4_weight,   conv4_weight_shape);
+        schedule(conv4_weight, to_expr(conv4_weight_shape));
         schedule(conv4_alpha,   {conv4_num_output});
         schedule(conv4_bias,    {conv4_num_output});
 
@@ -345,7 +345,7 @@ public:
         schedule(bn5_variance,  {conv4_num_output});
         schedule(scale5_weight, {conv4_num_output});
         schedule(scale5_bias,   {conv4_num_output});
-        schedule(conv5_weight,   conv5_weight_shape);
+        schedule(conv5_weight, to_expr(conv5_weight_shape));
         schedule(conv5_alpha,   {conv5_num_output});
         schedule(conv5_bias,    {conv5_num_output});
 
@@ -353,7 +353,7 @@ public:
         schedule(bn6_variance,  {conv5_num_output});
         schedule(scale6_weight, {conv5_num_output});
         schedule(scale6_bias,   {conv5_num_output});
-        schedule(fc6_weight,     fc6_weight_shape);
+        schedule(fc6_weight, to_expr(fc6_weight_shape));
         schedule(fc6_alpha,     {fc6_num_output});
         schedule(fc6_bias,      {fc6_num_output});
 
@@ -361,7 +361,7 @@ public:
         schedule(bn7_variance,  {fc6_num_output});
         schedule(scale7_weight, {fc6_num_output});
         schedule(scale7_bias,   {fc6_num_output});
-        schedule(fc7_weight,     fc7_weight_shape);
+        schedule(fc7_weight, to_expr(fc7_weight_shape));
         schedule(fc7_alpha,     {fc7_num_output});
         schedule(fc7_bias,      {fc7_num_output});
 
@@ -369,23 +369,23 @@ public:
         schedule(bn8_variance,  {fc7_num_output});
         schedule(scale8_weight, {fc7_num_output});
         schedule(scale8_bias,   {fc7_num_output});
-        schedule(fc8_weight,     fc8_weight_shape);
+        schedule(fc8_weight, to_expr(fc8_weight_shape));
         schedule(fc8_bias,      {fc8_num_output});
 
-        schedule(relu1, relu1_top_shape);
-        schedule(active2, active2_top_shape);
-        schedule(conv1, conv1_top_shape);
-        schedule(conv2, conv2_top_shape);
-        schedule(active3, active3_top_shape);
-        schedule(active4, active4_top_shape);
-        schedule(active5, active5_top_shape);
-        schedule(conv5, conv5_top_shape);
-        schedule(active6, active6_top_shape);
-        schedule(active7, active7_top_shape);
-        schedule(relu8, relu8_top_shape);
-        schedule(fc8, fc8_top_shape);
-        schedule(i2v, i2v_top_shape);
-        schedule(prob, prob_top_shape);
+        schedule(relu1, to_expr(relu1_top_shape));
+        schedule(active2, to_expr(active2_top_shape));
+        schedule(conv1, to_expr(conv1_top_shape));
+        schedule(conv2, to_expr(conv2_top_shape));
+        schedule(active3, to_expr(active3_top_shape));
+        schedule(active4, to_expr(active4_top_shape));
+        schedule(active5, to_expr(active5_top_shape));
+        schedule(conv5, to_expr(conv5_top_shape));
+        schedule(active6, to_expr(active6_top_shape));
+        schedule(active7, to_expr(active7_top_shape));
+        schedule(relu8, to_expr(relu8_top_shape));
+        schedule(fc8, to_expr(fc8_top_shape));
+        schedule(i2v, to_expr(i2v_top_shape));
+        schedule(prob, to_expr(prob_top_shape));
 
         return prob;
     }

@@ -55,7 +55,7 @@ public:
     Func build()
     {
         const std::vector<int32_t> input_shape{3, 32, 32, batch_size};
-        schedule(in, input_shape);
+        schedule(in, to_expr(input_shape));
 
         std::vector<int32_t> c11w_shape{3, 5, 5, 192};
         std::vector<int32_t> c11b_shape{192};
@@ -159,7 +159,7 @@ public:
         Func lq1_1("lq1_1");
         std::vector<int32_t> lq1_1_top_shape;
         lq1_1(c, x, y, n) = log_quant_fixed32<FB>(input, input_shape, lq1_1_top_shape)(c, x, y, n);
-        schedule(lq1_1, lq1_1_top_shape);
+        schedule(lq1_1, to_expr(lq1_1_top_shape));
 
         // Conv1_1(3x5x5x192): (3, 32, 32, n) -> (192, 32, 32, n)
         Func conv1_1("conv1_1");
@@ -185,7 +185,7 @@ public:
         std::vector<int32_t> conv1_3_top_shape;
         Func conv1_3 = binconv_module_fixed32<Buffer<>, FB>(conv1_2, conv1_2_top_shape, "1_3",
                                                             bn13m, bn13v, bn13w, bn13b, c13w, c13a, c13b, c13w_shape, conv1_3_top_shape);
-        schedule(conv1_3, conv1_3_top_shape);
+        schedule(conv1_3, to_expr(conv1_3_top_shape));
 
         // Pool1(3x3, 2): (96, 32, 32, n) -> (96, 16, 16, n)
         Func pool1("pool1");
@@ -207,7 +207,7 @@ public:
         std::vector<int32_t> conv2_3_top_shape;
         Func conv2_3 = binconv_module_fixed32<Buffer<>, FB>(conv2_2, conv2_2_top_shape, "2_3",
                                                             bn23m, bn23v, bn23w, bn23b, c23w, c23a, c23b, c23w_shape, conv2_3_top_shape);
-        schedule(conv2_3, conv2_3_top_shape);
+        schedule(conv2_3, to_expr(conv2_3_top_shape));
 
         // Pool2(3x3, 2): (192, 16, 16, n) -> (192, 8, 8, n)
         Func pool2("pool2");
@@ -234,7 +234,7 @@ public:
         Func lq3_3("lq3_3");
         std::vector<int32_t> lq3_3_top_shape;
         lq3_3(c, x, y, n) = log_quant_fixed32<FB>(bn3_3, bn3_3_top_shape, lq3_3_top_shape)(c, x, y, n);
-        schedule(lq3_3, lq3_3_top_shape);
+        schedule(lq3_3, to_expr(lq3_3_top_shape));
 
         // Conv3_3(192x1x1x10): (192, 8, 8, n) -> (10, 8, 8, n)
         Func conv3_3("conv3_3");
@@ -245,7 +245,7 @@ public:
         Func relu3_3("relu3_3");
         std::vector<int32_t> relu3_3_top_shape;
         relu3_3(c, x, y, n) = relu(conv3_3, conv3_3_top_shape, relu3_3_top_shape)(c, x, y, n);
-        schedule(relu3_3, relu3_3_top_shape);
+        schedule(relu3_3, to_expr(relu3_3_top_shape));
 
         // Pool3(8x8, 1): (10, 8, 8, n) -> (10, 1, 1, n)
         Func pool3("pool3");
@@ -256,7 +256,7 @@ public:
         Func tof("tof");
         std::vector<int32_t> tof_top_shape;
         tof(c, n) = tofloat<FB>(pool3, pool3_top_shape, tof_top_shape)(c, n);
-        schedule(tof, tof_top_shape);
+        schedule(tof, to_expr(tof_top_shape));
 
         return tof;
     }

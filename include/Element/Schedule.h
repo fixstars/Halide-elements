@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Halide.h>
+#include "Util.h"
 
 namespace Halide {
 namespace Element {
@@ -12,7 +13,7 @@ namespace {
 //
 // Scheduling
 //
-ImageParam& schedule(ImageParam& ip, const std::vector<int32_t>& mins, const std::vector<int32_t>& extents)
+ImageParam& schedule(ImageParam& ip, const std::vector<Expr>& mins, const std::vector<Expr>& extents)
 {
     assert(mins.size() == extents.size());
     for (size_t i=0; i<mins.size(); ++i) {
@@ -21,7 +22,7 @@ ImageParam& schedule(ImageParam& ip, const std::vector<int32_t>& mins, const std
     return ip;
 }
 
-Func& schedule(Func& f, const std::vector<int32_t>& mins, const std::vector<int32_t>& extents)
+Func& schedule(Func& f, const std::vector<Expr>& mins, const std::vector<Expr>& extents)
 {
     assert(mins.size() == extents.size());
 
@@ -39,44 +40,50 @@ Func& schedule(Func& f, const std::vector<int32_t>& mins, const std::vector<int3
     return f;
 }
 
-ImageParam& schedule(ImageParam& ip, const std::vector<int32_t>& shape)
+ImageParam& schedule(ImageParam& ip, const std::vector<Expr>& shape)
 {
-    const std::vector<int32_t> mins(shape.size(), 0);
+    const std::vector<Expr> mins(shape.size(), 0);
     return schedule(ip, mins, shape);
 }
 
-Func& schedule(Func& f, const std::vector<int32_t>& shape)
+Func& schedule(Func& f, const std::vector<Expr>& shape)
 {
-    const std::vector<int32_t> mins(shape.size(), 0);
+    const std::vector<Expr> mins(shape.size(), 0);
     return schedule(f, mins, shape);
 }
 
-Func& schedule_burst(Func& f, const std::vector<int32_t>& shape, int32_t burst_num)
+Func& schedule_burst(Func& f, const std::vector<Expr>& shape, Expr burst_num)
 {
     schedule(f, shape);
 #if defined(HALIDE_FOR_FPGA)
-    f.hls_burst(burst_num);
+    Expr bn = simplify(burst_num);
+    throw_assert(is_const(bn), "burst_num should be constant value.");
+    f.hls_burst(static_cast<int32_t>(*as_const_int(bn)));
 #endif
     return f;
 }
 
-ImageParam& schedule_burst(ImageParam& ip, int32_t burst_num)
+ImageParam& schedule_burst(ImageParam& ip, Expr burst_num)
 {
 #if defined(HALIDE_FOR_FPGA)
-    ip.hls_burst(burst_num);
+    Expr bn = simplify(burst_num);
+    throw_assert(is_const(bn), "burst_num should be constant value.");
+    ip.hls_burst(static_cast<int32_t>(*as_const_int(bn)));
 #endif
     return ip;
 }
 
-Buffer<>& schedule_burst(Buffer<>& b, int32_t burst_num)
+Buffer<>& schedule_burst(Buffer<>& b, Expr burst_num)
 {
 #if defined(HALIDE_FOR_FPGA)
-    b.hls_burst(burst_num);
+    Expr bn = simplify(burst_num);
+    throw_assert(is_const(bn), "burst_num should be constant value.");
+    b.hls_burst(static_cast<int32_t>(*as_const_int(bn)));
 #endif
     return b;
 }
 
-Func& schedule_memory(Func& f, const std::vector<int32_t>& shape)
+Func& schedule_memory(Func& f, const std::vector<Expr>& shape)
 {
     schedule(f, shape);
 #if defined(HALIDE_FOR_FPGA)
