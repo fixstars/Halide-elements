@@ -12,7 +12,7 @@
 #include "HalideBuffer.h"
 #include "HalideRuntime.h"
 
-#include "Util.h"
+#include "Element/Util.h"
 
 namespace {
 
