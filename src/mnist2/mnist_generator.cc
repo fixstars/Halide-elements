@@ -23,17 +23,17 @@ public:
 
         Net net({
                 Conv<ElemT>("conv1", 5, 20),
-                    BatchNorm<ElemT>("bn1"),
-                    Relu("relu1"),
-                    Pool("pool1", 2, 2),
-                    Conv<ElemT>("conv2", 5, 50),
-                    BatchNorm<ElemT>("bn2"),
-                    Relu("relu2"),
-                    Pool("pool2", 2, 2),
-                    Linear<ElemT>("ip3", 500),
-                    BatchNorm<ElemT>("bn3"),
-                    Relu("relu3"),
-                    Linear<ElemT>("ip4", 10)
+                BatchNorm<ElemT>("bn1"),
+                Relu("relu1"),
+                Pool("pool1", 2, 2),
+                Conv<ElemT>("conv2", 5, 50),
+                BatchNorm<ElemT>("bn2"),
+                Relu("relu2"),
+                Pool("pool2", 2, 2),
+                Linear<ElemT>("ip3", 500),
+                BatchNorm<ElemT>("bn3"),
+                Relu("relu3"),
+                Linear<ElemT>("ip4", 10)
             });
 
         net.setup(in, input_shape);

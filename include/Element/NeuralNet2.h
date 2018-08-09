@@ -11,6 +11,33 @@ namespace Element {
 
 namespace {
 
+void load_param(Buffer<>& param, std::ifstream& ifs)
+{
+    uint32_t dim;
+    ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
+
+    std::vector<int32_t> extents(dim);
+    for (size_t i=0; i<dim; i++) {
+        uint32_t e;
+        ifs.read(reinterpret_cast<char*>(&e), sizeof(e));
+        extents[i] = static_cast<int32_t>(e);
+    }
+
+    ifs.seekg(0, std::ifstream::end);
+    std::ifstream::pos_type end = ifs.tellg();
+
+    ifs.seekg((1+dim)*sizeof(uint32_t), std::ifstream::beg);
+    std::ifstream::pos_type beg = ifs.tellg();
+
+    std::size_t buf_size_in_byte = end-beg;
+
+    // if (std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>()) != buf_size_in_byte) {
+    //     throw std::runtime_error("Unexpected file");
+    // }
+
+    ifs.read(reinterpret_cast<char*>(param.data()), buf_size_in_byte);
+}
+
 class Layer
 {
 protected:
@@ -26,10 +53,7 @@ protected:
         top_shape_ = bottom_shape_ = bottom_shape;
     }
 
-    virtual void setup_param()
-    {
-        /* Do nothing */
-    }
+    virtual void setup_param() { /* Do nothing */ }
 
     virtual void setup_forward(Func bottom)
     {
@@ -42,10 +66,7 @@ protected:
         }
     }
 
-    virtual void setup_schedule()
-    {
-        /* Do nothing */
-    }
+    virtual void setup_schedule() { /* Do nothing */ }
 
 
 public:
@@ -69,20 +90,13 @@ public:
         setup(f, bottom_shape);
     }
 
+    virtual void load(std::ifstream& ifs) { /* Do nothing */ }
+
     inline const std::string& name() const { return name_; }
     inline const Func& forward() const { return forward_; }
     inline const std::vector<int32_t>& bottom_shape() const { return bottom_shape_; }
     inline const std::vector<int32_t>& top_shape() const { return top_shape_; }
-    virtual std::vector<Buffer<>> params() const { return {}; }
 
-    // void load_param(std::ifstream& ifs)
-    // {
-    //     auto ps = params();
-
-    //     for (auto p : ps) {
-    //         load_param(p, ifs);
-    //     }
-    // }
 };
 
 
@@ -107,7 +121,7 @@ protected:
 
         top_shape_ = {
             kernel_num_,
-            (bottom_shape_[1] - kernel_shape_[0] + 2*pads_[0]) / strides_[0]+ 1,
+            (bottom_shape_[1] - kernel_shape_[0] + 2*pads_[0]) / strides_[0] + 1,
             (bottom_shape_[2] - kernel_shape_[1] + 2*pads_[1]) / strides_[1] + 1,
             bottom_shape_[3]
         };
@@ -115,12 +129,13 @@ protected:
 
     void setup_param() override
     {
+        const std::string weight_name = name_ + "_weight";
         const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
-        weight_ = Buffer<>(type_of<T>(), weight_shape);
+        weight_ = Buffer<>(type_of<T>(), weight_shape, weight_name);
 
+        const std::string bias_name = name_ + "_bias";
         const std::vector<int32_t> bias_shape = {kernel_num_};
-        bias_ = Buffer<>(type_of<T>(), bias_shape);
-
+        bias_ = Buffer<>(type_of<T>(), bias_shape, bias_name);
     }
 
     void setup_forward(Func bottom) override
@@ -142,6 +157,11 @@ protected:
         // schedule(clamped, bottom_shape_);
     }
 
+    void load(std::ifstream& ifs) override
+    {
+        load_param(weight_, ifs);
+        load_param(bias_, ifs);
+    }
 
 public:
     Conv(const std::string &name,
@@ -159,7 +179,6 @@ public:
         : Conv(name, kernel_size, kernel_num, kernel_size/2, 1, true)
     {}
 
-    std::vector<Buffer<>> params() const override { return {weight_, bias_}; }
 };
 
 
@@ -257,8 +276,11 @@ protected:
     {
         const int32_t channel = bottom_shape_[0];
 
-        mean_ = Buffer<>(type_of<T>(), {channel});
-        variance_ = Buffer<>(type_of<T>(), {channel});
+        const std::string mean_name = name_ + "_mean";
+        mean_ = Buffer<>(type_of<T>(), {channel}, mean_name);
+
+        const std::string variance_name = name_ + "_variance";
+        variance_ = Buffer<>(type_of<T>(), {channel}, variance_name);
     }
 
     void setup_forward(Func bottom) override
@@ -270,6 +292,13 @@ public:
     BatchNorm(const std::string &name)
         : Layer(name)
     {}
+
+    void load(std::ifstream& ifs) override
+    {
+        load_param(mean_, ifs);
+        load_param(variance_, ifs);
+    }
+
 };
 
 
@@ -285,8 +314,11 @@ protected:
     {
         const int32_t channel = bottom_shape_[0];
 
-        weight_ = Buffer<>(type_of<T>(), {channel});
-        bias_ = Buffer<>(type_of<T>(), {channel});
+        const std::string weight_name = name_ + "_weight";
+        weight_ = Buffer<>(type_of<T>(), {channel}, weight_name);
+
+        const std::string bias_name = name_ + "_bias";
+        bias_ = Buffer<>(type_of<T>(), {channel}, bias_name);
     }
 
     void setup_forward(Func bottom) override
@@ -298,6 +330,13 @@ public:
     Scale(const std::string &name)
         : Layer(name)
     {}
+
+    void load(std::ifstream& ifs) override
+    {
+        load_param(weight_, ifs);
+        load_param(bias_, ifs);
+    }
+
 };
 
 template<typename T>
@@ -328,8 +367,11 @@ protected:
             weight_shape = {bottom_shape_[0], bottom_shape_[1], bottom_shape_[2], output_num_};
         }
 
-        weight_ = Buffer<>(type_of<T>(), weight_shape);
-        bias_ = Buffer<>(type_of<T>(), {output_num_});
+        const std::string weight_name = name_ + "_weight";
+        weight_ = Buffer<>(type_of<T>(), weight_shape, weight_name);
+
+        const std::string bias_name = name_ + "_bias";
+        bias_ = Buffer<>(type_of<T>(), {output_num_}, bias_name);
     }
 
     void setup_forward(Func bottom) override
@@ -349,6 +391,13 @@ public:
     Linear(const std::string &name, int output_num)
         : Layer(name), output_num_(output_num)
     {}
+
+    void load(std::ifstream& ifs) override
+    {
+        load_param(weight_, ifs);
+        load_param(bias_, ifs);
+    }
+
 };
 
 
@@ -376,6 +425,19 @@ public:
         }
 
         output_ = bottom_f;
+    }
+
+    void load(const std::string& fname)
+    {
+        std::ifstream ifs(fname.c_str(), std::ios_base::binary);
+        if (!ifs.is_open()) {
+            throw std::runtime_error("File not found :" + fname);
+        }
+
+        for (auto& l : layers_)
+        {
+            l.load(ifs);
+        }
     }
 
     inline Func output() const { return output_; }
