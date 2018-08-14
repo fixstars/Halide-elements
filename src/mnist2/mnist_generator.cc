@@ -18,8 +18,8 @@ class MNIST : public Halide::Generator<MNIST> {
 public:
     Func build()
     {
-
         const std::vector<int32_t> input_shape{1, 28, 28, batch_size};
+        const std::string param_name = "data/LeNet.bin";
 
         Net net({
                 Conv<ElemT>("conv1", 5, 20),
@@ -37,6 +37,7 @@ public:
             });
 
         net.setup(in, input_shape);
+        net.load(param_name);
 
         return net.output();
     }

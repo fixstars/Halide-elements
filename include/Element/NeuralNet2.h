@@ -15,13 +15,17 @@ void load_param(Buffer<>& param, std::ifstream& ifs)
 {
     uint32_t dim;
     ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
+    std::cout << "  " << dim << " (";
 
     std::vector<int32_t> extents(dim);
     for (size_t i=0; i<dim; i++) {
         uint32_t e;
         ifs.read(reinterpret_cast<char*>(&e), sizeof(e));
         extents[i] = static_cast<int32_t>(e);
+        std::cout << e;
+        if (i < dim-1) std::cout << ", ";
     }
+    std::cout << ")" << std::endl;
 
     ifs.seekg(0, std::ifstream::end);
     std::ifstream::pos_type end = ifs.tellg();
@@ -48,6 +52,17 @@ protected:
     std::vector<int32_t> bottom_shape_;    // (w, h, c, n)
     std::vector<int32_t> top_shape_;    // (w, h, c, n)
 
+    static const std::vector<Expr> expr_shape(const std::vector<int32_t>& shape)
+    {
+        std::vector<Expr> e_shape(shape.size());
+
+        for (size_t i = 0; i < e_shape.size(); i++) {
+            e_shape[i] = shape[i];
+        }
+
+        return e_shape;
+    }
+
     virtual void setup_shape(const std::vector<int32_t>& bottom_shape)
     {
         top_shape_ = bottom_shape_ = bottom_shape;
@@ -55,9 +70,10 @@ protected:
 
     virtual void setup_param() { /* Do nothing */ }
 
-    virtual void setup_forward(Func bottom)
+    virtual void setup_forward(Func& bottom)
     {
         const int dim = bottom.dimensions();
+        std::cout << "Layer::forward" << std::endl;
 
         if (dim == 2) {
             forward_(c, n) = bottom(c, n);
@@ -66,7 +82,9 @@ protected:
         }
     }
 
-    virtual void setup_schedule() { /* Do nothing */ }
+    virtual void setup_schedule() { /* Do nothing */
+        schedule(forward_, expr_shape(top_shape_));
+    }
 
 
 public:
@@ -74,7 +92,7 @@ public:
         : name_(name), forward_(Func(name))
     {}
 
-    void setup(Func bottom_f, const std::vector<int32_t>& bottom_shape)
+    virtual void setup(Func& bottom_f, const std::vector<int32_t>& bottom_shape)
     {
         setup_shape(bottom_shape);
         setup_param();
@@ -82,7 +100,7 @@ public:
         setup_schedule();
     }
 
-    void setup(const Layer& bottom)
+    virtual void setup(const Layer& bottom)
     {
         Func f = bottom.forward();
         const auto bottom_shape = bottom.top_shape();
@@ -138,7 +156,7 @@ protected:
         bias_ = Buffer<>(type_of<T>(), bias_shape, bias_name);
     }
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         RDom r(0, bottom_shape_[3], 0, kernel_shape_[0], 0, kernel_shape_[1]);
 
@@ -152,10 +170,10 @@ protected:
         }
     }
 
-    void setup_schedule() override
-    {
-        // schedule(clamped, bottom_shape_);
-    }
+    // void setup_schedule() override
+    // {
+    //     // schedule(clamped, bottom_shape_);
+    // }
 
     void load(std::ifstream& ifs) override
     {
@@ -203,7 +221,7 @@ protected:
         };
     }
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         RDom r(0, window_shape_[0], 0, window_shape_[1]);
 
@@ -212,10 +230,10 @@ protected:
         forward_(c, x, y, n) = maximum(r, bottom(c, x*strides_[0] - pads_[0] + r.x, y*strides_[1] - pads_[1] + r.y, n));
     }
 
-    void setup_schedule() override
-    {
-        // schedule(clamped, bottom_shape_);
-    }
+    // void setup_schedule() override
+    // {
+    //     // schedule(clamped, bottom_shape_);
+    // }
 
 
 public:
@@ -234,7 +252,7 @@ class Relu : public Layer
     float slope_;
     bool leaky_;
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         int dim = bottom.dimensions();
 
@@ -283,7 +301,7 @@ protected:
         variance_ = Buffer<>(type_of<T>(), {channel}, variance_name);
     }
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         forward_(c, x, y, n) = (bottom(c, x, y, n) - mean_(c)) / (sqrt(variance_(c)) + Expr(.000001f));
     }
@@ -300,7 +318,6 @@ public:
     }
 
 };
-
 
 
 template<typename T>
@@ -321,7 +338,7 @@ protected:
         bias_ = Buffer<>(type_of<T>(), {channel}, bias_name);
     }
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         forward_(c, x, y, n) = bottom(c, x, y, n) * weight_(c) + bias_(c);
     }
@@ -374,7 +391,7 @@ protected:
         bias_ = Buffer<>(type_of<T>(), {output_num_}, bias_name);
     }
 
-    void setup_forward(Func bottom) override
+    void setup_forward(Func& bottom) override
     {
         const int dim = bottom.dimensions();
 
@@ -405,23 +422,28 @@ public:
 
 class Net {
 protected:
-    std::vector<Layer> layers_;
+    std::vector<std::shared_ptr<Layer>> layers_;
     Func output_;
 
 public:
     Net(const std::vector<Layer>& layers)
-        : layers_(layers)
-    {}
+    {
+        layers_.resize(layers.size());
+
+        for (size_t i = 0; i < layers_.size(); i++) {
+            layers_[i] = std::make_shared<Layer>(std::move(layers[i]));
+        }
+    }
 
     void setup(Func input, const std::vector<int32_t>& input_shape)
     {
-        Func bottom_f = input;
+        Func& bottom_f = input;
         auto bottom_shape = input_shape;
 
         for (auto& l : layers_) {
-            l.setup(bottom_f, bottom_shape);
-            bottom_f = l.forward();
-            bottom_shape = l.bottom_shape();
+            l->setup(bottom_f, bottom_shape);
+            bottom_f = l->forward();
+            bottom_shape = l->bottom_shape();
         }
 
         output_ = bottom_f;
@@ -434,9 +456,13 @@ public:
             throw std::runtime_error("File not found :" + fname);
         }
 
+        uint32_t param_num;
+        ifs.read(reinterpret_cast<char*>(&param_num), sizeof(param_num));
+        std::cout << param_num << std::endl;
+
         for (auto& l : layers_)
         {
-            l.load(ifs);
+            l->load(ifs);
         }
     }
 
