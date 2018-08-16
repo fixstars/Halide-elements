@@ -42,6 +42,7 @@ void load_param(Buffer<>& param, std::ifstream& ifs)
     ifs.read(reinterpret_cast<char*>(param.data()), buf_size_in_byte);
 }
 
+
 class Layer
 {
 protected:
@@ -62,6 +63,11 @@ protected:
 
         return e_shape;
     }
+
+public:
+    explicit Layer(const std::string& name)
+        : name_(name), forward_(Func(name))
+    {}
 
     virtual void setup_shape(const std::vector<int32_t>& bottom_shape)
     {
@@ -85,12 +91,6 @@ protected:
     virtual void setup_schedule() { /* Do nothing */
         schedule(forward_, expr_shape(top_shape_));
     }
-
-
-public:
-    explicit Layer(const std::string& name)
-        : name_(name), forward_(Func(name))
-    {}
 
     virtual void setup(Func& bottom_f, const std::vector<int32_t>& bottom_shape)
     {
@@ -118,7 +118,6 @@ public:
 };
 
 
-template<typename T>
 class Conv : public Layer
 {
 protected:
@@ -149,11 +148,11 @@ protected:
     {
         const std::string weight_name = name_ + "_weight";
         const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
-        weight_ = Buffer<>(type_of<T>(), weight_shape, weight_name);
+        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
 
         const std::string bias_name = name_ + "_bias";
         const std::vector<int32_t> bias_shape = {kernel_num_};
-        bias_ = Buffer<>(type_of<T>(), bias_shape, bias_name);
+        bias_ = Buffer<>(type_of<float>(), bias_shape, bias_name);
     }
 
     void setup_forward(Func& bottom) override
@@ -283,7 +282,6 @@ public:
 };
 
 
-template<typename  T>
 class BatchNorm : public Layer
 {
 protected:
@@ -295,10 +293,10 @@ protected:
         const int32_t channel = bottom_shape_[0];
 
         const std::string mean_name = name_ + "_mean";
-        mean_ = Buffer<>(type_of<T>(), {channel}, mean_name);
+        mean_ = Buffer<>(type_of<float>(), {channel}, mean_name);
 
         const std::string variance_name = name_ + "_variance";
-        variance_ = Buffer<>(type_of<T>(), {channel}, variance_name);
+        variance_ = Buffer<>(type_of<float>(), {channel}, variance_name);
     }
 
     void setup_forward(Func& bottom) override
@@ -320,7 +318,6 @@ public:
 };
 
 
-template<typename T>
 class Scale : public Layer
 {
 protected:
@@ -332,10 +329,10 @@ protected:
         const int32_t channel = bottom_shape_[0];
 
         const std::string weight_name = name_ + "_weight";
-        weight_ = Buffer<>(type_of<T>(), {channel}, weight_name);
+        weight_ = Buffer<>(type_of<float>(), {channel}, weight_name);
 
         const std::string bias_name = name_ + "_bias";
-        bias_ = Buffer<>(type_of<T>(), {channel}, bias_name);
+        bias_ = Buffer<>(type_of<float>(), {channel}, bias_name);
     }
 
     void setup_forward(Func& bottom) override
@@ -356,7 +353,6 @@ public:
 
 };
 
-template<typename T>
 class Linear : public Layer
 {
 protected:
@@ -385,10 +381,10 @@ protected:
         }
 
         const std::string weight_name = name_ + "_weight";
-        weight_ = Buffer<>(type_of<T>(), weight_shape, weight_name);
+        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
 
         const std::string bias_name = name_ + "_bias";
-        bias_ = Buffer<>(type_of<T>(), {output_num_}, bias_name);
+        bias_ = Buffer<>(type_of<float>(), {output_num_}, bias_name);
     }
 
     void setup_forward(Func& bottom) override
@@ -418,21 +414,65 @@ public:
 };
 
 
+// TODO: Use register
+class LayerFactory
+{
+private:
+    template<class T, class... Args>
+    static typename std::enable_if<std::is_constructible<T, Args...>::value, std::unique_ptr<T>>::type
+    create_(Args&& ...args)
+    {
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+
+    template<class T, class... Args>
+    static typename std::enable_if<!std::is_constructible<T, Args...>::value, std::unique_ptr<T>>::type
+    create_(...)
+    {
+        std::runtime_error("Invalid argmuent types.");
+    }
+
+public:
+    template<class... Args>
+    std::unique_ptr<Layer> create(const std::string& type, Args&&... params)
+    {
+        if (type == "Conv") {
+            return create_<Conv>(std::forward<Args>(params)...);
+        } else if (type == "Pool") {
+            return create_<Pool>(std::forward<Args>(params)...);
+        } else if (type == "Relu") {
+            return create_<Relu>(std::forward<Args>(params)...);
+        } else if (type == "BatchNorm") {
+            return create_<BatchNorm>(std::forward<Args>(params)...);
+        } else if (type == "Scale") {
+            return create_<Scale>(std::forward<Args>(params)...);
+        } else if (type == "Linear") {
+            return create_<Linear>(std::forward<Args>(params)...);
+        }
+    }
+
+};
+
+
 
 
 class Net {
 protected:
+    std::string name_;
     std::vector<std::shared_ptr<Layer>> layers_;
     Func output_;
 
-public:
-    Net(const std::vector<Layer>& layers)
-    {
-        layers_.resize(layers.size());
+    LayerFactory factory_;
 
-        for (size_t i = 0; i < layers_.size(); i++) {
-            layers_[i] = std::make_shared<Layer>(std::move(layers[i]));
-        }
+public:
+    Net(const std::string& name)
+        : name_(name)
+    {}
+
+    template<class... Args>
+    void add_layer(const std::string& type, Args&& ...params)
+    {
+        layers_.emplace_back(factory_.create(type, std::forward<Args>(params)...));
     }
 
     void setup(Func input, const std::vector<int32_t>& input_shape)
@@ -440,8 +480,14 @@ public:
         Func& bottom_f = input;
         auto bottom_shape = input_shape;
 
-        for (auto& l : layers_) {
-            l->setup(bottom_f, bottom_shape);
+        for (auto l : layers_) {
+            // l->setup(bottom_f, bottom_shape);
+
+            l->setup_shape(bottom_shape);
+            l->setup_param();
+            l->setup_forward(bottom_f);
+            l->setup_schedule();
+
             bottom_f = l->forward();
             bottom_shape = l->bottom_shape();
         }
