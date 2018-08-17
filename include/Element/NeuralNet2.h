@@ -11,25 +11,40 @@ namespace Element {
 
 namespace {
 
+std::string vector_str(const std::vector<int32_t>& vec)
+{
+    if (vec.size() == 0) return "";
+
+    std::string str = "(";
+
+    for (size_t i = 0; i < vec.size(); i++) {
+        str += std::to_string(vec[i]);
+        if (i < vec.size()-1) {
+            str += ", ";
+        }
+    }
+
+    str += ")";
+
+    return str;
+}
+
 template<typename T>
 void load_param(Buffer<>& param, std::ifstream& ifs)
 {
     uint32_t dim;
     ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
-    std::cout << "  " << param.name() << " : " << dim << " (";
 
     std::vector<int32_t> extents(dim);
     for (size_t i=0; i<dim; i++) {
         uint32_t e;
         ifs.read(reinterpret_cast<char*>(&e), sizeof(e));
         extents[i] = static_cast<int32_t>(e);
-        std::cout << e;
-        if (i < dim-1) std::cout << ", ";
     }
-    std::cout << ") ";
 
     std::size_t buf_size_in_byte = std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>());
-    std::cout << buf_size_in_byte << "[Byte]" << std::endl;
+
+    std::cerr << "  " << param.name() << " : " << dim << " " << vector_str(extents) << std::endl;
 
     // if (std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>()) != buf_size_in_byte) {
     //     throw std::runtime_error("Unexpected file");
@@ -60,11 +75,6 @@ protected:
         return e_shape;
     }
 
-public:
-    explicit Layer(const std::string& name)
-        : name_(name), forward_(Func(name))
-    {}
-
     virtual void setup_shape(const std::vector<int32_t>& bottom_shape)
     {
         top_shape_ = bottom_shape_ = bottom_shape;
@@ -75,7 +85,6 @@ public:
     virtual void setup_forward(Func& bottom)
     {
         const int dim = bottom.dimensions();
-        std::cout << "Layer::forward" << std::endl;
 
         if (dim == 2) {
             forward_(c, n) = bottom(c, n);
@@ -87,6 +96,11 @@ public:
     virtual void setup_schedule() { /* Do nothing */
         schedule(forward_, expr_shape(top_shape_));
     }
+
+public:
+    explicit Layer(const std::string& name)
+        : name_(name), forward_(Func(name))
+    {}
 
     virtual void setup(Func& bottom_f, const std::vector<int32_t>& bottom_shape)
     {
@@ -477,20 +491,8 @@ public:
         auto bottom_shape = input_shape;
 
         for (size_t i = 0; i < layers_.size(); i++)  {
-            // l->setup(bottom_f, bottom_shape);
-
             auto l = layers_[i];
-
-            l->setup_shape(bottom_shape);
-            std::cout << name_ << " : ";
-            for (const auto e : l->top_shape()) {
-                std::cout << e << " ";
-            }
-            std::cout << std::endl;
-
-            l->setup_param();
-            l->setup_forward(bottom_f);
-            l->setup_schedule();
+            l->setup(bottom_f, bottom_shape);
 
             bottom_f = l->forward();
             bottom_shape = l->top_shape();
@@ -508,7 +510,8 @@ public:
 
         uint32_t param_num;
         ifs.read(reinterpret_cast<char*>(&param_num), sizeof(param_num));
-        std::cout << param_num << std::endl;
+        std::cerr << "Loading parameters:" << std::endl;
+        std::cerr << param_num << std::endl;
 
         for (auto& l : layers_)
         {
