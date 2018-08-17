@@ -11,11 +11,12 @@ namespace Element {
 
 namespace {
 
+template<typename T>
 void load_param(Buffer<>& param, std::ifstream& ifs)
 {
     uint32_t dim;
     ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
-    std::cout << "  " << dim << " (";
+    std::cout << "  " << param.name() << " : " << dim << " (";
 
     std::vector<int32_t> extents(dim);
     for (size_t i=0; i<dim; i++) {
@@ -25,15 +26,10 @@ void load_param(Buffer<>& param, std::ifstream& ifs)
         std::cout << e;
         if (i < dim-1) std::cout << ", ";
     }
-    std::cout << ")" << std::endl;
+    std::cout << ") ";
 
-    ifs.seekg(0, std::ifstream::end);
-    std::ifstream::pos_type end = ifs.tellg();
-
-    ifs.seekg((1+dim)*sizeof(uint32_t), std::ifstream::beg);
-    std::ifstream::pos_type beg = ifs.tellg();
-
-    std::size_t buf_size_in_byte = end-beg;
+    std::size_t buf_size_in_byte = std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>());
+    std::cout << buf_size_in_byte << "[Byte]" << std::endl;
 
     // if (std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>()) != buf_size_in_byte) {
     //     throw std::runtime_error("Unexpected file");
@@ -176,8 +172,8 @@ protected:
 
     void load(std::ifstream& ifs) override
     {
-        load_param(weight_, ifs);
-        load_param(bias_, ifs);
+        load_param<float>(weight_, ifs);
+        load_param<float>(bias_, ifs);
     }
 
 public:
@@ -193,7 +189,7 @@ public:
     {}
 
     Conv(const std::string &name, int32_t kernel_size, int32_t kernel_num)
-        : Conv(name, kernel_size, kernel_num, kernel_size/2, 1, true)
+        : Conv(name, kernel_size, kernel_num, 1, kernel_size/2, true)
     {}
 
 };
@@ -311,8 +307,8 @@ public:
 
     void load(std::ifstream& ifs) override
     {
-        load_param(mean_, ifs);
-        load_param(variance_, ifs);
+        load_param<float>(mean_, ifs);
+        load_param<float>(variance_, ifs);
     }
 
 };
@@ -347,8 +343,8 @@ public:
 
     void load(std::ifstream& ifs) override
     {
-        load_param(weight_, ifs);
-        load_param(bias_, ifs);
+        load_param<float>(weight_, ifs);
+        load_param<float>(bias_, ifs);
     }
 
 };
@@ -407,8 +403,8 @@ public:
 
     void load(std::ifstream& ifs) override
     {
-        load_param(weight_, ifs);
-        load_param(bias_, ifs);
+        load_param<float>(weight_, ifs);
+        load_param<float>(bias_, ifs);
     }
 
 };
@@ -486,6 +482,12 @@ public:
             auto l = layers_[i];
 
             l->setup_shape(bottom_shape);
+            std::cout << name_ << " : ";
+            for (const auto e : l->top_shape()) {
+                std::cout << e << " ";
+            }
+            std::cout << std::endl;
+
             l->setup_param();
             l->setup_forward(bottom_f);
             l->setup_schedule();

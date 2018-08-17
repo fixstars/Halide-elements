@@ -28,10 +28,12 @@ public:
         net.add_layer("Relu", "relu1");
         net.add_layer("Pool", "pool1", 2, 2);
         net.add_layer("BatchNorm", "bn2");
-        net.add_layer("Conv", "bn1", 5, 50);
+        net.add_layer("Scale", "scale2");
+        net.add_layer("Conv", "conv2", 5, 50);
         net.add_layer("Relu", "relu2");
         net.add_layer("Pool", "pool2", 2, 2);
         net.add_layer("BatchNorm", "bn3");
+        net.add_layer("Scale", "scale3");
         net.add_layer("Linear", "ip3", 500);
         net.add_layer("Relu", "relu3");
         net.add_layer("Linear", "ip4", 10);
