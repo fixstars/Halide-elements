@@ -480,8 +480,10 @@ public:
         Func& bottom_f = input;
         auto bottom_shape = input_shape;
 
-        for (auto l : layers_) {
+        for (size_t i = 0; i < layers_.size(); i++)  {
             // l->setup(bottom_f, bottom_shape);
+
+            auto l = layers_[i];
 
             l->setup_shape(bottom_shape);
             l->setup_param();
@@ -489,7 +491,7 @@ public:
             l->setup_schedule();
 
             bottom_f = l->forward();
-            bottom_shape = l->bottom_shape();
+            bottom_shape = l->top_shape();
         }
 
         output_ = bottom_f;
