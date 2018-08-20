@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -78,6 +79,23 @@ double accuracy(const Buffer<float>& probs, const Buffer<int>& labels)
     return accuracy;
 }
 
+template<typename T>
+void Verify(const Buffer<T>& actuals, const Buffer<T>& expects, T tolerance = 10e-3)
+{
+    std::cerr << actuals.number_of_elements() << " : " << expects.number_of_elements() << std::endl;
+    assert(actuals.number_of_elements() == expects.number_of_elements());
+
+    for (size_t i = 0; i < actuals.number_of_elements(); i++) {
+        T actual = actuals.data()[i];
+        T expect = expects.data()[i];
+        T error = std::fabs((actual - expect) / actual);
+        if (error > tolerance) {
+            throw std::runtime_error(format("Error: expect(%d) = %f, actual(%d) = %f",
+                                            i, expect, i, actual).c_str());
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     try {
         //Buffer<int32_t> in = load_data<int32_t>("data/test_data_b1.bin");
@@ -87,10 +105,14 @@ int main(int argc, char **argv) {
         const int batch_size = in.extent(3);
 
         Buffer<float> out(classes, batch_size);
+        // Buffer<float> out(20, 24, 24, batch_size);
 
         mnist(in, out);
 
         Buffer<int> labels = load_data<int>("data/mnist_label.bin");
+
+        // Buffer<float> expects = load_data<float>("data/conv1_out.bin");
+        // Verify(out, expects);
 
         double acc = accuracy(out, labels);
         std::cout << "Accurary: " << acc << std::endl;;

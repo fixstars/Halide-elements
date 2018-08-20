@@ -167,7 +167,7 @@ protected:
 
     void setup_forward(Func& bottom) override
     {
-        RDom r(0, bottom_shape_[3], 0, kernel_shape_[0], 0, kernel_shape_[1]);
+        RDom r(0, bottom_shape_[0], 0, kernel_shape_[0], 0, kernel_shape_[1]);
 
         clamped = BoundaryConditions::constant_exterior(bottom, Expr(0.0f), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
 
@@ -206,6 +206,69 @@ public:
         : Conv(name, kernel_size, kernel_num, 1, kernel_size/2, true)
     {}
 
+};
+
+
+class BinConv : public Conv
+{
+protected:
+    Buffer<> alpha_;
+
+    void setup_param() override
+    {
+        const std::string weight_name = name_ + "_weight";
+        const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
+        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
+
+        const std::string alpha_name = name_ + "_alpha";
+        const std::vector<int32_t> alpha_shape = {kernel_num_};
+        alpha_ = Buffer<>(type_of<float>(), alpha_shape, alpha_name);
+
+        const std::string bias_name = name_ + "_bias";
+        const std::vector<int32_t> bias_shape = {kernel_num_};
+        bias_ = Buffer<>(type_of<float>(), bias_shape, bias_name);
+    }
+
+    void setup_forward(Func& bottom) override
+    {
+        RDom r(0, bottom_shape_[3], 0, kernel_shape_[0], 0, kernel_shape_[1]);
+
+        clamped_ = BoundaryConditions::constant_exterior(bottom, Expr(0.0f), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+
+        const float elem_num = static_cast<float>(weight_shape[0] * weight_shape[1] * weight_shape[2]);
+
+        // TODO : use_bias
+
+        if (pad == 0) {
+            forward_(c, x, y, n) = (-elem_num +
+                             2 * sum(cast<float>(!bottom(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) ^
+                                                 weight_(r.x, r.y, r.z, c)))) *
+                alpha_(c) + bias_(c);
+        } else {
+            Expr tx = x*strides_[0] - pads_[0] + r.y;
+            Expr ty = y*strides_[1] - pads_[1] + r.z;
+
+            Expr iw = !bottom(r.x, tx, ty, n) ^ weight_(r.x, r.y, r.z, c);
+            forward_(c, x, y, n) = sum(r, select(tx >= 0 && tx < bottom_shape_[1] && ty >= 0 && ty < bottom_shape_[2],
+                                          cast<float>(select(iw, 1, -1)),
+                                          cast<float>(0))) * alpha_(c) + bias_(c);
+        }
+    }
+
+    // void setup_schedule() override
+    // {
+    //     // schedule(clamped, bottom_shape_);
+    // }
+
+    void load(std::ifstream& ifs) override
+    {
+        load_param<float>(weight_, ifs);
+        load_param<float>(alpha_, ifs);
+        load_param<float>(bias_, ifs);
+    }
+
+public:
+    using Conv::Conv;
 };
 
 
@@ -291,6 +354,25 @@ public:
 
 };
 
+class BinActive : public Layer
+{
+    void setup_forward(Func& bottom) override
+    {
+        int dim = bottom.dimensions();
+
+        if (dim == 2) {
+            forward_(c, n) = select(bottom(c, n) >= 0, 1.f, -1.f);
+        } else if (dim == 4) {
+            forward_(c, x, y, n) = select(bottom(c, x, y, n) >= 0, 1.f, -1.f);
+        }
+    }
+
+public:
+    BinActive(const std::string &name)
+        : Layer(name)
+    {}
+
+};
 
 class BatchNorm : public Layer
 {
@@ -499,6 +581,8 @@ public:
             return create_<Pool>(std::forward<Args>(params)...);
         } else if (type == "Relu") {
             return create_<Relu>(std::forward<Args>(params)...);
+        } else if (type == "BinActive") {
+            return create_<BinActive>(std::forward<Args>(params)...);
         } else if (type == "BatchNorm") {
             return create_<BatchNorm>(std::forward<Args>(params)...);
         } else if (type == "Scale") {
