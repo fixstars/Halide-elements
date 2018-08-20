@@ -37,6 +37,7 @@ public:
         net.add_layer("Linear", "ip3", 500);
         net.add_layer("Relu", "relu3");
         net.add_layer("Linear", "ip4", 10);
+        net.add_layer("Softmax", "prob");
 
         net.setup(in, input_shape);
         net.load(param_name);

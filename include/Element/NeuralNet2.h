@@ -216,7 +216,7 @@ protected:
     std::vector<int32_t> strides_;
     std::vector<int32_t> pads_;
 
-    Func clamped;
+    Func clamped_;
 
     void setup_shape(const std::vector<int32_t>& bottom_shape) override
     {
@@ -234,9 +234,9 @@ protected:
     {
         RDom r(0, window_shape_[0], 0, window_shape_[1]);
 
-        clamped = BoundaryConditions::constant_exterior(bottom, Float(32).min(), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+        clamped_ = BoundaryConditions::constant_exterior(bottom, Float(32).min(), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
 
-        forward_(c, x, y, n) = maximum(r, bottom(c, x*strides_[0] - pads_[0] + r.x, y*strides_[1] - pads_[1] + r.y, n));
+        forward_(c, x, y, n) = maximum(r, clamped_(c, x*strides_[0] - pads_[0] + r.x, y*strides_[1] - pads_[1] + r.y, n));
     }
 
     // void setup_schedule() override
@@ -423,6 +423,53 @@ public:
 
 };
 
+class Softmax : public Layer
+{
+protected:
+    Func mins_{"mins"};
+    Func norm_{"norm"};
+    Func d_{"d"};
+
+    void setup_forward(Func& bottom) override
+    {
+        RDom r(0, bottom_shape_[0]);
+        const int dim = bottom.dimensions();
+
+        if (dim == 2) {
+            mins_(n) = minimum(r, bottom(r.x, n));
+            norm_(c, n) = exp(bottom(c, n) - mins_(n));
+            d_(n) = sum(r, norm_(r.x, n));
+            forward_(c, n) = norm_(c, n) / d_(n);
+        } else if (dim == 4) {
+            mins_(x, y, n) = minimum(r, bottom(r.x, x, y, n));
+            norm_(c, x, y, n) = exp(bottom(c, x, y, n) - mins_(x, y, n));
+            d_(x, y, n) = sum(r, norm_(r.x, x, y, n));
+            forward_(c, x, y, n) = norm_(c, x, y, n) / d_(x, y, n);
+        }
+    }
+
+    void setup_schedule() override
+    {
+        const int dim = forward_.dimensions();
+        if (dim == 2) {
+            schedule(mins_, {bottom_shape_[1]});
+            schedule(norm_, expr_shape(bottom_shape_));
+            schedule(d_, {bottom_shape_[1]});
+        } else if (dim == 4) {
+            schedule(mins_, {bottom_shape_[1], bottom_shape_[2], bottom_shape_[3]});
+            schedule(norm_, expr_shape(bottom_shape_));
+            schedule(d_, {bottom_shape_[1], bottom_shape_[2], bottom_shape_[3]});
+        }
+
+        schedule(forward_, expr_shape(top_shape_));
+    }
+
+public:
+    Softmax(const std::string &name)
+        : Layer(name)
+    {}
+};
+
 
 // TODO: Use register
 class LayerFactory
@@ -458,7 +505,11 @@ public:
             return create_<Scale>(std::forward<Args>(params)...);
         } else if (type == "Linear") {
             return create_<Linear>(std::forward<Args>(params)...);
+        } else if (type == "Softmax") {
+            return create_<Softmax>(std::forward<Args>(params)...);
         }
+
+        std::runtime_error("Unknown layer : " + type);
     }
 
 };
