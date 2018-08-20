@@ -13,7 +13,7 @@ typedef float ElemT;
 class MNIST : public Halide::Generator<MNIST> {
     ImageParam in{Float(32), 4, "in"};
 
-    GeneratorParam<int32_t> batch_size{"batch_size", 1};
+    GeneratorParam<int32_t> batch_size{"batch_size", 128};
 
 public:
     Func build()

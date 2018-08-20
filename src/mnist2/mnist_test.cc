@@ -80,7 +80,8 @@ double accuracy(const Buffer<float>& probs, const Buffer<int>& labels)
 
 int main(int argc, char **argv) {
     try {
-        Buffer<int32_t> in = load_data<int32_t>("data/test_data_b1.bin");
+        //Buffer<int32_t> in = load_data<int32_t>("data/test_data_b1.bin");
+        Buffer<float> in = load_data<float>("data/mnist_input.bin");
 
         const int classes = 10;
         const int batch_size = in.extent(3);
@@ -89,7 +90,7 @@ int main(int argc, char **argv) {
 
         mnist(in, out);
 
-        Buffer<int> labels = load_data<int>("data/test_label_b1.bin");
+        Buffer<int> labels = load_data<int>("data/mnist_label.bin");
 
         double acc = accuracy(out, labels);
         std::cout << "Accurary: " << acc << std::endl;;
