@@ -218,7 +218,7 @@ protected:
     {
         const std::string weight_name = name_ + "_weight";
         const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
-        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
+        weight_ = Buffer<>(type_of<bool>(), weight_shape, weight_name);
 
         const std::string alpha_name = name_ + "_alpha";
         const std::vector<int32_t> alpha_shape = {kernel_num_};
@@ -231,24 +231,23 @@ protected:
 
     void setup_forward(Func& bottom) override
     {
-        RDom r(0, bottom_shape_[3], 0, kernel_shape_[0], 0, kernel_shape_[1]);
+        RDom r(0, bottom_shape_[0], 0, kernel_shape_[0], 0, kernel_shape_[1]);
 
-        clamped_ = BoundaryConditions::constant_exterior(bottom, Expr(0.0f), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+        clamped = BoundaryConditions::constant_exterior(bottom, Expr(0), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
 
-        const float elem_num = static_cast<float>(weight_shape[0] * weight_shape[1] * weight_shape[2]);
+        const float elem_num = static_cast<float>(bottom_shape_[0] * kernel_shape_[0] * kernel_shape_[1]);
 
         // TODO : use_bias
-
-        if (pad == 0) {
+        if (pads_[0] == 0 && pads_[1] == 0) {
             forward_(c, x, y, n) = (-elem_num +
-                             2 * sum(cast<float>(!bottom(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) ^
+                             2 * sum(cast<float>(!clamped(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) ^
                                                  weight_(r.x, r.y, r.z, c)))) *
                 alpha_(c) + bias_(c);
         } else {
             Expr tx = x*strides_[0] - pads_[0] + r.y;
             Expr ty = y*strides_[1] - pads_[1] + r.z;
 
-            Expr iw = !bottom(r.x, tx, ty, n) ^ weight_(r.x, r.y, r.z, c);
+            Expr iw = !clamped(r.x, tx, ty, n) ^ weight_(r.x, r.y, r.z, c);
             forward_(c, x, y, n) = sum(r, select(tx >= 0 && tx < bottom_shape_[1] && ty >= 0 && ty < bottom_shape_[2],
                                           cast<float>(select(iw, 1, -1)),
                                           cast<float>(0))) * alpha_(c) + bias_(c);
@@ -262,7 +261,7 @@ protected:
 
     void load(std::ifstream& ifs) override
     {
-        load_param<float>(weight_, ifs);
+        load_param<bool>(weight_, ifs);
         load_param<float>(alpha_, ifs);
         load_param<float>(bias_, ifs);
     }
@@ -361,9 +360,9 @@ class BinActive : public Layer
         int dim = bottom.dimensions();
 
         if (dim == 2) {
-            forward_(c, n) = select(bottom(c, n) >= 0, 1.f, -1.f);
+            forward_(c, n) = bottom(c, n) >= 0;
         } else if (dim == 4) {
-            forward_(c, x, y, n) = select(bottom(c, x, y, n) >= 0, 1.f, -1.f);
+            forward_(c, x, y, n) = bottom(c, x, y, n) >= 0;
         }
     }
 
@@ -505,6 +504,61 @@ public:
 
 };
 
+class BinLinear : public Linear
+{
+protected:
+    Buffer<> alpha_;
+
+    void setup_param() override
+    {
+        const size_t dim = bottom_shape_.size();
+        std::vector<int32_t> weight_shape;
+
+        if (dim == 2) {
+            weight_shape = {bottom_shape_[0], output_num_};
+        } else if (dim == 4) {
+            weight_shape = {bottom_shape_[0], bottom_shape_[1], bottom_shape_[2], output_num_};
+        }
+
+        const std::string weight_name = name_ + "_weight";
+        weight_ = Buffer<>(type_of<bool>(), weight_shape, weight_name);
+
+        const std::string alpha_name = name_ + "_alpha";
+        alpha_ = Buffer<>(type_of<float>(), {output_num_}, alpha_name);
+
+        const std::string bias_name = name_ + "_bias";
+        bias_ = Buffer<>(type_of<float>(), {output_num_}, bias_name);
+    }
+
+    void setup_forward(Func& bottom) override
+    {
+        const int dim = bottom.dimensions();
+
+        // TODO: use_bias
+        if (dim == 2) {
+            RDom r(0, bottom_shape_[0]);
+            const float elem_num = static_cast<float>(bottom_shape_[0]);
+            forward_(c, n) = (-elem_num + 2 * sum(r, cast<float>(!bottom(r.x, n) ^ weight_(r.x, c)))) * alpha_(c) + bias_(c);
+        } else if (dim == 4) {
+            RDom r(0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+            const float elem_num = static_cast<float>(bottom_shape_[0] * bottom_shape_[1] * bottom_shape_[2]);
+            forward_(c, n) = (-elem_num + 2 * sum(r, cast<float>(!bottom(r.x, r.y, r.z, n) ^ weight_(r.x, r.y, r.z, c)))) * alpha_(c) + bias_(c);
+        }
+    }
+
+public:
+    using Linear::Linear;
+
+    void load(std::ifstream& ifs) override
+    {
+        load_param<bool>(weight_, ifs);
+        load_param<float>(alpha_, ifs);
+        load_param<float>(bias_, ifs);
+    }
+
+};
+
+
 class Softmax : public Layer
 {
 protected:
@@ -577,6 +631,8 @@ public:
     {
         if (type == "Conv") {
             return create_<Conv>(std::forward<Args>(params)...);
+        } else if (type == "BinConv") {
+            return create_<BinConv>(std::forward<Args>(params)...);
         } else if (type == "Pool") {
             return create_<Pool>(std::forward<Args>(params)...);
         } else if (type == "Relu") {
@@ -589,6 +645,8 @@ public:
             return create_<Scale>(std::forward<Args>(params)...);
         } else if (type == "Linear") {
             return create_<Linear>(std::forward<Args>(params)...);
+        } else if (type == "BinLinear") {
+            return create_<BinLinear>(std::forward<Args>(params)...);
         } else if (type == "Softmax") {
             return create_<Softmax>(std::forward<Args>(params)...);
         }
