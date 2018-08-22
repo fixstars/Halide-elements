@@ -6,10 +6,23 @@
 
 #include <Halide.h>
 
+#include "Util.h"
+
 namespace Halide {
 namespace Element {
 
 namespace {
+
+
+void dprint(int thresh, const char* msg)
+{
+    const char* debug_env = std::getenv("HE_NN_DEBUG");
+    const int level = std::atoi(debug_env);
+
+    if (level >= thresh) {
+        std::cerr << msg;
+    }
+}
 
 std::string vector_str(const std::vector<int32_t>& vec)
 {
@@ -29,28 +42,65 @@ std::string vector_str(const std::vector<int32_t>& vec)
     return str;
 }
 
+std::vector<int32_t> extents_from_buffer(const Buffer<>& buffer)
+{
+    const auto buffer_ptr = buffer.get();
+    const int dim = buffer_ptr->dimensions();
+
+    std::vector<int32_t> e(dim);
+
+    for (int i = 0; i < dim; i++) {
+        e[i] = buffer_ptr->extent(i);
+    }
+
+    return e;
+}
+
+std::size_t rest_byte(std::ifstream& ifs)
+{
+    std::ifstream::pos_type beg = ifs.tellg();
+
+    ifs.seekg(0, std::ifstream::end);
+    std::ifstream::pos_type end = ifs.tellg();
+
+    ifs.seekg(beg);
+
+    std::size_t rest = end - beg;
+
+    return rest;
+}
+
 template<typename T>
 void load_param(Buffer<>& param, std::ifstream& ifs)
 {
-    uint32_t dim;
-    ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
+    try {
+        uint32_t dim;
+        ifs.read(reinterpret_cast<char*>(&dim), sizeof(dim));
 
-    std::vector<int32_t> extents(dim);
-    for (size_t i=0; i<dim; i++) {
-        uint32_t e;
-        ifs.read(reinterpret_cast<char*>(&e), sizeof(e));
-        extents[i] = static_cast<int32_t>(e);
+        std::vector<int32_t> extents(dim);
+        for (size_t i=0; i<dim; i++) {
+            uint32_t e;
+            ifs.read(reinterpret_cast<char*>(&e), sizeof(e));
+            extents[i] = static_cast<int32_t>(e);
+        }
+
+        const auto expect_extents = extents_from_buffer(param);
+        throw_assert(extents == expect_extents,
+                     format("Unexpected extents: expect = %s, actual = %s", vector_str(expect_extents).c_str(), vector_str(extents).c_str()).c_str());
+
+        std::size_t buf_size_in_byte = std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>());
+
+        std::size_t rest = rest_byte(ifs);
+        throw_assert(buf_size_in_byte <= rest,
+                     format("Oversize read: rest = %d[Byte], read = %d[Byte]", rest, buf_size_in_byte).c_str());
+
+        ifs.read(reinterpret_cast<char*>(param.data()), buf_size_in_byte);
+
+    } catch (const std::exception& e) {
+        std::cerr << "Loading parameter error : " << param.name() << std::endl;
+        std::cerr << "  " << e.what() << std::endl;
+        throw std::runtime_error("");
     }
-
-    std::size_t buf_size_in_byte = std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>());
-
-    std::cerr << "  " << param.name() << " : " << dim << " " << vector_str(extents) << std::endl;
-
-    // if (std::accumulate(extents.begin(), extents.end(), sizeof(T), std::multiplies<int32_t>()) != buf_size_in_byte) {
-    //     throw std::runtime_error("Unexpected file");
-    // }
-
-    ifs.read(reinterpret_cast<char*>(param.data()), buf_size_in_byte);
 }
 
 
@@ -93,16 +143,17 @@ protected:
         }
     }
 
-    virtual void setup_schedule() { /* Do nothing */
-        schedule(forward_, expr_shape(top_shape_));
-    }
+    virtual void setup_schedule() { /* Do nothing */ }
+
+    virtual std::string layer_kind() const { return "Layer"; }
+    virtual void print_param() const { /* Do nothing */ }
 
 public:
     explicit Layer(const std::string& name)
         : name_(name), forward_(Func(name))
     {}
 
-    virtual void setup(Func& bottom_f, const std::vector<int32_t>& bottom_shape)
+    void setup(Func& bottom_f, const std::vector<int32_t>& bottom_shape)
     {
         setup_shape(bottom_shape);
         setup_param();
@@ -110,7 +161,8 @@ public:
         setup_schedule();
     }
 
-    virtual void setup(const Layer& bottom)
+
+    void setup(const Layer& bottom)
     {
         Func f = bottom.forward();
         const auto bottom_shape = bottom.top_shape();
@@ -118,7 +170,21 @@ public:
         setup(f, bottom_shape);
     }
 
+    virtual void layer_schedule()
+    {
+        schedule(forward_, expr_shape(top_shape_));
+    }
+
+    void print_info() const
+    {
+        std::cout << format("%10s  (%10s)  :  %20s  ->  %20s",
+                            name_.c_str(), layer_kind().c_str(), vector_str(bottom_shape_).c_str(), vector_str(top_shape_).c_str());
+        print_param();
+        std::cout << std::endl;
+    }
+
     virtual void load(std::ifstream& ifs) { /* Do nothing */ }
+    virtual bool is_stencil() const { return false; }
 
     inline const std::string& name() const { return name_; }
     inline const Func& forward() const { return forward_; }
@@ -137,7 +203,7 @@ protected:
     std::vector<int32_t> pads_;
     bool use_bias_;
 
-    Func clamped;
+    Func clamped_;
 
     Buffer<> weight_;
     Buffer<> bias_;
@@ -156,33 +222,30 @@ protected:
 
     void setup_param() override
     {
-        const std::string weight_name = name_ + "_weight";
-        const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
-        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
-
-        const std::string bias_name = name_ + "_bias";
-        const std::vector<int32_t> bias_shape = {kernel_num_};
-        bias_ = Buffer<>(type_of<float>(), bias_shape, bias_name);
+        weight_ = Buffer<>(type_of<float>(), {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_}, name_ + "_weight");
+        bias_ = Buffer<>(type_of<float>(), {kernel_num_}, name_ + "_bias");
     }
 
     void setup_forward(Func& bottom) override
     {
         RDom r(0, bottom_shape_[0], 0, kernel_shape_[0], 0, kernel_shape_[1]);
 
-        clamped = BoundaryConditions::constant_exterior(bottom, Expr(0.0f), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+        clamped_ = BoundaryConditions::constant_exterior(bottom, Expr(0.0f), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
 
         if (use_bias_) {
-            forward_(c, x, y, n) = sum(r, clamped(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) * weight_(r.x, r.y, r.z, c))
+            forward_(c, x, y, n) = sum(r, clamped_(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) * weight_(r.x, r.y, r.z, c))
                 + bias_(c);
         } else {
-            forward_(c, x, y, n) = sum(r, clamped(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) * weight_(r.x, r.y, r.z, c));
+            forward_(c, x, y, n) = sum(r, clamped_(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) * weight_(r.x, r.y, r.z, c));
         }
     }
 
-    // void setup_schedule() override
-    // {
-    //     // schedule(clamped, bottom_shape_);
-    // }
+    std::string layer_kind() const override { return "Conv"; }
+    void print_param() const override
+    {
+        std::cout << format("    kernel = %s,  stride = %s,  pad = %s",
+                            vector_str(kernel_shape_).c_str(), vector_str(strides_).c_str(), vector_str(pads_).c_str());
+    }
 
     void load(std::ifstream& ifs) override
     {
@@ -206,6 +269,8 @@ public:
         : Conv(name, kernel_size, kernel_num, 1, kernel_size/2, true)
     {}
 
+    bool is_stencil() const override { return true; }
+
 };
 
 
@@ -216,48 +281,37 @@ protected:
 
     void setup_param() override
     {
-        const std::string weight_name = name_ + "_weight";
-        const std::vector<int32_t> weight_shape = {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_};
-        weight_ = Buffer<>(type_of<bool>(), weight_shape, weight_name);
-
-        const std::string alpha_name = name_ + "_alpha";
-        const std::vector<int32_t> alpha_shape = {kernel_num_};
-        alpha_ = Buffer<>(type_of<float>(), alpha_shape, alpha_name);
-
-        const std::string bias_name = name_ + "_bias";
-        const std::vector<int32_t> bias_shape = {kernel_num_};
-        bias_ = Buffer<>(type_of<float>(), bias_shape, bias_name);
+        weight_ = Buffer<>(type_of<bool>(), {bottom_shape_[0], kernel_shape_[0], kernel_shape_[1], kernel_num_}, name_ + "_weight");
+        alpha_ = Buffer<>(type_of<float>(), {kernel_num_}, name_ + "_alpha");
+        bias_ = Buffer<>(type_of<float>(), {kernel_num_}, name_ + "_bias");
     }
 
     void setup_forward(Func& bottom) override
     {
         RDom r(0, bottom_shape_[0], 0, kernel_shape_[0], 0, kernel_shape_[1]);
 
-        clamped = BoundaryConditions::constant_exterior(bottom, Expr(0), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
+        clamped_ = BoundaryConditions::constant_exterior(bottom, Expr(0), 0, bottom_shape_[0], 0, bottom_shape_[1], 0, bottom_shape_[2]);
 
         const float elem_num = static_cast<float>(bottom_shape_[0] * kernel_shape_[0] * kernel_shape_[1]);
 
         // TODO : use_bias
         if (pads_[0] == 0 && pads_[1] == 0) {
             forward_(c, x, y, n) = (-elem_num +
-                             2 * sum(cast<float>(!clamped(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) ^
+                             2 * sum(cast<float>(!clamped_(r.x, x*strides_[0] - pads_[0] + r.y, y*strides_[1] - pads_[1] + r.z, n) ^
                                                  weight_(r.x, r.y, r.z, c)))) *
                 alpha_(c) + bias_(c);
         } else {
             Expr tx = x*strides_[0] - pads_[0] + r.y;
             Expr ty = y*strides_[1] - pads_[1] + r.z;
 
-            Expr iw = !clamped(r.x, tx, ty, n) ^ weight_(r.x, r.y, r.z, c);
+            Expr iw = !clamped_(r.x, tx, ty, n) ^ weight_(r.x, r.y, r.z, c);
             forward_(c, x, y, n) = sum(r, select(tx >= 0 && tx < bottom_shape_[1] && ty >= 0 && ty < bottom_shape_[2],
                                           cast<float>(select(iw, 1, -1)),
                                           cast<float>(0))) * alpha_(c) + bias_(c);
         }
     }
 
-    // void setup_schedule() override
-    // {
-    //     // schedule(clamped, bottom_shape_);
-    // }
+    std::string layer_kind() const override { return "BinConv"; }
 
     void load(std::ifstream& ifs) override
     {
@@ -301,11 +355,12 @@ protected:
         forward_(c, x, y, n) = maximum(r, clamped_(c, x*strides_[0] - pads_[0] + r.x, y*strides_[1] - pads_[1] + r.y, n));
     }
 
-    // void setup_schedule() override
-    // {
-    //     // schedule(clamped, bottom_shape_);
-    // }
-
+    std::string layer_kind() const override { return "Pool"; }
+    void print_param() const override
+    {
+        std::cout << format("    window = %s,  stride = %s,  pad = %s",
+                            vector_str(window_shape_).c_str(), vector_str(strides_).c_str(), vector_str(pads_).c_str());
+    }
 
 public:
     Pool(const std::string &name, const std::vector<int32_t>& window_shape, const std::vector<int32_t>& strides, const std::vector<int32_t>& pads)
@@ -315,6 +370,9 @@ public:
     Pool(const std::string &name, int window_size, int stride)
         : Pool(name, {window_size, window_size}, {stride, stride}, {0, 0})
     {}
+
+    bool is_stencil() const override { return true; }
+
 };
 
 
@@ -342,6 +400,8 @@ class Relu : public Layer
         }
     }
 
+    std::string layer_kind() const override { return "Relu"; }
+
 public:
     Relu(const std::string &name, float slope)
         : Layer(name), slope_(slope), leaky_(true)
@@ -366,6 +426,8 @@ class BinActive : public Layer
         }
     }
 
+    std::string layer_kind() const override { return "BinActive"; }
+
 public:
     BinActive(const std::string &name)
         : Layer(name)
@@ -383,17 +445,16 @@ protected:
     {
         const int32_t channel = bottom_shape_[0];
 
-        const std::string mean_name = name_ + "_mean";
-        mean_ = Buffer<>(type_of<float>(), {channel}, mean_name);
-
-        const std::string variance_name = name_ + "_variance";
-        variance_ = Buffer<>(type_of<float>(), {channel}, variance_name);
+        mean_ = Buffer<>(type_of<float>(), {channel}, name_ + "_mean");
+        variance_ = Buffer<>(type_of<float>(), {channel}, name_ + "_variance");
     }
 
     void setup_forward(Func& bottom) override
     {
         forward_(c, x, y, n) = (bottom(c, x, y, n) - mean_(c)) / (sqrt(variance_(c)) + Expr(.000001f));
     }
+
+    std::string layer_kind() const override { return "BatchNorm"; }
 
 public:
     BatchNorm(const std::string &name)
@@ -430,6 +491,8 @@ protected:
     {
         forward_(c, x, y, n) = bottom(c, x, y, n) * weight_(c) + bias_(c);
     }
+
+    std::string layer_kind() const override { return "Scale"; }
 
 public:
     Scale(const std::string &name)
@@ -471,11 +534,8 @@ protected:
             weight_shape = {bottom_shape_[0], bottom_shape_[1], bottom_shape_[2], output_num_};
         }
 
-        const std::string weight_name = name_ + "_weight";
-        weight_ = Buffer<>(type_of<float>(), weight_shape, weight_name);
-
-        const std::string bias_name = name_ + "_bias";
-        bias_ = Buffer<>(type_of<float>(), {output_num_}, bias_name);
+        weight_ = Buffer<>(type_of<float>(), weight_shape, name_ + "_weight");
+        bias_ = Buffer<>(type_of<float>(), {output_num_}, name_ + "_bias");
     }
 
     void setup_forward(Func& bottom) override
@@ -491,6 +551,8 @@ protected:
         }
     }
 
+    std::string layer_kind() const override { return "Linear"; }
+
 public:
     Linear(const std::string &name, int output_num)
         : Layer(name), output_num_(output_num)
@@ -501,6 +563,8 @@ public:
         load_param<float>(weight_, ifs);
         load_param<float>(bias_, ifs);
     }
+
+    bool is_stencil() const override { return true; }
 
 };
 
@@ -520,14 +584,9 @@ protected:
             weight_shape = {bottom_shape_[0], bottom_shape_[1], bottom_shape_[2], output_num_};
         }
 
-        const std::string weight_name = name_ + "_weight";
-        weight_ = Buffer<>(type_of<bool>(), weight_shape, weight_name);
-
-        const std::string alpha_name = name_ + "_alpha";
-        alpha_ = Buffer<>(type_of<float>(), {output_num_}, alpha_name);
-
-        const std::string bias_name = name_ + "_bias";
-        bias_ = Buffer<>(type_of<float>(), {output_num_}, bias_name);
+        weight_ = Buffer<>(type_of<bool>(), weight_shape, name_ + "_weight");
+        alpha_ = Buffer<>(type_of<float>(), {output_num_}, name_ + "_alpha");
+        bias_ = Buffer<>(type_of<float>(), {output_num_}, name_ + "_bias");
     }
 
     void setup_forward(Func& bottom) override
@@ -545,6 +604,8 @@ protected:
             forward_(c, n) = (-elem_num + 2 * sum(r, cast<float>(!bottom(r.x, r.y, r.z, n) ^ weight_(r.x, r.y, r.z, c)))) * alpha_(c) + bias_(c);
         }
     }
+
+    std::string layer_kind() const override { return "BinLinear"; }
 
 public:
     using Linear::Linear;
@@ -600,10 +661,15 @@ protected:
         schedule(forward_, expr_shape(top_shape_));
     }
 
+    std::string layer_kind() const override { return "Softmax"; }
+
 public:
     Softmax(const std::string &name)
         : Layer(name)
     {}
+
+    bool is_stencil() const override { return true; }
+
 };
 
 
@@ -657,8 +723,6 @@ public:
 };
 
 
-
-
 class Net {
 protected:
     std::string name_;
@@ -678,6 +742,21 @@ public:
         layers_.emplace_back(factory_.create(type, std::forward<Args>(params)...));
     }
 
+    void setup_schedule()
+    {
+        for (size_t i = 0; i < layers_.size()-1; i++) {
+            auto l = layers_[i];
+            auto succ = layers_[i+1];
+
+            if (succ->is_stencil()) {
+                l->layer_schedule();
+            }
+        }
+
+        auto last = layers_.back();
+        last->layer_schedule();
+    }
+
     void setup(Func input, const std::vector<int32_t>& input_shape)
     {
         Func& bottom_f = input;
@@ -692,6 +771,8 @@ public:
         }
 
         output_ = bottom_f;
+
+        setup_schedule();
     }
 
     void load(const std::string& fname)
@@ -703,12 +784,16 @@ public:
 
         uint32_t param_num;
         ifs.read(reinterpret_cast<char*>(&param_num), sizeof(param_num));
-        std::cerr << "Loading parameters:" << std::endl;
-        std::cerr << param_num << std::endl;
 
         for (auto& l : layers_)
         {
             l->load(ifs);
+        }
+    }
+
+    void print_info() const {
+        for (size_t i = 0; i < layers_.size(); i++) {
+            layers_[i]->print_info();
         }
     }
 

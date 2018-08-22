@@ -10,6 +10,16 @@ namespace Element {
 
 namespace {
 
+template<typename... Rest>
+std::string format(const char *fmt, const Rest&... rest)
+{
+    int length = snprintf(NULL, 0, fmt, rest...) + 1; // Explicit place for null termination
+    std::vector<char> buf(length, 0);
+    snprintf(&buf[0], length, fmt, rest...);
+    std::string s(buf.begin(), std::find(buf.begin(), buf.end(), '\0'));
+    return s;
+}
+
 void throw_assert(bool condition, const char *msg)
 {
     if (!condition) {

@@ -44,6 +44,7 @@ public:
 
         net.setup(in, input_shape);
         net.load(param_name);
+        net.print_info();
 
         return net.output();
     }
