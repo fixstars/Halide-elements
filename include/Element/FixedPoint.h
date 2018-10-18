@@ -196,9 +196,7 @@ template<uint32_t NB, uint32_t FB, bool is_signed>
 FixedN<NB, FB, is_signed> floor(const FixedN<NB, FB, is_signed>& x)
 {
     constexpr uint64_t mask = ~((0x1 << FB) - 1);
-    FixedN<NB, FB, is_signed> zero = to_fixed<NB, FB, is_signed>(.0f);
-    FixedN<NB, FB, is_signed> one = to_fixed<NB, FB, is_signed>(1.0f);
-    return FixedN<NB, FB, is_signed>{select(x >= zero, x.v, (x - one).v + 1) & make_const(base_type(NB, is_signed), mask)};
+    return FixedN<NB, FB, is_signed>{x.v & make_const(base_type(NB, is_signed), mask)};
 }
 
 template<uint32_t NB, uint32_t FB>
