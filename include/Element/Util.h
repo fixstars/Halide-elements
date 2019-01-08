@@ -20,10 +20,15 @@ std::string format(const char *fmt, const Rest&... rest)
     return s;
 }
 
+void throw_error(const char *msg)
+{
+    throw std::runtime_error(msg);
+}
+
 void throw_assert(bool condition, const char *msg)
 {
     if (!condition) {
-        throw std::runtime_error(msg);
+        throw_error(msg);
     }
 }
 

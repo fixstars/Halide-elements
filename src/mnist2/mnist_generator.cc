@@ -7,6 +7,7 @@
 
 using namespace Halide;
 using namespace Halide::Element;
+using namespace Halide::Element::Cnn;
 
 typedef float ElemT;
 
@@ -23,26 +24,28 @@ public:
         const std::string param_name = "data/LeNet_binarize.bin";
 
         Net net("LeNet-5");
+        Type type = Float(32);
 
-        net.add_layer("Conv", "conv1", 5, 20, 1, 0, true);
-        net.add_layer("BatchNorm", "bn1");
-        net.add_layer("Relu", "relu1");
-        net.add_layer("Pool", "pool1", 2, 2);
-        net.add_layer("BatchNorm", "bn2");
-        net.add_layer("Scale", "scale2");
-        net.add_layer("BinActive", "active2");
-        net.add_layer("BinConv", "conv2", 5, 50, 1, 0, true);
-        net.add_layer("Relu", "relu2");
-        net.add_layer("Pool", "pool2", 2, 2);
-        net.add_layer("BatchNorm", "bn3");
-        net.add_layer("Scale", "scale3");
-        net.add_layer("BinActive", "active3");
-        net.add_layer("BinLinear", "ip3", 500);
-        net.add_layer("Relu", "relu3");
-        net.add_layer("Linear", "ip4", 10);
-        net.add_layer("Softmax", "prob");
+        net.add_layer("Conv", "conv1", type, 5, 20, 1, 0, true);
+        net.add_layer("BatchNorm", "bn1", type);
+        net.add_layer("Relu", "relu1", type);
+        net.add_layer("Pool", "pool1", type, 2, 2);
+        net.add_layer("BatchNorm", "bn2", type);
+        net.add_layer("Scale", "scale2", type);
+        net.add_layer("BinActive", "active2", type);
+        net.add_layer("BinConv", "conv2", type, 5, 50, 1, 0, true);
+        net.add_layer("Relu", "relu2", type);
+        net.add_layer("Pool", "pool2", type, 2, 2);
+        net.add_layer("BatchNorm", "bn3", type);
+        net.add_layer("Scale", "scale3", type);
+        net.add_layer("BinActive", "active3", type);
+        net.add_layer("BinLinear", "ip3", type, 500);
+        net.add_layer("Relu", "relu3", type);
+        net.add_layer("Linear", "ip4", type, 10);
+        net.add_layer("Softmax", "prob", type);
 
         net.setup(in, input_shape);
+        net.auto_schedule();
         net.load(param_name);
         net.print_info();
 
