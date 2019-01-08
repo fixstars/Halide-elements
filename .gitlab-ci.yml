@@ -9,13 +9,13 @@ build:linux:
   stage: build
   tags:
     - cad1
-    - shell 
+    - shell
   script:
     - export GOPATH=~/go/
-    - export PATH=/usr/local/go/bin:${GOPATH}/bin:${PATH}
+    - export PATH=/usr/lib/llvm-5.0/bin:/usr/local/go/bin:${GOPATH}/bin:${PATH}
     - cd ~/go/src/Genesis
     - git pull origin master
-    - git submodule update 
+    - git submodule update
     - ./build.sh
   cache:
     untracked: true
