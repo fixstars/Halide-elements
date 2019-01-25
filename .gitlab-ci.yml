@@ -12,9 +12,10 @@ build:linux:
     - shell
   script:
     - export GOPATH=~/go/
-    - export PATH=/usr/lib/llvm-5.0/bin:usr/local/go/bin:${GOPATH}/bin:${PATH}
+    - export PATH=/usr/lib/llvm-5.0/bin:/usr/local/go/bin:${GOPATH}/bin:${PATH}
     - cd ~/go/src/Genesis
     - git pull origin master
+    - git pull --tags
     - git submodule update
     - ./build.sh
   cache:
