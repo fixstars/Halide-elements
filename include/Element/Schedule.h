@@ -105,7 +105,9 @@ ImageParam& set_extent_interval(ImageParam& ip, const std::vector<std::pair<int3
     assert(static_cast<size_t>(ip.dimensions()) >= intervals.size());
     for (size_t i=0; i<intervals.size(); ++i) {
         ip.dim(i).set_min(0);
+#if defined(HALIDE_FOR_FPGA)
         ip.dim(i).set_extent_interval(Halide::Internal::Interval(intervals[i].first, intervals[i].second));
+#endif
     }
     return ip;
 }
@@ -115,7 +117,9 @@ Func& set_extent_interval(Func& f, const std::vector<std::pair<int32_t, int32_t>
     assert(static_cast<size_t>(f.dimensions()) >= intervals.size() && f.output_buffer().defined());
     for (size_t i=0; i<intervals.size(); ++i) {
         f.output_buffer().dim(i).set_min(0);
+#if defined(HALIDE_FOR_FPGA)
         f.output_buffer().dim(i).set_extent_interval(Halide::Internal::Interval(intervals[i].first, intervals[i].second));
+#endif
     }
     return f;
 }
