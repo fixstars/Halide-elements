@@ -36,6 +36,7 @@ build:linux:
     - cad1
     - shell
   script:
+    - ':'
   dependencies:
     - build-genesis:linux
   except:
