@@ -17,7 +17,8 @@ ImageParam& schedule(ImageParam& ip, const std::vector<Expr>& mins, const std::v
 {
     assert(mins.size() == extents.size());
     for (size_t i=0; i<mins.size(); ++i) {
-        ip.dim(i).set_bounds(mins[i], extents[i]);
+        ip.dim(i).set_bounds(mins[i], extents[i])
+          .dim(i).set_stride(i == 0 ? 1 : ip.dim(i - 1).stride() * extents[i - 1]);
     }
     return ip;
 }
