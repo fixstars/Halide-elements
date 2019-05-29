@@ -35,6 +35,7 @@ build:linux:
   tags:
     - cad1
     - shell
+  script:
   dependencies:
     - build-genesis:linux
   except:
