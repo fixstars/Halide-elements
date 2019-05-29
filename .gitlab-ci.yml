@@ -1,28 +1,42 @@
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
+  GO_DIR: /home/gitlab-runner/go
+  GENESIS_DIR: $CI_PROJECT_DIR/genesis/genesis
+  VIVADO_HLS_PATH: /opt/Xilinx/Vivado/2018.2
 
 stages:
+  - build-genesis
   - build
   - test
+
+build-genesis:linux:
+  stage: build-genesis
+  tags:
+    - cad1
+    - shell
+  before_script:
+    - export PATH=/usr/local/go/bin:$PATH
+    - export GOPATH=$GO_DIR
+  script:
+    - if [ ! -d genesis ]; then GIT_LFS_SKIP_SMUDGE=1 git clone --recursive ssh://git@gitlab.fixstars.com:/GENESIS/genesis.git; fi
+    - cd genesis
+    - git fetch
+    - git checkout $(git describe --tags --abbrev=0)
+    - git submodule update
+    - ./build.sh
+    - ln -sfn genesis-$(git describe --tags)-linux genesis
+  cache:
+    paths:
+      - genesis
+  except:
+    - /^feature\/wip-.*/
 
 build:linux:
   stage: build
   tags:
     - cad1
     - shell
-  script:
-    - export GOPATH=~/go/
-    - export PATH=/usr/lib/llvm-5.0/bin:/usr/local/go/bin:${GOPATH}/bin:${PATH}
-    - cd ~/go/src/Genesis
-    - git pull origin master
-    - git pull --tags
-    - git submodule update
-    - ./build.sh
-  cache:
-    untracked: true
-  artifacts:
-    paths:
-      - genesis/
+  dependencies:
+    - build-genesis:linux
   except:
     - /^feature\/wip-.*/
 
@@ -32,7 +46,7 @@ test:linux:
     - cad1
     - shell
   script:
-    - export HALIDE_ROOT=~/go/src/Genesis/genesis/
+    - export HALIDE_ROOT=$GENESIS_DIR
     - ./testall.sh
   dependencies:
     - build:linux
