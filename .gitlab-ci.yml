@@ -5,18 +5,20 @@ variables:
 
 stages:
   - build-genesis
-  - build
   - test
+
+cache:
+  paths:
+    - genesis/
 
 build-genesis:linux:
   stage: build-genesis
   tags:
     - cad1
     - shell
-  before_script:
+  script:
     - export PATH=/usr/local/go/bin:$PATH
     - export GOPATH=$GO_DIR
-  script:
     - if [ ! -d genesis ]; then GIT_LFS_SKIP_SMUDGE=1 git clone --recursive ssh://git@gitlab.fixstars.com:/GENESIS/genesis.git; fi
     - cd genesis
     - git fetch
@@ -24,21 +26,6 @@ build-genesis:linux:
     - git submodule update
     - ./build.sh
     - ln -sfn genesis-$(git describe --tags)-linux genesis
-  cache:
-    paths:
-      - genesis
-  except:
-    - /^feature\/wip-.*/
-
-build:linux:
-  stage: build
-  tags:
-    - cad1
-    - shell
-  script:
-    - ':'
-  dependencies:
-    - build-genesis:linux
   except:
     - /^feature\/wip-.*/
 
@@ -51,6 +38,6 @@ test:linux:
     - export HALIDE_ROOT=$GENESIS_DIR
     - ./testall.sh
   dependencies:
-    - build:linux
+    - build-genesis:linux
   except:
     - /^feature\/wip-.*/
