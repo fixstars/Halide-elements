@@ -4,6 +4,7 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
+#include <cassert>
 #include <cmath>
 #include <Halide.h>
 #include "FixedPoint.h"
@@ -162,9 +163,12 @@ Func convolution(Func in, int32_t width, int32_t height, Func kernel, int32_t ke
     return out;
 }
 
+
 template<uint32_t frac_bits>
-Func gamma_correction(Func in, Param<float> value)
+Func gamma_correction(Func in, Expr value)
 {
+    assert(value.type().is_float());
+
     Var x, y, c;
 
     Fixed<int16_t, frac_bits>  v = Fixed<int16_t, frac_bits>{in(c,x,y)};
@@ -173,7 +177,7 @@ Func gamma_correction(Func in, Param<float> value)
     return out;
 }
 
-Func optical_black_clamp(Func in, Param<uint16_t> clamp_value)
+Func optical_black_clamp(Func in, Expr clamp_value)
 {
     Var x, y;
     Func out;
@@ -190,8 +194,10 @@ Fixed<int16_t, frac_bits> to_fixed16(Expr e)
 }
 
 template<uint32_t frac_bits>
-Func saturation_adjustment(Func in, Param<float> value)
+Func saturation_adjustment(Func in, Expr value)
 {
+    assert(value.type().is_float());
+
     Var x, y, c;
 
     Fixed<int16_t, frac_bits> zero = to_fixed16<frac_bits>(0);
